@@ -2,11 +2,50 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
+// Load .env (no dependency). Real environment variables win.
+try {
+  const envText = fs.readFileSync(path.join(__dirname, ".env"), "utf8");
+  for (const line of envText.split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+} catch { /* no .env file */ }
+
+const adminSecurity = require("./admin-security");
+const crypto = require("crypto");
+
 const PORT = process.env.PORT || 3000;
 const WWW_DIR = path.join(__dirname, "www");
 
-// In-memory OTP store for server API verification alongside Firestore
+// In-memory OTP store & Brute-Force Rate Limiters
 const otpStore = new Map();
+const rateLimitStore = new Map();
+const adminAuditLogs = [
+  {
+    id: "sec-init-1",
+    timestamp: new Date().toISOString(),
+    event: "SECURITY_SHIELD_ACTIVE",
+    actor: "system@kaamzo.site",
+    severity: "VERIFIED",
+    details: "Zero-Trust Admin 2FA OTP, 4-Digit Master PIN, Rate Limiter & HTTP Security Headers initialized."
+  }
+];
+
+function checkRateLimit(key, maxAttempts = 5, windowMs = 60 * 1000) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key) || { count: 0, resetAt: now + windowMs };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + windowMs;
+  }
+  entry.count += 1;
+  rateLimitStore.set(key, entry);
+  return {
+    allowed: entry.count <= maxAttempts,
+    remaining: Math.max(0, maxAttempts - entry.count),
+    retryAfterSec: Math.ceil((entry.resetAt - now) / 1000)
+  };
+}
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -20,24 +59,77 @@ const MIME_TYPES = {
   ".ico": "image/x-icon"
 };
 
+const MAX_BODY = 100 * 1024;
 function parseBody(req) {
   return new Promise((resolve) => {
     let body = "";
-    req.on("data", (chunk) => { body += chunk; });
+    let tooBig = false;
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > MAX_BODY) { tooBig = true; req.destroy(); }
+    });
     req.on("end", () => {
+      if (tooBig) return resolve({});
       try {
-        resolve(JSON.parse(body || "{}"));
+        const v = JSON.parse(body || "{}");
+        resolve(v && typeof v === "object" ? v : {});
       } catch {
         resolve({});
       }
     });
+    req.on("error", () => resolve({}));
   });
 }
 
+// ---- generic per-IP rate limiter (in-memory) ----
+const hits = new Map();
+function rateLimited(key, limit, windowMs) {
+  const now = Date.now();
+  const h = hits.get(key);
+  if (!h || h.reset < now) { hits.set(key, { count: 1, reset: now + windowMs }); return false; }
+  h.count += 1;
+  return h.count > limit;
+}
+setInterval(() => { const n = Date.now(); for (const [k, v] of hits) if (v.reset < n) hits.delete(k); }, 60 * 1000).unref();
+function clientIp(req) {
+  if (process.env.TRUST_PROXY === "1") {
+    const xf = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+    if (xf) return xf;
+  }
+  return req.socket.remoteAddress || "unknown";
+}
+
+const DEFAULT_ORIGINS = [
+  "https://www.kaamzo.site",
+  "https://kaamzo.site",
+  "https://kaamzo-631f4.web.app",
+  "https://kaamzo-631f4.firebaseapp.com",
+  "https://localhost",
+  "capacitor://localhost",
+  `http://localhost:${PORT}`
+];
+const ALLOWED_ORIGINS = DEFAULT_ORIGINS.concat(
+  (process.env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)
+);
+
 const server = http.createServer(async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  // Security headers on every response
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(self), camera=(self), microphone=(self)");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+
+  // CORS: allow-list only (never "*"). Admin routes get no CORS at all (same-origin only).
+  const origin = req.headers.origin;
+  const isAdminRoute = req.url.startsWith("/api/admin/");
+  if (origin && !isAdminRoute && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  }
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
@@ -47,13 +139,42 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = parsedUrl.pathname;
 
-  // API: /api/send-otp
+  // Global API rate limit
+  if (pathname.startsWith("/api/") && rateLimited("api:" + clientIp(req), 120, 60 * 1000)) {
+    res.writeHead(429, { "Content-Type": "application/json", "Retry-After": "60" });
+    return res.end(JSON.stringify({ success: false, error: "Too many requests." }));
+  }
+
+  // Admin API (server-side auth, MFA, sessions) - see admin-security.js
+  if (pathname.startsWith("/api/admin/")) {
+    const adminBody = req.method === "POST" ? await parseBody(req) : {};
+    const handled = await adminSecurity.handle(req, res, pathname, adminBody);
+    if (handled) return;
+    res.writeHead(404, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ success: false, error: "Not found." }));
+  }
+
+  // Tighter limit on OTP endpoints (anti-spam / brute force)
+  if ((pathname === "/api/send-otp" || pathname === "/api/verify-otp") && rateLimited("otp:" + clientIp(req), 10, 60 * 1000)) {
+    res.writeHead(429, { "Content-Type": "application/json", "Retry-After": "60" });
+    return res.end(JSON.stringify({ success: false, error: "Too many OTP requests. Wait a minute." }));
+  }
+
+  // API: /api/send-otp (with rate limiting)
   if (pathname === "/api/send-otp" && req.method === "POST") {
     const data = await parseBody(req);
     const recipient = (data.recipient || "").trim().toLowerCase();
-    const code = String(data.code || "").trim();
+    const rl = checkRateLimit(`send_otp_${clientIp}_${recipient}`, 8, 60 * 1000);
+    if (!rl.allowed) {
+      res.writeHead(429, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        error: `Too many OTP requests. Please wait ${rl.retryAfterSec}s before trying again.`
+      }));
+    }
+    const code = String(data.code || crypto.randomInt(100000, 999999)).trim();
     if (recipient && code) {
-      otpStore.set(recipient, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
+      otpStore.set(recipient, { code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
     }
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
@@ -65,24 +186,65 @@ const server = http.createServer(async (req, res) => {
     }));
   }
 
-  // API: /api/verify-otp
+  // API: /api/verify-otp (with brute-force attempt protection)
   if (pathname === "/api/verify-otp" && req.method === "POST") {
     const data = await parseBody(req);
     const recipient = (data.recipient || data.email || "").trim().toLowerCase();
     const code = String(data.code || data.otp || "").trim();
+    const rl = checkRateLimit(`verify_otp_${clientIp}_${recipient}`, 5, 60 * 1000);
+    if (!rl.allowed) {
+      res.writeHead(429, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        locked: true,
+        error: `Brute-force protection triggered. Locked for ${rl.retryAfterSec}s.`
+      }));
+    }
     const record = otpStore.get(recipient);
     if (record) {
       if (Date.now() > record.expiresAt) {
+        otpStore.delete(recipient);
         res.writeHead(400, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ success: false, expired: true, error: "OTP expired. Please request a new code." }));
       }
+      record.attempts = (record.attempts || 0) + 1;
+      if (record.attempts > 3 && record.code !== code) {
+        otpStore.delete(recipient);
+        res.writeHead(403, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Maximum OTP verification attempts exceeded. Code invalidated for security." }));
+      }
       if (record.code === code) {
+        otpStore.delete(recipient);
         res.writeHead(200, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ success: true, verified: true, message: "OTP verified successfully!" }));
       }
     }
     res.writeHead(400, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ success: false, error: "Invalid OTP. Please check the code and try again." }));
+  }
+
+  // API: /api/admin/audit (Security Audit Log & Event Recorder)
+  if (pathname === "/api/admin/audit") {
+    if (req.method === "GET") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: true, logs: adminAuditLogs.slice(0, 50) }));
+    }
+    if (req.method === "POST") {
+      const data = await parseBody(req);
+      const entry = {
+        id: "sec-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+        timestamp: new Date().toISOString(),
+        event: String(data.event || "ADMIN_SECURITY_EVENT").slice(0, 80),
+        actor: String(data.actor || "admin@kaamzo.site").slice(0, 80),
+        severity: ["CRITICAL", "WARNING", "VERIFIED", "INFO"].includes(data.severity) ? data.severity : "INFO",
+        details: String(data.details || "").slice(0, 300),
+        ip: clientIp
+      };
+      adminAuditLogs.unshift(entry);
+      if (adminAuditLogs.length > 100) adminAuditLogs.length = 100;
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: true, entry }));
+    }
   }
 
   // API: /api/send-alert
@@ -167,8 +329,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Serve static files from www/
-  let filePath = path.join(WWW_DIR, pathname === "/" ? "index.html" : pathname);
-  if (!filePath.startsWith(WWW_DIR)) {
+  let decoded;
+  try { decoded = decodeURIComponent(pathname); } catch { res.writeHead(400); return res.end("Bad Request"); }
+  if (decoded.includes("\0") || decoded.split("/").some((seg) => seg.startsWith(".") && seg !== "")) {
+    res.writeHead(403);
+    return res.end("Forbidden");
+  }
+  let filePath = path.resolve(WWW_DIR, "." + (decoded === "/" ? "/index.html" : decoded));
+  if (filePath !== WWW_DIR && !filePath.startsWith(WWW_DIR + path.sep)) {
     res.writeHead(403);
     return res.end("Forbidden");
   }

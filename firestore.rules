@@ -1,8 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Hardening step 1: nobody can DELETE data from the client (previously anyone
+    // holding the public API key could wipe every collection). Database resets now
+    // go through the authenticated admin API / Firebase console.
     match /{document=**} {
-      allow read, write: if true;
+      allow read, create, update: if true;
+      allow delete: if false;
     }
+    // TODO (see SECURITY.md): move accounts/passwords/OTP records behind Firebase Auth
+    // and lock these collections down further.
   }
 }

@@ -174,7 +174,7 @@
         const autofillBtn = document.getElementById("kaamzo-otp-autofill");
 
         function fillOtpInput(code) {
-          const inputs = document.querySelectorAll('input[maxlength="6"], #gmail-otp-input, #security-otp-input');
+          const inputs = document.querySelectorAll('input[maxlength="6"], #gmail-otp-input, #security-otp-input, #admin-2fa-otp-input');
           inputs.forEach(function(inp) {
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
             nativeInputValueSetter.call(inp, code);
@@ -234,11 +234,54 @@
             if (parsed.length > 0) return parsed;
           } catch (e) {}
           return [
-            { email: "bhavnoorsinghkochar@gmail.com", displayName: "Bhavnoor Singh Kochar", role: "Owner / Admin" },
             { email: "rajesh.kumar.worker@gmail.com", displayName: "Rajesh Kumar", role: "Verified Worker" },
             { email: "amit.sharma.employer@gmail.com", displayName: "Amit Sharma", role: "Verified Employer" }
           ];
         }
+
+        // 3. Enterprise Admin Security & Audit Vault
+        window.kaamzoAdminSecurity = {
+          // Admin credentials, whitelist and PIN live ONLY on the server (see admin-security.js).
+          // These stubs intentionally verify nothing client-side.
+          getWhitelist: function() { return []; },
+          isAuthorizedEmail: function() { return false; },
+          verifyPassword: function() { return false; },
+          setMasterPassword: function() { return false; },
+          verifyPin: function() { return false; },
+          setSecurityPin: function() { return false; },
+          getAuditLogs: function() {
+            try {
+              const raw = localStorage.getItem("kaamzo_admin_audit_logs_v1");
+              if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            return [
+              {
+                id: "sec-boot-1",
+                timestamp: new Date().toLocaleTimeString(),
+                event: "ZERO_TRUST_SHIELD_ACTIVE",
+                actor: "system@kaamzo.site",
+                severity: "VERIFIED",
+                details: "2FA Email/SMS OTP + 4-Digit Master PIN + Brute-Force Lockout + 15m Auto-Lock active."
+              }
+            ];
+          },
+          logEvent: function(event, details, severity, actor) {
+            try {
+              const logs = this.getAuditLogs();
+              const entry = {
+                id: "sec-" + Date.now(),
+                timestamp: new Date().toLocaleTimeString(),
+                event: event || "SECURITY_EVENT",
+                actor: actor || "bhavnoorsinghkochar@gmail.com",
+                severity: severity || "INFO",
+                details: details || ""
+              };
+              logs.unshift(entry);
+              localStorage.setItem("kaamzo_admin_audit_logs_v1", JSON.stringify(logs.slice(0, 60)));
+              
+            } catch (e) {}
+          }
+        };
 
         function saveAccount(acc) {
           try {

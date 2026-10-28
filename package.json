@@ -4,6 +4,7 @@
   "description": "Kaamzo - 3-in-1 Daily Wage Worker & Job Platform Android App (.aab & .apk) with Google Authentication & OTP",
   "private": true,
   "scripts": {
+    "start": "node server.js",
     "cap:sync": "cap sync android",
     "build:apk": "cd android && gradlew.bat assembleRelease",
     "build:aab": "cd android && gradlew.bat bundleRelease"
@@ -14,7 +15,8 @@
     "@capacitor-firebase/firestore": "^6.3.1",
     "@capacitor-firebase/messaging": "^6.3.1",
     "@capacitor/android": "^6.0.0",
-    "@capacitor/core": "^6.0.0"
+    "@capacitor/core": "^6.0.0",
+    "nodemailer": "^10.2.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0"

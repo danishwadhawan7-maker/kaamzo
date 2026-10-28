@@ -8,3 +8,7 @@ android/app/build/
 .env
 .DS_Store
 Thumbs.db
+
+logs/
+.env.*
+!.env.example
