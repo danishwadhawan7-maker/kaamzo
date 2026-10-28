@@ -164,7 +164,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname === "/api/send-otp" && req.method === "POST") {
     const data = await parseBody(req);
     const recipient = (data.recipient || "").trim().toLowerCase();
-    const rl = checkRateLimit(`send_otp_${clientIp}_${recipient}`, 8, 60 * 1000);
+    const rl = checkRateLimit(`send_otp_${clientIp(req)}_${recipient}`, 8, 60 * 1000);
     if (!rl.allowed) {
       res.writeHead(429, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({
@@ -191,7 +191,7 @@ const server = http.createServer(async (req, res) => {
     const data = await parseBody(req);
     const recipient = (data.recipient || data.email || "").trim().toLowerCase();
     const code = String(data.code || data.otp || "").trim();
-    const rl = checkRateLimit(`verify_otp_${clientIp}_${recipient}`, 5, 60 * 1000);
+    const rl = checkRateLimit(`verify_otp_${clientIp(req)}_${recipient}`, 5, 60 * 1000);
     if (!rl.allowed) {
       res.writeHead(429, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({
@@ -238,7 +238,7 @@ const server = http.createServer(async (req, res) => {
         actor: String(data.actor || "admin@kaamzo.site").slice(0, 80),
         severity: ["CRITICAL", "WARNING", "VERIFIED", "INFO"].includes(data.severity) ? data.severity : "INFO",
         details: String(data.details || "").slice(0, 300),
-        ip: clientIp
+        ip: clientIp(req)
       };
       adminAuditLogs.unshift(entry);
       if (adminAuditLogs.length > 100) adminAuditLogs.length = 100;

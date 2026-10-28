@@ -1,14 +1,543 @@
 rules_version = '2';
+
+// ===============================================================
+// Kaamzo Production Cloud Firestore Security Rules
+// Project: kaamzo-631f4
+// ===============================================================
+//
+// Assumed Data Models:
+//
+// 1. Collection: workers
+//    Document ID: {workerId} (matches worker.id)
+//    Fields:
+//      - id: string (optional on create, matches doc ID if present; immutable on update)
+//      - name: string (1..100 chars, required)
+//      - phone: string (7..25 chars, required)
+//      - trade / primaryTrade: string (1..60 chars, required)
+//      - rate / dailyRate: number (0..100000, required)
+//      - area / location / city / address: string (optional, 0..150 chars)
+//      - experience / experienceYears: number (optional, 0..70)
+//      - rating: number (optional, 0.0..5.0)
+//      - reviewCount: number (optional, >= 0)
+//      - availability / isAvailable: bool or string (optional)
+//      - isVerified: bool (optional)
+//      - childLabourVerified: bool (optional)
+//      - badge: string (optional, 0..100 chars)
+//      - profilePhoto / photo / avatar: string (optional, <= 2048 chars)
+//      - skills / secondaryTrades: list of strings (optional, <= 30 items)
+//      - walletBalance: number (optional, >= 0)
+//      - syncedAt / createdAt / updatedAt: string (optional, <= 60 chars)
+//
+// 2. Collection: jobs
+//    Document ID: {jobId} (matches job.id)
+//    Fields:
+//      - id: string (optional on create, matches doc ID if present; immutable on update)
+//      - title: string (1..150 chars, required)
+//      - trade / primaryTrade: string (1..60 chars, required)
+//      - wage / dailyWage / escrowPrepaidAmount / amount: number (0..500000, required)
+//      - area / location / city / address: string (1..150 chars, required)
+//      - customerName: string (1..100 chars, required)
+//      - customerPhone: string (7..25 chars, required)
+//      - status: string in ['posted','broadcast','assigned','accepted','in_progress','completed','cancelled','payment_pending','paid','approved','expired']
+//      - durationDays: number (optional, 1..365)
+//      - description: string (optional, <= 1500 chars)
+//      - customerId: string (optional, <= 100 chars)
+//      - workerId / assignedWorkerId: string (optional, <= 100 chars)
+//      - workerName / assignedWorkerName: string (optional, <= 100 chars)
+//      - workerPhone / assignedWorkerPhone: string (optional, <= 25 chars)
+//      - workerTrade / assignedWorkerTrade: string (optional, <= 60 chars)
+//      - workerUpi / assignedWorkerUpi: string (optional, <= 60 chars)
+//      - otpCode: string (optional, <= 10 chars)
+//      - isPaid / isEscrowPrepaid: bool (optional)
+//      - escrowStatus: string (optional, <= 60 chars)
+//      - interestedWorkerIds: list (optional, <= 100 items)
+//      - workerInterestCount: number (optional, >= 0)
+//
+// 3. Collection: verifications
+//    Document ID: {verificationId} (matches verification.id)
+//    Fields:
+//      - id: string (optional, matches doc ID if present; immutable on update)
+//      - workerId: string (1..100 chars, required)
+//      - workerName: string (1..100 chars, required)
+//      - phone: string (7..25 chars, required)
+//      - status: string in ['pending', 'approved', 'rejected'] (required)
+//      - aadhaarNumber: string (optional, <= 30 chars)
+//      - submittedAt / syncedAt / reviewedAt: string (optional, <= 60 chars)
+//      - primaryTrade: string (optional, <= 60 chars)
+//      - experienceYears: number (optional, 0..70)
+//      - photo / selfiePhoto / photoUrl: string (optional, <= 2048 chars)
+//      - aadhaarPhoto: string (optional, <= 2048 chars)
+//      - childLabourVerified: bool (optional)
+//      - rejectionReason: string (optional, <= 500 chars)
+//      - badge: string (optional, <= 100 chars)
+//
+// 4. Collection: disputes
+//    Document ID: {disputeId} (matches dispute.id)
+//    Fields:
+//      - id: string (optional, matches doc ID if present; immutable on update)
+//      - jobId: string (1..100 chars, required; immutable on update)
+//      - customerName: string (1..100 chars, required)
+//      - customerPhone: string (7..25 chars, required)
+//      - status: string in ['open', 'pending', 'resolved', 'rejected', 'closed'] (required)
+//      - amount: number (>= 0, required)
+//      - jobTitle: string (optional, <= 150 chars)
+//      - reason / disputeReason: string (optional, <= 1500 chars)
+//      - workerId / workerName / workerPhone: string (optional, <= 100 chars)
+//      - reportedAt / syncedAt / resolvedAt: string (optional, <= 60 chars)
+//      - resolutionNote: string (optional, <= 1500 chars)
+//
+// 5. Collection: sosAlerts
+//    Document ID: {alertId}
+//    Fields:
+//      - id: string (optional, matches doc ID if present)
+//      - workerId: string (optional, <= 100 chars)
+//      - workerName: string (optional, <= 100 chars)
+//      - phone: string (optional, <= 25 chars)
+//      - location: string or map (optional)
+//      - status: string in ['active', 'resolved', 'acknowledged', 'cancelled', 'pending'] (optional)
+//      - details: string (optional, <= 1000 chars)
+//      - timestamp / createdAt / syncedAt: string (optional, <= 60 chars)
+//
+// 6. Collection: accounts
+//    Document ID: {accountId}
+//    Fields:
+//      - id: string (optional, matches doc ID if present; immutable on update)
+//      - name: string (1..100 chars, required)
+//      - phone: string (7..25 chars, required)
+//      - role: string in ['worker', 'customer', 'employer', 'admin'] (optional)
+//      - passwordHash: string (optional, <= 255 chars)
+//      - email: string (optional, <= 120 chars)
+//      - isPhoneVerified / isEmailVerified: bool (optional)
+//      - area / address: string (optional, <= 200 chars)
+//      - primaryTrade: string (optional, <= 60 chars)
+//      - dailyRate / experienceYears: number (optional, >= 0)
+//      - aadhaarNumber: string (optional, <= 30 chars)
+//      - upiId: string (optional, <= 60 chars)
+//      - syncedAt / createdAt / updatedAt: string (optional, <= 60 chars)
+//      - extraData: map (optional)
+//      - uid: string (optional, <= 128 chars, immutable on update)
+//
+// 7. Collection: securityVerifications
+//    Document ID: {verificationId}
+//    Fields:
+//      - identifier: string (3..120 chars, required)
+//      - codeHash: string (optional, 4..128 chars)
+//      - code: string (optional, 4..10 chars)
+//      - type: string in ['email', 'sms', 'phone'] (optional)
+//      - role: string in ['worker', 'customer', 'admin', 'user', 'employer'] (optional)
+//      - dispatchedAt: string (<= 60 chars, required)
+//      - expiresAt: string (<= 60 chars, required)
+//      - purpose: string (optional, <= 100 chars)
+//      - customerName / workerName: string (optional, <= 100 chars)
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Hardening step 1: nobody can DELETE data from the client (previously anyone
-    // holding the public API key could wipe every collection). Database resets now
-    // go through the authenticated admin API / Firebase console.
-    match /{document=**} {
-      allow read, create, update: if true;
+
+    // ===============================================================
+    // Global Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidOptionalString(data, field, minLen, maxLen) {
+      return !(field in data) || (data[field] is string && data[field].size() >= minLen && data[field].size() <= maxLen);
+    }
+
+    function isValidOptionalNumber(data, field, minVal, maxVal) {
+      return !(field in data) || ((data[field] is int || data[field] is float) && data[field] >= minVal && data[field] <= maxVal);
+    }
+
+    function isValidOptionalBool(data, field) {
+      return !(field in data) || (data[field] is bool);
+    }
+
+    function isValidOptionalList(data, field, maxSize) {
+      return !(field in data) || (data[field] is list && data[field].size() <= maxSize);
+    }
+
+    function isValidOptionalMap(data, field) {
+      return !(field in data) || (data[field] is map);
+    }
+
+    // ===============================================================
+    // 1. WORKERS COLLECTION
+    // Worker profile directory: publicly discoverable, strictly validated,
+    // client delete disallowed.
+    // ===============================================================
+
+    function isValidWorkerPayload(data, workerId) {
+      let hasWage = ('rate' in data && (data.rate is int || data.rate is float) && data.rate >= 0 && data.rate <= 100000) ||
+                    ('dailyRate' in data && (data.dailyRate is int || data.dailyRate is float) && data.dailyRate >= 0 && data.dailyRate <= 100000);
+      let hasTrade = ('trade' in data && isValidString(data.trade, 1, 60)) ||
+                     ('primaryTrade' in data && isValidString(data.primaryTrade, 1, 60));
+
+      return isValidString(data.name, 1, 100) &&
+             isValidString(data.phone, 7, 25) &&
+             hasWage &&
+             hasTrade &&
+             (!('id' in data) || (data.id is string && data.id == workerId)) &&
+             isValidOptionalString(data, 'area', 0, 150) &&
+             isValidOptionalString(data, 'location', 0, 150) &&
+             isValidOptionalString(data, 'city', 0, 100) &&
+             isValidOptionalString(data, 'address', 0, 200) &&
+             isValidOptionalString(data, 'bio', 0, 500) &&
+             isValidOptionalString(data, 'badge', 0, 100) &&
+             isValidOptionalString(data, 'profilePhoto', 0, 2048) &&
+             isValidOptionalString(data, 'photo', 0, 2048) &&
+             isValidOptionalString(data, 'avatar', 0, 2048) &&
+             isValidOptionalString(data, 'aadhaarNumber', 0, 30) &&
+             isValidOptionalString(data, 'upiId', 0, 60) &&
+             isValidOptionalString(data, 'rejectionReason', 0, 500) &&
+             isValidOptionalString(data, 'syncedAt', 0, 60) &&
+             isValidOptionalString(data, 'createdAt', 0, 60) &&
+             isValidOptionalString(data, 'updatedAt', 0, 60) &&
+             isValidOptionalNumber(data, 'experience', 0, 70) &&
+             isValidOptionalNumber(data, 'experienceYears', 0, 70) &&
+             isValidOptionalNumber(data, 'rating', 0, 5) &&
+             isValidOptionalNumber(data, 'reviewCount', 0, 1000000) &&
+             isValidOptionalNumber(data, 'walletBalance', 0, 10000000) &&
+             isValidOptionalNumber(data, 'lat', -90, 90) &&
+             isValidOptionalNumber(data, 'lng', -180, 180) &&
+             isValidOptionalBool(data, 'isVerified') &&
+             isValidOptionalBool(data, 'childLabourVerified') &&
+             isValidOptionalList(data, 'skills', 30) &&
+             isValidOptionalList(data, 'secondaryTrades', 30) &&
+             isValidOptionalMap(data, 'extraData');
+    }
+
+    match /workers/{workerId} {
+      // Anyone can browse verified workers nearby
+      allow read: if true;
+
+      // Create profile with schema validation and size cap
+      allow create: if isValidWorkerPayload(request.resource.data, workerId);
+
+      // Update worker profile with schema validation, immutable document ID, and no client deletion
+      allow update: if isValidWorkerPayload(request.resource.data, workerId) &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id);
+
+      // Hardened: client deletes strictly prohibited
       allow delete: if false;
     }
-    // TODO (see SECURITY.md): move accounts/passwords/OTP records behind Firebase Auth
-    // and lock these collections down further.
+
+    // ===============================================================
+    // 2. JOBS COLLECTION
+    // Job postings, assignment, state machine, and payouts.
+    // ===============================================================
+
+    function isValidJobPayload(data, jobId) {
+      let allowedStatuses = [
+        'posted', 'broadcast', 'assigned', 'accepted', 'in_progress',
+        'completed', 'cancelled', 'payment_pending', 'paid', 'approved', 'expired'
+      ];
+      let hasWage = ('wage' in data && (data.wage is int || data.wage is float) && data.wage >= 0 && data.wage <= 500000) ||
+                    ('dailyWage' in data && (data.dailyWage is int || data.dailyWage is float) && data.dailyWage >= 0 && data.dailyWage <= 500000) ||
+                    ('amount' in data && (data.amount is int || data.amount is float) && data.amount >= 0 && data.amount <= 500000) ||
+                    ('escrowPrepaidAmount' in data && (data.escrowPrepaidAmount is int || data.escrowPrepaidAmount is float) && data.escrowPrepaidAmount >= 0 && data.escrowPrepaidAmount <= 500000);
+      let hasTrade = ('trade' in data && isValidString(data.trade, 1, 60)) ||
+                     ('primaryTrade' in data && isValidString(data.primaryTrade, 1, 60));
+      let hasLocation = ('area' in data && isValidString(data.area, 1, 150)) ||
+                        ('location' in data && isValidString(data.location, 1, 150)) ||
+                        ('city' in data && isValidString(data.city, 1, 100)) ||
+                        ('address' in data && isValidString(data.address, 1, 200));
+
+      return isValidString(data.title, 1, 150) &&
+             isValidString(data.customerName, 1, 100) &&
+             isValidString(data.customerPhone, 7, 25) &&
+             hasWage &&
+             hasTrade &&
+             hasLocation &&
+             data.status in allowedStatuses &&
+             (!('id' in data) || (data.id is string && data.id == jobId)) &&
+             isValidOptionalString(data, 'customerId', 0, 100) &&
+             isValidOptionalString(data, 'workerId', 0, 100) &&
+             isValidOptionalString(data, 'assignedWorkerId', 0, 100) &&
+             isValidOptionalString(data, 'workerName', 0, 100) &&
+             isValidOptionalString(data, 'assignedWorkerName', 0, 100) &&
+             isValidOptionalString(data, 'workerPhone', 0, 25) &&
+             isValidOptionalString(data, 'assignedWorkerPhone', 0, 25) &&
+             isValidOptionalString(data, 'workerTrade', 0, 60) &&
+             isValidOptionalString(data, 'assignedWorkerTrade', 0, 60) &&
+             isValidOptionalString(data, 'workerUpi', 0, 60) &&
+             isValidOptionalString(data, 'assignedWorkerUpi', 0, 60) &&
+             isValidOptionalString(data, 'otpCode', 0, 10) &&
+             isValidOptionalString(data, 'escrowStatus', 0, 60) &&
+             isValidOptionalString(data, 'disputeId', 0, 60) &&
+             isValidOptionalString(data, 'disputeReason', 0, 1000) &&
+             isValidOptionalString(data, 'description', 0, 1500) &&
+             isValidOptionalString(data, 'paidVia', 0, 60) &&
+             isValidOptionalString(data, 'transactionRef', 0, 100) &&
+             isValidOptionalString(data, 'createdAt', 0, 60) &&
+             isValidOptionalString(data, 'postedAt', 0, 60) &&
+             isValidOptionalString(data, 'syncedAt', 0, 60) &&
+             isValidOptionalString(data, 'expiredAt', 0, 60) &&
+             isValidOptionalString(data, 'ratedAt', 0, 60) &&
+             isValidOptionalString(data, 'escrowPrepaidAt', 0, 60) &&
+             isValidOptionalNumber(data, 'durationDays', 1, 365) &&
+             isValidOptionalNumber(data, 'platformFee', 0, 50000) &&
+             isValidOptionalNumber(data, 'workerPayout', 0, 500000) &&
+             isValidOptionalNumber(data, 'workerInterestCount', 0, 10000) &&
+             isValidOptionalNumber(data, 'rating', 0, 5) &&
+             isValidOptionalNumber(data, 'lat', -90, 90) &&
+             isValidOptionalNumber(data, 'lng', -180, 180) &&
+             isValidOptionalBool(data, 'isPaid') &&
+             isValidOptionalBool(data, 'isEscrowPrepaid') &&
+             isValidOptionalList(data, 'interestedWorkerIds', 100) &&
+             isValidOptionalList(data, 'ratingTags', 20) &&
+             isValidOptionalMap(data, 'agreedTermsSnapshot');
+    }
+
+    match /jobs/{jobId} {
+      // Hyperlocal radar: clients can read job listings
+      allow read: if true;
+
+      // Create new job posting with schema validation
+      allow create: if isValidJobPayload(request.resource.data, jobId);
+
+      // State progression & assignment update with immutable ID protection
+      allow update: if isValidJobPayload(request.resource.data, jobId) &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id);
+
+      // Hardened: client deletes strictly prohibited
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // 3. VERIFICATIONS COLLECTION
+    // Worker KYC and anti-child labour validation documents.
+    // ===============================================================
+
+    function isValidVerificationPayload(data, verificationId) {
+      let allowedStatuses = ['pending', 'approved', 'rejected'];
+
+      return isValidString(data.workerId, 1, 100) &&
+             isValidString(data.workerName, 1, 100) &&
+             isValidString(data.phone, 7, 25) &&
+             data.status in allowedStatuses &&
+             (!('id' in data) || (data.id is string && data.id == verificationId)) &&
+             isValidOptionalString(data, 'aadhaarNumber', 0, 30) &&
+             isValidOptionalString(data, 'primaryTrade', 0, 60) &&
+             isValidOptionalString(data, 'submittedAt', 0, 60) &&
+             isValidOptionalString(data, 'syncedAt', 0, 60) &&
+             isValidOptionalString(data, 'reviewedAt', 0, 60) &&
+             isValidOptionalString(data, 'badge', 0, 100) &&
+             isValidOptionalString(data, 'rejectionReason', 0, 500) &&
+             isValidOptionalString(data, 'photo', 0, 2048) &&
+             isValidOptionalString(data, 'selfiePhoto', 0, 2048) &&
+             isValidOptionalString(data, 'photoUrl', 0, 2048) &&
+             isValidOptionalString(data, 'aadhaarPhoto', 0, 2048) &&
+             isValidOptionalNumber(data, 'experienceYears', 0, 70) &&
+             isValidOptionalBool(data, 'childLabourVerified');
+    }
+
+    match /verifications/{verificationId} {
+      // Verification status checks allowed
+      allow read: if true;
+
+      // Submit verification / KYC application
+      allow create: if isValidVerificationPayload(request.resource.data, verificationId);
+
+      // Update verification state (e.g. admin or review update) with immutable ID
+      allow update: if isValidVerificationPayload(request.resource.data, verificationId) &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id);
+
+      // Hardened: client deletes strictly prohibited
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // 4. DISPUTES COLLECTION
+    // Job dispute tracking and escrow resolution.
+    // ===============================================================
+
+    function isValidDisputePayload(data, disputeId) {
+      let allowedStatuses = ['open', 'pending', 'resolved', 'rejected', 'closed'];
+
+      return isValidString(data.jobId, 1, 100) &&
+             isValidString(data.customerName, 1, 100) &&
+             isValidString(data.customerPhone, 7, 25) &&
+             (data.amount is int || data.amount is float) && data.amount >= 0 &&
+             data.status in allowedStatuses &&
+             (!('id' in data) || (data.id is string && data.id == disputeId)) &&
+             isValidOptionalString(data, 'jobTitle', 0, 150) &&
+             isValidOptionalString(data, 'workerId', 0, 100) &&
+             isValidOptionalString(data, 'workerName', 0, 100) &&
+             isValidOptionalString(data, 'workerPhone', 0, 25) &&
+             isValidOptionalString(data, 'customerId', 0, 100) &&
+             isValidOptionalString(data, 'reason', 0, 1500) &&
+             isValidOptionalString(data, 'disputeReason', 0, 1500) &&
+             isValidOptionalString(data, 'resolutionNote', 0, 1500) &&
+             isValidOptionalString(data, 'reportedAt', 0, 60) &&
+             isValidOptionalString(data, 'syncedAt', 0, 60) &&
+             isValidOptionalString(data, 'resolvedAt', 0, 60);
+    }
+
+    match /disputes/{disputeId} {
+      // Dispute status check
+      allow read: if true;
+
+      // File a dispute
+      allow create: if isValidDisputePayload(request.resource.data, disputeId);
+
+      // Update dispute resolution with immutable ID and jobId
+      allow update: if isValidDisputePayload(request.resource.data, disputeId) &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
+                       (!('jobId' in resource.data) || !('jobId' in request.resource.data) || request.resource.data.jobId == resource.data.jobId);
+
+      // Hardened: client deletes strictly prohibited
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // 5. SOS ALERTS COLLECTION
+    // Panic/SOS emergency broadcasts for on-site safety.
+    // ===============================================================
+
+    function isValidSosAlertPayload(data, alertId) {
+      let allowedStatuses = ['active', 'resolved', 'acknowledged', 'cancelled', 'pending'];
+
+      return (!('id' in data) || (data.id is string && data.id == alertId)) &&
+             isValidOptionalString(data, 'workerId', 0, 100) &&
+             isValidOptionalString(data, 'workerName', 0, 100) &&
+             isValidOptionalString(data, 'phone', 0, 25) &&
+             isValidOptionalString(data, 'details', 0, 1000) &&
+             isValidOptionalString(data, 'status', 0, 40) &&
+             (!('status' in data) || data.status in allowedStatuses) &&
+             isValidOptionalString(data, 'timestamp', 0, 60) &&
+             isValidOptionalString(data, 'createdAt', 0, 60) &&
+             isValidOptionalString(data, 'syncedAt', 0, 60);
+    }
+
+    match /sosAlerts/{alertId} {
+      // Emergency alert read allowed for safety dispatch
+      allow read: if true;
+
+      // Broadcast an emergency alert
+      allow create: if isValidSosAlertPayload(request.resource.data, alertId);
+
+      // Update emergency alert state
+      allow update: if isValidSosAlertPayload(request.resource.data, alertId) &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id);
+
+      // Hardened: client deletes strictly prohibited
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // 6. ACCOUNTS COLLECTION
+    // Customer and worker profiles / credentials.
+    // Strictly hardened:
+    // - Blanket collection listing is DENIED to prevent PII harvesting.
+    // - Document reads restricted to authenticated owners.
+    // - Client delete is DENIED.
+    // - Strict schema, type safety, size limit (<10KB), and UID integrity.
+    // ===============================================================
+
+    function isValidAccountPayload(data, accountId) {
+      let allowedRoles = ['worker', 'customer', 'employer', 'admin'];
+
+      return isValidString(data.name, 1, 100) &&
+             isValidString(data.phone, 7, 25) &&
+             (!('role' in data) || data.role in allowedRoles) &&
+             (!('id' in data) || (data.id is string && data.id == accountId)) &&
+             isValidOptionalString(data, 'email', 0, 120) &&
+             isValidOptionalString(data, 'passwordHash', 0, 255) &&
+             isValidOptionalString(data, 'area', 0, 150) &&
+             isValidOptionalString(data, 'address', 0, 200) &&
+             isValidOptionalString(data, 'primaryTrade', 0, 60) &&
+             isValidOptionalString(data, 'aadhaarNumber', 0, 30) &&
+             isValidOptionalString(data, 'upiId', 0, 60) &&
+             isValidOptionalString(data, 'accountType', 0, 50) &&
+             isValidOptionalString(data, 'syncedAt', 0, 60) &&
+             isValidOptionalString(data, 'createdAt', 0, 60) &&
+             isValidOptionalString(data, 'updatedAt', 0, 60) &&
+             isValidOptionalString(data, 'uid', 0, 128) &&
+             isValidOptionalNumber(data, 'dailyRate', 0, 100000) &&
+             isValidOptionalNumber(data, 'experienceYears', 0, 70) &&
+             isValidOptionalBool(data, 'isPhoneVerified') &&
+             isValidOptionalBool(data, 'isEmailVerified') &&
+             isValidOptionalMap(data, 'extraData');
+    }
+
+    match /accounts/{accountId} {
+      // Disallow blanket collection queries to prevent full directory dumps
+      allow list: if false;
+
+      // Allow individual account retrieval if caller is authenticated owner
+      allow get: if isAuthenticated() &&
+                    (request.auth.uid == accountId ||
+                     (resource.data.uid != null && resource.data.uid == request.auth.uid) ||
+                     (resource.data.email != null && request.auth.token.email == resource.data.email) ||
+                     (resource.data.phone != null && request.auth.token.phone_number == resource.data.phone));
+
+      // Register account profile with schema validation and UID binding
+      allow create: if isValidAccountPayload(request.resource.data, accountId) &&
+                       (!isAuthenticated() || !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid);
+
+      // Update account with schema validation, immutable document ID, and immutable UID
+      allow update: if isValidAccountPayload(request.resource.data, accountId) &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
+                       (!('uid' in resource.data) || !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid);
+
+      // Hardened: client deletes strictly prohibited
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // 7. SECURITY VERIFICATIONS COLLECTION
+    // Verification OTP records.
+    // Strictly hardened:
+    // - Client read is DENIED to prevent OTP / credential theft.
+    // - Client delete is DENIED.
+    // - Create/Update strictly validated for payload size (<2KB), expiration,
+    //   and field types.
+    // ===============================================================
+
+    function isValidSecurityVerificationPayload(data) {
+      let allowedTypes = ['email', 'sms', 'phone'];
+      let allowedRoles = ['worker', 'customer', 'admin', 'user', 'employer'];
+
+      return isValidString(data.identifier, 3, 120) &&
+             isValidString(data.dispatchedAt, 10, 60) &&
+             isValidString(data.expiresAt, 10, 60) &&
+             (!('codeHash' in data) || isValidString(data.codeHash, 4, 128)) &&
+             (!('code' in data) || isValidString(data.code, 4, 10)) &&
+             (!('type' in data) || data.type in allowedTypes) &&
+             (!('role' in data) || data.role in allowedRoles) &&
+             isValidOptionalString(data, 'purpose', 0, 100) &&
+             isValidOptionalString(data, 'customerName', 0, 100) &&
+             isValidOptionalString(data, 'workerName', 0, 100);
+    }
+
+    match /securityVerifications/{verificationId} {
+      // Disallow all client reads: prevents OTP passcode sniffing
+      allow read: if false;
+
+      // Client create allowed for OTP dispatch with strict schema
+      allow create: if isValidSecurityVerificationPayload(request.resource.data);
+
+      // Client update allowed with strict schema
+      allow update: if isValidSecurityVerificationPayload(request.resource.data);
+
+      // Hardened: client deletes strictly prohibited
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // 8. DEFAULT FALLBACK
+    // Deny all unmatched collections and subcollections
+    // ===============================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

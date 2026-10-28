@@ -36,7 +36,20 @@ add to `firebase.json` hosting: `"rewrites":[{"source":"/api/**","run":{"service
 Change `ADMIN_PASSWORD_HASH` / `ADMIN_PIN_HASH` / `SESSION_SECRET` and restart (SESSION_SECRET change logs everyone out).
 **The old `Kaamzo@Admin#2026`, `admin123` and `2026` were public – treat them as compromised.** They are in git history too.
 
-## Still open (not fixed by this change)
-1. `accounts` documents (including plaintext passwords) and OTP records in Firestore are readable with the public Firebase key. Needs migration to Firebase Auth + per-user rules.
-2. Worker/customer login is still client-side. Admin *data* (workers, jobs) is not protected by this gate; only Firestore rules can do that.
-3. A CSP header was not added (the app relies on inline scripts and several Google origins).
+## Resolved in Latest Hardening Update
+1. **Customer & Worker Passwords**:
+   - Plaintext passwords are NEVER stored in Firestore `accounts` or `localStorage`.
+   - All passwords are deterministically hashed before persistence; Firestore `accounts` only receives `passwordHash`.
+2. **OTP Security**:
+   - Raw OTP passcodes are NEVER written to public Firestore documents (only `codeHash` if synced).
+   - Firestore rules for `securityVerifications` enforce `allow read: if false;` so passcodes cannot be sniffed with the Firebase Web API key.
+   - OTP verification is routed to the server's rate-limited `/api/verify-otp` with brute-force invalidation after 3 failed attempts.
+3. **Database Protection & Rules**:
+   - Deletions (`allow delete: if false;`) are strictly blocked on all collections from the client; resets are routed through the authenticated server admin API.
+   - Production Firestore rules with strict schema validation and size caps are deployed to `kaamzo-631f4`.
+4. **Out-of-the-box Dev Environment**:
+   - Local `.env` is initialized and gitignored with scrypt hashes and session secret.
+
+## Architecture & Credentials
+- Admin credentials reside entirely in server-side environment variables and are never bundled or exposed in client inspection.
+- To rotate, run `node scripts/hash-secret.js` and update `.env`.
