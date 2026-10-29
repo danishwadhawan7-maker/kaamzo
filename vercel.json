@@ -1,0 +1,11 @@
+{
+  "buildCommand": "node ./scripts/vite-shim.js",
+  "outputDirectory": "www",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}

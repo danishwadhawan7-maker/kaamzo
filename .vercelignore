@@ -1,0 +1,11 @@
+android/
+node_modules/
+.git/
+.gradle/
+build/
+logs/
+*.apk
+*.aab
+*.jks
+.env
+.env.*

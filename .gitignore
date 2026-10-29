@@ -12,3 +12,6 @@ Thumbs.db
 logs/
 .env.*
 !.env.example
+.vercel
+.env*
+.firebase/

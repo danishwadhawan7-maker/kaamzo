@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "Kaamzo - 3-in-1 Daily Wage Worker & Job Platform Android App (.aab & .apk) with Google Authentication & OTP",
   "private": true,
+  "bin": {
+    "vite": "./scripts/vite-shim.js"
+  },
   "scripts": {
+    "build": "node ./scripts/vite-shim.js",
+    "vite": "node ./scripts/vite-shim.js",
     "start": "node server.js",
     "cap:sync": "cap sync android",
     "build:apk": "cd android && gradlew.bat assembleRelease",
