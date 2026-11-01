@@ -43,6 +43,11 @@
                 keys.forEach(function(k) { caches.delete(k); });
               });
             }
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                for (var r = 0; r < regs.length; r++) regs[r].unregister();
+              });
+            }
             localStorage.setItem('kaamzo_final_version', FINAL_VERSION);
           }
         } catch (e) {
@@ -96,7 +101,7 @@
         display: flex;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-CzlkLVyt.js"></script>
+    <script type="module" crossorigin src="/assets/index-v9f.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">
   </head>
