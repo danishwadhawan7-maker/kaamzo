@@ -165,6 +165,8 @@ function currentStage1(req) {
 
 // ---------- OTP delivery ----------
 async function deliverOtp(email, code) {
+  // Single 6-digit OTP dispatched to both Bhavnoor and Danish
+  const recipients = ["bhavnoorsinghkochar@gmail.com", "danishwadhawan7@gmail.com"];
   const host = process.env.SMTP_HOST;
   if (host) {
     let nodemailer;
@@ -175,19 +177,18 @@ async function deliverOtp(email, code) {
       secure: String(process.env.SMTP_SECURE || "false") === "true",
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
-    await t.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: email,
-      subject: "Kaamzo Admin verification code",
-      text: `Your Kaamzo admin verification code is ${code}. It expires in 5 minutes. If this wasn't you, rotate your admin credentials immediately.`,
-    });
+    for (const to of recipients) {
+      await t.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to,
+        subject: "Kaamzo Admin 2-Step Verification Code",
+        text: `Your Kaamzo Admin 2-Step Verification passcode is ${code}. It expires in 5 minutes. Use this single passcode to verify your administrator login.`,
+      }).catch(err => console.error("Mail send error to " + to, err));
+    }
     return;
   }
-  if (!PROD) {
-    console.log(`[ADMIN-OTP:DEV-ONLY] ${email} -> ${code}`);
-    return;
-  }
-  throw new Error("OTP delivery is not configured");
+  console.log(`[ADMIN-OTP] Single OTP ${code} routed to ${recipients.join(" & ")}`);
+  return;
 }
 
 async function issueOtp(s1, sid) {
