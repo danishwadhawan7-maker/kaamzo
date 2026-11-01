@@ -20,6 +20,36 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      (function() {
+        var FINAL_VERSION = 'v9_finalized_20261101';
+        try {
+          if (localStorage.getItem('kaamzo_final_version') !== FINAL_VERSION) {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+              var eqPos = cookies[i].indexOf('=');
+              var name = eqPos > -1 ? cookies[i].substr(0, eqPos).trim() : cookies[i].trim();
+              if (name) {
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + window.location.hostname + ';';
+              }
+            }
+            localStorage.removeItem('kaamzo_is_reset_state_v8');
+            localStorage.removeItem('kaamzo_current_admin_v8');
+            sessionStorage.clear();
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                keys.forEach(function(k) { caches.delete(k); });
+              });
+            }
+            localStorage.setItem('kaamzo_final_version', FINAL_VERSION);
+          }
+        } catch (e) {
+          console.warn('Finalize cache sync note:', e);
+        }
+      })();
+    </script>
     <style>
       /* Hide the Google Translate toolbar and UI elements */
       .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
