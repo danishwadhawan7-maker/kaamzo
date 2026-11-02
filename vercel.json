@@ -4,7 +4,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/(.*\\.html|admin|worker|customer|pitch|^/$)",
+      "source": "/(.*\\.html|admin.*|worker.*|customer.*|pitch.*|^/$)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -19,7 +19,15 @@
       "destination": "/index.html"
     },
     {
+      "source": "/admin/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/worker",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/worker/(.*)",
       "destination": "/index.html"
     },
     {
@@ -27,7 +35,15 @@
       "destination": "/index.html"
     },
     {
+      "source": "/customer/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/pitch",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/pitch/(.*)",
       "destination": "/index.html"
     },
     {
