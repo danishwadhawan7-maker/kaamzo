@@ -22,7 +22,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
       (function() {
-        var FINAL_VERSION = 'v13_unified_branding';
+        var FINAL_VERSION = 'v14_audio_accessibility';
         try {
           var saved = localStorage.getItem('kaamzo_google_accounts_v1');
           if (saved && (saved.includes('rajesh') || saved.includes('amit') || saved.includes('worker@gmail') || saved.includes('employer@gmail'))) {
@@ -93,7 +93,7 @@
         display: flex;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-v12.js"></script>
+    <script type="module" crossorigin src="/assets/index-v13.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">
   </head>
@@ -388,6 +388,377 @@
         };
       })();
     </script>
+    
+    <!-- Kaamzo Multilingual Audio Reader & Accessibility Engine -->
+    <style id="kaamzo-audio-styles">
+      /* All readable text highlighted in vibrant orange when Audio Mode is active */
+      body.kaamzo-audio-active p,
+      body.kaamzo-audio-active h1,
+      body.kaamzo-audio-active h2,
+      body.kaamzo-audio-active h3,
+      body.kaamzo-audio-active h4,
+      body.kaamzo-audio-active h5,
+      body.kaamzo-audio-active h6,
+      body.kaamzo-audio-active span:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active label,
+      body.kaamzo-audio-active li,
+      body.kaamzo-audio-active a:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active button:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active .kaamzo-word {
+        background-color: rgba(245, 158, 11, 0.28) !important;
+        color: #7c2d12 !important;
+        outline: 1.5px dashed #f59e0b !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        transition: background-color 0.15s ease, outline-color 0.15s ease, transform 0.15s ease !important;
+      }
+
+      body.kaamzo-audio-active.dark p,
+      body.kaamzo-audio-active.dark h1,
+      body.kaamzo-audio-active.dark h2,
+      body.kaamzo-audio-active.dark h3,
+      body.kaamzo-audio-active.dark h4,
+      body.kaamzo-audio-active.dark h5,
+      body.kaamzo-audio-active.dark h6,
+      body.kaamzo-audio-active.dark span:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active.dark label,
+      body.kaamzo-audio-active.dark li,
+      body.kaamzo-audio-active.dark a:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active.dark button:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active.dark .kaamzo-word {
+        background-color: rgba(245, 158, 11, 0.35) !important;
+        color: #fef3c7 !important;
+        outline: 1.5px dashed #f59e0b !important;
+      }
+
+      /* Hover highlight */
+      body.kaamzo-audio-active p:hover,
+      body.kaamzo-audio-active h1:hover,
+      body.kaamzo-audio-active h2:hover,
+      body.kaamzo-audio-active h3:hover,
+      body.kaamzo-audio-active h4:hover,
+      body.kaamzo-audio-active span:not(.kaamzo-ui-ignore):hover,
+      body.kaamzo-audio-active .kaamzo-word:hover {
+        background-color: rgba(245, 158, 11, 0.55) !important;
+        outline: 2px solid #ea580c !important;
+      }
+
+      /* Spoken word turns High-Contrast Electric Blue while surrounding words stay orange */
+      .kaamzo-spoken-word-active,
+      body.kaamzo-audio-active .kaamzo-spoken-word-active,
+      body.kaamzo-audio-active.dark .kaamzo-spoken-word-active {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        outline: 2px solid #60a5fa !important;
+        box-shadow: 0 0 16px rgba(37, 99, 235, 0.9) !important;
+        border-radius: 4px !important;
+        padding: 1px 4px !important;
+        transform: scale(1.08) !important;
+        display: inline-block !important;
+        z-index: 20 !important;
+        position: relative !important;
+        font-weight: 800 !important;
+      }
+
+      /* Header active audio button glow */
+      .kaamzo-header-audio-active {
+        background: #f59e0b !important;
+        color: #0f172a !important;
+        border-color: #d97706 !important;
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+        animation: pulse-audio 2s infinite !important;
+      }
+      @keyframes pulse-audio {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+
+      /* Floating Audio Toolbar */
+      #kaamzo-audio-toolbar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(160%);
+        z-index: 99998;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(15, 23, 42, 0.96);
+        border: 2px solid #f59e0b;
+        border-radius: 999px;
+        padding: 8px 18px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+        backdrop-filter: blur(12px);
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        color: #ffffff;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
+      }
+      #kaamzo-audio-toolbar.visible {
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+
+    <!-- Floating Audio Toolbar Modal -->
+    <div id="kaamzo-audio-toolbar" class="kaamzo-ui-ignore" role="region" aria-label="Audio Reader Controls">
+      <div class="kaamzo-ui-ignore" style="display:flex;align-items:center;gap:6px;">
+        <span class="kaamzo-ui-ignore" style="font-size:16px;">🔊</span>
+        <span class="kaamzo-ui-ignore" style="font-size:12px;font-weight:900;color:#fbbf24;letter-spacing:0.02em;">AUDIO READER</span>
+      </div>
+      <div id="kaamzo-audio-status" class="kaamzo-ui-ignore" style="font-size:11px;color:#cbd5e1;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;">
+        Click any text/word to listen
+      </div>
+      <button id="kaamzo-audio-stop-btn" type="button" onclick="window.kaamzoStopAudio()" class="kaamzo-ui-ignore" style="background:#ef4444;color:#ffffff;border:none;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(239,68,68,0.5);transition:transform 0.15s;" title="Stop playing audio">
+        <span class="kaamzo-ui-ignore">⏹</span> Stop Audio
+      </button>
+      <button id="kaamzo-audio-exit-btn" type="button" onclick="window.kaamzoToggleAudioReader(false)" class="kaamzo-ui-ignore" style="background:rgba(255,255,255,0.15);color:#cbd5e1;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;" title="Exit Audio Mode">
+        ✕ Exit
+      </button>
+    </div>
+
+    <script type="text/javascript">
+      (function() {
+        var isAudioMode = false;
+        var activeAudio = null;
+        var activeWordSpan = null;
+        var wordInterval = null;
+
+        function detectLanguage(text) {
+          if (!text) return 'en';
+          if (/[\u0A00-\u0A7F]/.test(text)) return 'pa'; // Punjabi (Gurmukhi)
+          if (/[\u0900-\u097F]/.test(text)) return 'hi'; // Hindi (Devanagari)
+          try {
+            var appLang = localStorage.getItem('kaamzo_language_v8') || 'en';
+            if (appLang === 'pa' || appLang === 'hi') return appLang;
+          } catch(e) {}
+          return 'en';
+        }
+
+        function clearActiveSpokenWord() {
+          if (activeWordSpan) {
+            activeWordSpan.classList.remove('kaamzo-spoken-word-active');
+            activeWordSpan = null;
+          }
+          if (wordInterval) {
+            clearInterval(wordInterval);
+            wordInterval = null;
+          }
+          var spoken = document.querySelectorAll('.kaamzo-spoken-word-active');
+          for (var i = 0; i < spoken.length; i++) {
+            spoken[i].classList.remove('kaamzo-spoken-word-active');
+          }
+        }
+
+        function stopAudio() {
+          if ('speechSynthesis' in window) {
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+          }
+          if (activeAudio) {
+            try {
+              activeAudio.pause();
+              activeAudio.currentTime = 0;
+            } catch(e) {}
+            activeAudio = null;
+          }
+          clearActiveSpokenWord();
+          var statusEl = document.getElementById('kaamzo-audio-status');
+          if (statusEl) statusEl.textContent = 'Click any text/word to listen';
+        }
+
+        window.kaamzoStopAudio = stopAudio;
+
+        function toggleAudioReader(forceState) {
+          if (typeof forceState === 'boolean') {
+            isAudioMode = forceState;
+          } else {
+            isAudioMode = !isAudioMode;
+          }
+
+          var toolbar = document.getElementById('kaamzo-audio-toolbar');
+          var headerBtns = document.querySelectorAll('#kaamzo-header-audio-btn');
+
+          if (isAudioMode) {
+            document.body.classList.add('kaamzo-audio-active');
+            if (toolbar) toolbar.classList.add('visible');
+            for (var b = 0; b < headerBtns.length; b++) {
+              headerBtns[b].classList.add('kaamzo-header-audio-active');
+            }
+            var statusEl = document.getElementById('kaamzo-audio-status');
+            if (statusEl) statusEl.textContent = 'Orange: highlighted text • Click to speak (turns blue)';
+          } else {
+            stopAudio();
+            document.body.classList.remove('kaamzo-audio-active');
+            if (toolbar) toolbar.classList.remove('visible');
+            for (var b = 0; b < headerBtns.length; b++) {
+              headerBtns[b].classList.remove('kaamzo-header-audio-active');
+            }
+          }
+        }
+
+        window.kaamzoToggleAudioReader = toggleAudioReader;
+
+        // Speak a specific target element or word
+        function handleElementSpeak(element, clickedNode) {
+          if (!isAudioMode) return;
+          stopAudio();
+
+          var rawText = (element.innerText || element.textContent || '').trim();
+          if (!rawText || rawText.length === 0) return;
+
+          var lang = detectLanguage(rawText);
+          var langName = lang === 'pa' ? 'Punjabi' : lang === 'hi' ? 'Hindi' : 'English';
+          var statusEl = document.getElementById('kaamzo-audio-status');
+          if (statusEl) {
+            statusEl.textContent = 'Speaking (' + langName + '): ' + rawText.substring(0, 30) + '...';
+          }
+
+          // Wrap individual words if not already wrapped
+          var isAlreadyTokenized = element.querySelector('.kaamzo-word');
+          if (!isAlreadyTokenized && element.children.length === 0) {
+            var words = rawText.split(/(\s+)/);
+            element.innerHTML = '';
+            for (var w = 0; w < words.length; w++) {
+              if (/^\s+$/.test(words[w])) {
+                element.appendChild(document.createTextNode(words[w]));
+              } else {
+                var span = document.createElement('span');
+                span.className = 'kaamzo-word';
+                span.textContent = words[w];
+                element.appendChild(span);
+              }
+            }
+          }
+
+          var wordSpans = element.querySelectorAll('.kaamzo-word');
+
+          // Highlight the clicked word immediately in Blue while others remain Orange
+          var targetSpan = null;
+          if (clickedNode && clickedNode.classList && clickedNode.classList.contains('kaamzo-word')) {
+            targetSpan = clickedNode;
+          } else if (wordSpans.length > 0) {
+            targetSpan = wordSpans[0];
+          }
+
+          if (targetSpan) {
+            clearActiveSpokenWord();
+            targetSpan.classList.add('kaamzo-spoken-word-active');
+            activeWordSpan = targetSpan;
+          }
+
+          // Use Web Speech API if supported
+          if ('speechSynthesis' in window) {
+            try {
+              var utterance = new SpeechSynthesisUtterance(rawText);
+              utterance.rate = 0.92;
+              utterance.pitch = 1.0;
+
+              var voices = window.speechSynthesis.getVoices();
+              var matchedVoice = null;
+              if (lang === 'pa') {
+                matchedVoice = voices.find(function(v) { return v.lang.startsWith('pa') || v.name.toLowerCase().includes('punjabi'); });
+                utterance.lang = 'pa-IN';
+              } else if (lang === 'hi') {
+                matchedVoice = voices.find(function(v) { return v.lang.startsWith('hi') || v.name.toLowerCase().includes('hindi'); });
+                utterance.lang = 'hi-IN';
+              } else {
+                matchedVoice = voices.find(function(v) { return v.lang.startsWith('en-IN') || v.lang.startsWith('en'); });
+                utterance.lang = 'en-IN';
+              }
+              if (matchedVoice) utterance.voice = matchedVoice;
+
+              utterance.onboundary = function(event) {
+                if (event.name === 'word' && wordSpans.length > 0) {
+                  var charIndex = event.charIndex;
+                  var accumulated = 0;
+                  for (var i = 0; i < wordSpans.length; i++) {
+                    var sLen = wordSpans[i].textContent.length;
+                    if (charIndex >= accumulated && charIndex < accumulated + sLen + 2) {
+                      clearActiveSpokenWord();
+                      wordSpans[i].classList.add('kaamzo-spoken-word-active');
+                      activeWordSpan = wordSpans[i];
+                      break;
+                    }
+                    accumulated += sLen + 1;
+                  }
+                }
+              };
+
+              utterance.onend = function() {
+                clearActiveSpokenWord();
+                if (statusEl) statusEl.textContent = 'Finished. Click any text/word to listen';
+              };
+
+              utterance.onerror = function() {
+                fallbackGoogleTTS(rawText, lang, wordSpans);
+              };
+
+              window.speechSynthesis.speak(utterance);
+              return;
+            } catch(e) {
+              console.warn('SpeechSynthesis error, falling back:', e);
+            }
+          }
+
+          fallbackGoogleTTS(rawText, lang, wordSpans);
+        }
+
+        function fallbackGoogleTTS(text, lang, wordSpans) {
+          try {
+            var safeText = encodeURIComponent(text.substring(0, 180));
+            var audioUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=' + lang + '&client=tw-ob&q=' + safeText;
+            activeAudio = new Audio(audioUrl);
+            activeAudio.play().catch(function(e) { console.warn('Audio play notice:', e); });
+
+            if (wordSpans && wordSpans.length > 0) {
+              var currentIdx = 0;
+              wordInterval = setInterval(function() {
+                if (!activeAudio || activeAudio.paused || currentIdx >= wordSpans.length) {
+                  clearInterval(wordInterval);
+                  return;
+                }
+                clearActiveSpokenWord();
+                if (wordSpans[currentIdx]) {
+                  wordSpans[currentIdx].classList.add('kaamzo-spoken-word-active');
+                  activeWordSpan = wordSpans[currentIdx];
+                }
+                currentIdx++;
+              }, 400);
+
+              activeAudio.onended = function() {
+                clearActiveSpokenWord();
+                var statusEl = document.getElementById('kaamzo-audio-status');
+                if (statusEl) statusEl.textContent = 'Finished. Click any text/word to listen';
+              };
+            }
+          } catch(e) {
+            console.error('Fallback TTS failed:', e);
+          }
+        }
+
+        // Global Event Delegation for clicking any highlighted text in Audio Mode
+        window.addEventListener('click', function(ev) {
+          if (!isAudioMode) return;
+          var target = ev.target;
+          if (!target) return;
+
+          // Ignore clicks on audio toolbar controls or close buttons
+          if (target.closest && target.closest('.kaamzo-ui-ignore')) return;
+          if (target.id === 'kaamzo-header-audio-btn' || (target.closest && target.closest('#kaamzo-header-audio-btn'))) return;
+
+          // Prevent navigation when in audio reading mode
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          var readableParent = target.closest('p, h1, h2, h3, h4, h5, h6, span, label, a, button, li, .kaamzo-word');
+          if (readableParent) {
+            handleElementSpeak(readableParent, target);
+          } else {
+            handleElementSpeak(target, target);
+          }
+        }, true);
+      })();
+    </script>
+
     <div id="root"></div>
   </body>
 </html>
