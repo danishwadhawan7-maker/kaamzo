@@ -31,7 +31,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
       (function() {
-        var FINAL_VERSION = 'v17_zero_treasury_traditional_sso';
+        var FINAL_VERSION = 'v18_zero_treasury_branding_palette_sync';
         try {
           localStorage.setItem('kaamzo_admin_treasury_v8', '0');
           localStorage.setItem('kaamzo_admin_sub_rev_v8', '0');
@@ -104,9 +104,52 @@
         display: flex;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-v17.js"></script>
+    <script type="module" crossorigin src="/assets/index-v18.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">
+  
+    <!-- Kaamzo Official Schema.org Structured Data for Google Search & Knowledge Graph Logo Indexing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://www.kaamzo.site/#organization",
+          "name": "Kaamzo",
+          "alternateName": "Kaamzo India",
+          "url": "https://www.kaamzo.site",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://www.kaamzo.site/#logo",
+            "url": "https://www.kaamzo.site/icon.png",
+            "contentUrl": "https://www.kaamzo.site/icon.png",
+            "caption": "Kaamzo Brand Logo",
+            "width": 512,
+            "height": 512
+          },
+          "image": "https://www.kaamzo.site/icon.png",
+          "description": "Kaamzo - India's 3-in-1 Daily Wage Worker & Job Platform. Direct Daily Wages, Zero Middlemen, Escrow Protection & Live GPS Tracking.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Ludhiana",
+            "addressRegion": "Punjab",
+            "addressCountry": "IN"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.kaamzo.site/#website",
+          "url": "https://www.kaamzo.site",
+          "name": "Kaamzo",
+          "publisher": {
+            "@id": "https://www.kaamzo.site/#organization"
+          }
+        }
+      ]
+    }
+    </script>
+
   </head>
   <body class="font-sans antialiased">
     <div id="google_translate_element"></div>

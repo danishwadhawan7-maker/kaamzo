@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon.png
+Allow: /favicon-48x48.png
+Allow: /favicon-96x96.png
+Allow: /icon.png
+Allow: /icon.svg
+Allow: /apple-touch-icon.png
+Allow: /assets/
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+Sitemap: https://www.kaamzo.site/sitemap.xml
