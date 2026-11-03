@@ -1,5 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0f172a" />
-  <path d="M160 352L256 160L352 352" stroke="#fbbf24" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-  <circle cx="256" cy="352" r="24" fill="#fbbf24" />
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19" />
+      <stop offset="100%" stop-color="#182234" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Squircle Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="#F59E0B" stroke-width="16" />
+  <!-- Vertical Stem of K -->
+  <rect x="120" y="104" width="72" height="304" rx="20" fill="#FFFFFF" />
+  <!-- Upper Diagonal Arm of K (Golden Amber) -->
+  <path d="M170 248 L376 112" stroke="#F59E0B" stroke-width="72" stroke-linecap="round" />
+  <!-- Lower Diagonal Leg of K (White) -->
+  <path d="M185 240 L330 380" stroke="#FFFFFF" stroke-width="72" stroke-linecap="round" />
+  <!-- Signature Golden Amber Dot (Kaamzo Trademark) -->
+  <circle cx="396" cy="374" r="36" fill="#F59E0B" />
 </svg>
