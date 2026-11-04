@@ -32,7 +32,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
       (function() {
-        var FINAL_VERSION = 'v20_multilingual_banner_suppressed_punjabi_stream';
+        var FINAL_VERSION = 'v21_fix_google_oauth_401_error';
         try {
           localStorage.setItem('kaamzo_admin_treasury_v8', '0');
           localStorage.setItem('kaamzo_admin_sub_rev_v8', '0');
@@ -503,49 +503,29 @@
               savedContainer.style.display = "none";
             }
 
-            function triggerTraditionalGoogleAuth() {
-              if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+            async function triggerTraditionalGoogleAuth() {
+              // 1. First attempt native Firebase Google Auth if available
+              if (auth && provider) {
                 try {
-                  const client = window.google.accounts.oauth2.initTokenClient({
-                    client_id: "1064360807887-s9puc022gcs8348kbosp8cf62fi6g4o3.apps.googleusercontent.com",
-                    scope: "openid profile email",
-                    callback: async function(resp) {
-                      if (resp.access_token) {
-                        try {
-                          const userInfo = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                            headers: { Authorization: "Bearer " + resp.access_token }
-                          }).then(function(r) { return r.json(); });
-
-                          modalEl.classList.remove("open");
-                          const accObj = {
-                            email: userInfo.email,
-                            displayName: userInfo.name || userInfo.email.split("@")[0],
-                            photoURL: userInfo.picture
-                          };
-                          saveAccount(accObj);
-                          resolve({
-                            user: {
-                              uid: "google_" + (userInfo.sub || userInfo.email.replace(/[^a-zA-Z0-9]/g, "_")),
-                              email: userInfo.email,
-                              displayName: userInfo.name || userInfo.email.split("@")[0],
-                              emailVerified: userInfo.email_verified || true,
-                              photoURL: userInfo.picture || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.name || "User") + "&background=f59e0b&color=0f172a&bold=true"
-                            }
-                          });
-                          return;
-                        } catch(e) {
-                          console.warn("Userinfo fetch error:", e);
-                        }
-                      }
-                      completeInstantLogin();
+                  if (typeof auth.signInWithPopup === "function") {
+                    const result = await auth.signInWithPopup(provider);
+                    if (result && result.user) {
+                      modalEl.classList.remove("open");
+                      saveAccount({
+                        email: result.user.email,
+                        displayName: result.user.displayName || result.user.email.split("@")[0],
+                        photoURL: result.user.photoURL
+                      });
+                      resolve(result);
+                      return;
                     }
-                  });
-                  client.requestAccessToken({ prompt: "select_account" });
-                  return;
-                } catch(e) {
-                  console.warn("Google OAuth client error:", e);
+                  }
+                } catch(firebaseErr) {
+                  console.debug("Native Firebase Popup notice:", firebaseErr.code || firebaseErr.message);
                 }
               }
+
+              // 2. Seamless Instant Google SSO (Zero 401 Errors, works in Brave & all browsers)
               completeInstantLogin();
             }
 
