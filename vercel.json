@@ -50,5 +50,18 @@
       "source": "/((?!assets/|.*\\..*).*)",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "kaamzo.site"
+        }
+      ],
+      "destination": "https://www.kaamzo.site/$1",
+      "permanent": true
+    }
   ]
 }
