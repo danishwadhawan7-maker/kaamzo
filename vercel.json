@@ -47,7 +47,7 @@
       "destination": "/index.html"
     },
     {
-      "source": "/((?!assets/|.*\\..*).*)",
+      "source": "/((?!api/|assets/|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],

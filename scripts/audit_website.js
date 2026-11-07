@@ -68,13 +68,13 @@ routes.forEach(r => {
   console.log(`Route /${r}: ${r}.html (${fileExists ? 'OK' : 'MISSING'}), /${r}/index.html (${dirExists ? 'OK' : 'MISSING'})`);
   if (fileExists) {
     const content = fs.readFileSync(file, 'utf8');
-    const hasV21 = content.includes('index-v21.js');
-    console.log(`   -> Points to index-v21.js: ${hasV21}`);
+    const hasV22 = content.includes('index-v22.js');
+    console.log(`   -> Points to index-v22.js: ${hasV22}`);
   }
 });
 
-console.log('\n=== 4. BUNDLE AUDIT (index-v21.js) ===');
-const bundlePath = path.join(wwwDir, 'assets', 'index-v21.js');
+console.log('\n=== 4. BUNDLE AUDIT (index-v22.js) ===');
+const bundlePath = path.join(wwwDir, 'assets', 'index-v22.js');
 if (fs.existsSync(bundlePath)) {
   const code = fs.readFileSync(bundlePath, 'utf8');
   console.log('Bundle size:', code.length, 'bytes');
@@ -86,6 +86,7 @@ if (fs.existsSync(bundlePath)) {
   console.log('Has real Firebase OAuth project (nifty-backup-mc9s2)?:', code.includes('nifty-backup-mc9s2.firebaseapp.com'));
   console.log('Has Google Account Chooser prompt:"select_account"?:', code.includes('prompt:"select_account"'));
   console.log('Has default names removed from forms?:', !code.includes('e.g. Bhavnoor Singh') && !code.includes('e.g. Harpreet Singh') && !code.includes('e.g. bhavnoor') && !code.includes('bhavnoor.verma@okhdfcbank'));
+  console.log('Has Customer & Worker Fe opening OTP modal (Hs(!0) / oa(!0))?:', code.includes('Please enter your Gmail address or phone number for OTP verification");return}Hs(!0)}') && code.includes('Please enter your Gmail address or mobile number for OTP verification.");return}oa(!0)}'));
 } else {
-  console.error('index-v21.js is MISSING!');
+  console.error('index-v22.js is MISSING!');
 }

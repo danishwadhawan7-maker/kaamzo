@@ -176,10 +176,33 @@ const server = http.createServer(async (req, res) => {
     if (recipient && code) {
       otpStore.set(recipient, { code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
     }
+    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
+    const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+    let method = "simulated_fallback";
+    if (smtpUser && smtpPass && recipient.includes("@")) {
+      try {
+        const nodemailer = require("nodemailer");
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || "smtp.gmail.com",
+          port: Number(process.env.SMTP_PORT || 587),
+          secure: String(process.env.SMTP_SECURE || "false") === "true",
+          auth: { user: smtpUser, pass: smtpPass }
+        });
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || `"Kaamzo Security" <${smtpUser}>`,
+          to: data.recipient,
+          subject: `Your Kaamzo Security Verification Code: ${code}`,
+          html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:16px;"><h2>KAAMZO CONNECT</h2><p>Your 6-digit security verification code is:</p><div style="font-size:36px;font-weight:900;letter-spacing:8px;padding:14px 24px;background:#f8fafc;border:2px dashed #f59e0b;border-radius:12px;text-align:center;font-family:monospace;">${code}</div><p style="font-size:12px;color:#64748b;">Valid for 10 minutes.</p></div>`
+        });
+        method = "nodemailer_gmail_smtp";
+      } catch (mailErr) {
+        console.warn("SMTP send error:", mailErr.message);
+      }
+    }
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
       success: true,
-      method: "server_smtp",
+      method,
       messageId: "kaamzo-otp-" + Date.now(),
       recipient: data.recipient,
       message: `Verification passcode ${code} dispatched to ${data.recipient}`
