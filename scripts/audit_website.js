@@ -68,13 +68,13 @@ routes.forEach(r => {
   console.log(`Route /${r}: ${r}.html (${fileExists ? 'OK' : 'MISSING'}), /${r}/index.html (${dirExists ? 'OK' : 'MISSING'})`);
   if (fileExists) {
     const content = fs.readFileSync(file, 'utf8');
-    const hasV22 = content.includes('index-v22.js');
-    console.log(`   -> Points to index-v22.js: ${hasV22}`);
+    const hasV23 = content.includes('index-v23.js');
+    console.log(`   -> Points to index-v23.js: ${hasV23}`);
   }
 });
 
-console.log('\n=== 4. BUNDLE AUDIT (index-v22.js) ===');
-const bundlePath = path.join(wwwDir, 'assets', 'index-v22.js');
+console.log('\n=== 4. BUNDLE AUDIT (index-v23.js) ===');
+const bundlePath = path.join(wwwDir, 'assets', 'index-v23.js');
 if (fs.existsSync(bundlePath)) {
   const code = fs.readFileSync(bundlePath, 'utf8');
   console.log('Bundle size:', code.length, 'bytes');
@@ -87,6 +87,8 @@ if (fs.existsSync(bundlePath)) {
   console.log('Has Google Account Chooser prompt:"select_account"?:', code.includes('prompt:"select_account"'));
   console.log('Has default names removed from forms?:', !code.includes('e.g. Bhavnoor Singh') && !code.includes('e.g. Harpreet Singh') && !code.includes('e.g. bhavnoor') && !code.includes('bhavnoor.verma@okhdfcbank'));
   console.log('Has Customer & Worker Fe opening OTP modal (Hs(!0) / oa(!0))?:', code.includes('Please enter your Gmail address or phone number for OTP verification");return}Hs(!0)}') && code.includes('Please enter your Gmail address or mobile number for OTP verification.");return}oa(!0)}'));
+  console.log('Has Admin complete worker dossier & Face ID modal?:', code.includes('Worker KYC, Full Identity Dossier & Face ID Verification Queue') && code.includes('Inspect Full Face ID'));
+  console.log('Has instant Worker Portal unlock on Admin verification?:', code.includes('kaamzo_kyc_approved_signal_v8') && code.includes('prevVerifiedRef.current=e==null?void 0:e.isVerified'));
 } else {
-  console.error('index-v22.js is MISSING!');
+  console.error('index-v23.js is MISSING!');
 }
