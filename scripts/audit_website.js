@@ -68,13 +68,13 @@ routes.forEach(r => {
   console.log(`Route /${r}: ${r}.html (${fileExists ? 'OK' : 'MISSING'}), /${r}/index.html (${dirExists ? 'OK' : 'MISSING'})`);
   if (fileExists) {
     const content = fs.readFileSync(file, 'utf8');
-    const hasV26 = content.includes('index-v26.js');
-    console.log(`   -> Points to index-v26.js: ${hasV26}`);
+    const hasV27 = content.includes('index-v27.js');
+    console.log(`   -> Points to index-v27.js: ${hasV27}`);
   }
 });
 
-console.log('\n=== 4. BUNDLE AUDIT (index-v26.js) ===');
-const bundlePath = path.join(wwwDir, 'assets', 'index-v26.js');
+console.log('\n=== 4. BUNDLE AUDIT (index-v27.js) ===');
+const bundlePath = path.join(wwwDir, 'assets', 'index-v27.js');
 if (fs.existsSync(bundlePath)) {
   const code = fs.readFileSync(bundlePath, 'utf8');
   console.log('Bundle size:', code.length, 'bytes');

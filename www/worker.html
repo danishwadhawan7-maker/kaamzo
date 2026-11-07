@@ -32,7 +32,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
       (function() {
-        var FINAL_VERSION = 'v30_aesthetic_click_friendly_portals';
+        var FINAL_VERSION = 'v31_dark_obsidian_gold_header';
         try {
           localStorage.setItem('kaamzo_admin_treasury_v8', '0');
           localStorage.setItem('kaamzo_admin_sub_rev_v8', '0');
@@ -100,8 +100,40 @@
       input:not([type="checkbox"]):not([type="range"]):focus, select:focus, textarea:focus {
         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
       }
+
+      /* Black / Dark Theme Header & Portal Navbar Suitable Obsidian-Gold Palette */
+      html.dark header,
+      html.dark #kaamzo-global-header {
+        background: linear-gradient(90deg, #0b0d12 0%, #11141d 55%, #1c1508 100%) !important;
+        border-bottom: 1px solid rgba(245, 158, 11, 0.32) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.72), inset 0 -1px 0 rgba(245, 158, 11, 0.14) !important;
+      }
+      html.dark nav,
+      html.dark #kaamzo-customer-navbar {
+        background: linear-gradient(180deg, #12151e 0%, #0d0f16 100%) !important;
+        border-bottom: 1px solid rgba(245, 158, 11, 0.26) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55) !important;
+      }
+      html.dark #kaamzo-customer-tabs {
+        background-color: #08090d !important;
+        border-color: rgba(245, 158, 11, 0.26) !important;
+      }
+      html.dark .bg-\[\#FAF7F2\],
+      html.dark .bg-\[\#FAF7F2\]\/95,
+      html.dark .bg-\[\#FDFBF7\] {
+        background-color: #0e1017 !important;
+      }
+      html.dark .bg-\[\#FFFBEB\] {
+        background-color: rgba(245, 158, 11, 0.16) !important;
+        color: #fcd33f !important;
+        border-color: rgba(245, 158, 11, 0.45) !important;
+      }
+      html.dark header button:not(.bg-amber-500),
+      html.dark #kaamzo-global-header > div > button {
+        border-color: rgba(245, 158, 11, 0.25) !important;
+      }
     </style>
-    <script type="module" crossorigin src="/assets/index-v26.js"></script>
+    <script type="module" crossorigin src="/assets/index-v27.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">
   
