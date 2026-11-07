@@ -1004,12 +1004,7 @@ const newFtDe = `de=async()=>{O(!0);try{const gRes=await xT();const vEm=(gRes&&g
 
 replaceExact(oldFtDe, newFtDe, 'Update FT modal Google verification button to use Firebase Google Sign-In');
 
-const oldFtVerifyInput = `r.jsx("div",{className:"relative",children:r.jsx("input",{ref:$,id:"security-otp-input",type:"text",inputMode:"numeric",pattern:"[0-9]*",maxLength:6,value:v,onChange:Ee=>{_(Ee.target.value.replace(/[^0-9]/g,"")),ge&&be(null)},onKeyDown:Ee=>{Ee.key==="Enter"&&v.length===6&&pe()},placeholder:"• • • • • •",className:"w-full text-center tracking-[0.45em] font-mono text-2xl font-black bg-slate-50 border border-slate-300 rounded-2xl py-3 text-slate-900 focus:outline-none focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-100 shadow-inner transition"})})`;
-
-const newFtVerifyInput = `M&&r.jsxs("div",{className:"bg-slate-900 text-white border border-amber-500/50 rounded-2xl p-3 flex items-center justify-between gap-2 shadow-sm",children:[r.jsxs("div",{children:[r.jsx("span",{className:"text-[10px] text-amber-400 font-extrabold uppercase tracking-wider block",children:"Instant Security Passcode"}),r.jsx("span",{className:"font-mono text-lg font-black tracking-[0.25em] text-white",children:M})]}),r.jsx("button",{type:"button",onClick:()=>{_(M);ge&&be(null);Ae("click")},className:"px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs cursor-pointer transition shrink-0",children:"Tap to Auto-Fill"})]}),r.jsx("div",{className:"relative",children:r.jsx("input",{ref:$,id:"security-otp-input",type:"text",inputMode:"numeric",pattern:"[0-9]*",maxLength:6,value:v,onChange:Ee=>{_(Ee.target.value.replace(/[^0-9]/g,"")),ge&&be(null)},onKeyDown:Ee=>{Ee.key==="Enter"&&v.length===6&&pe()},placeholder:"• • • • • •",className:"w-full text-center tracking-[0.45em] font-mono text-2xl font-black bg-slate-50 border border-slate-300 rounded-2xl py-3 text-slate-900 focus:outline-none focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-100 shadow-inner transition"})})`;
-
-replaceExact(oldFtVerifyInput, newFtVerifyInput, 'Add inline Instant Security Passcode & Auto-Fill inside FT modal');
-
 fs.writeFileSync('www/assets/index-v23.js', js, 'utf8');
 fs.writeFileSync('www/assets/index-v24.js', js, 'utf8');
-console.log('Successfully wrote www/assets/index-v23.js and www/assets/index-v24.js, size:', js.length);
+fs.writeFileSync('www/assets/index-v25.js', js, 'utf8');
+console.log('Successfully wrote www/assets/index-v25.js, size:', js.length);
