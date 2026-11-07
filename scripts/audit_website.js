@@ -68,13 +68,13 @@ routes.forEach(r => {
   console.log(`Route /${r}: ${r}.html (${fileExists ? 'OK' : 'MISSING'}), /${r}/index.html (${dirExists ? 'OK' : 'MISSING'})`);
   if (fileExists) {
     const content = fs.readFileSync(file, 'utf8');
-    const hasV19 = content.includes('index-v19.js');
-    console.log(`   -> Points to index-v19.js: ${hasV19}`);
+    const hasV20 = content.includes('index-v20.js');
+    console.log(`   -> Points to index-v20.js: ${hasV20}`);
   }
 });
 
-console.log('\n=== 4. BUNDLE AUDIT (index-v19.js) ===');
-const bundlePath = path.join(wwwDir, 'assets', 'index-v19.js');
+console.log('\n=== 4. BUNDLE AUDIT (index-v20.js) ===');
+const bundlePath = path.join(wwwDir, 'assets', 'index-v20.js');
 if (fs.existsSync(bundlePath)) {
   const code = fs.readFileSync(bundlePath, 'utf8');
   console.log('Bundle size:', code.length, 'bytes');
@@ -83,9 +83,9 @@ if (fs.existsSync(bundlePath)) {
   console.log('Has "Find Work." hero headline?:', code.includes('Find Work.'));
   console.log('Has "Hire Help." hero headline?:', code.includes('Hire Help.'));
   console.log('Has "Kaamzo." hero headline?:', code.includes('Kaamzo.'));
-  console.log('Has Treasury 0 reset?:', code.includes('kaamzo_admin_treasury_v8'));
-  console.log('Has Admin Customer Ledger?:', code.includes('Customer Accounts & Transaction Ledger'));
-  console.log('Has Admin Worker Ledger?:', code.includes('Worker Directory, Earnings & Commissions'));
+  console.log('Has real Firebase OAuth project (nifty-backup-mc9s2)?:', code.includes('nifty-backup-mc9s2.firebaseapp.com'));
+  console.log('Has Google Account Chooser prompt:"select_account"?:', code.includes('prompt:"select_account"'));
+  console.log('Has fake modal fallback removed?:', !code.includes('kaamzoGoogleSignInFallback') && !indexHtml.includes('kaamzo-google-modal'));
 } else {
-  console.error('index-v19.js is MISSING!');
+  console.error('index-v20.js is MISSING!');
 }

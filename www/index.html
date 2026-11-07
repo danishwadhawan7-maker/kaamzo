@@ -32,18 +32,37 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
       (function() {
-        var FINAL_VERSION = 'v23_restored_clean_ui_system';
+        var FINAL_VERSION = 'v24_native_google_account_chooser';
         try {
           localStorage.setItem('kaamzo_admin_treasury_v8', '0');
           localStorage.setItem('kaamzo_admin_sub_rev_v8', '0');
           localStorage.setItem('kaamzo_admin_disbursed_v8', '0');
           localStorage.setItem('kaamzo_admin_txs_v8', '[]');
-          var saved = localStorage.getItem('kaamzo_google_accounts_v1');
-          if (saved && (saved.includes('rajesh') || saved.includes('amit') || saved.includes('worker@gmail') || saved.includes('employer@gmail'))) {
-            localStorage.removeItem('kaamzo_google_accounts_v1');
-          }
+          localStorage.removeItem('kaamzo_google_accounts_v1');
+
+          // Clean up any previous generic "Google User" / "user@kaamzo.in" fallback session
+          ['kaamzo_current_customer_v8', 'kaamzo_current_worker_v8'].forEach(function(key) {
+            var val = localStorage.getItem(key);
+            if (val && (val.includes('user@kaamzo.in') || val.includes('Google User'))) {
+              localStorage.removeItem(key);
+            }
+          });
+          ['kaamzo_customer_accounts_v8', 'kaamzo_worker_accounts_v8'].forEach(function(key) {
+            var raw = localStorage.getItem(key);
+            if (raw && (raw.includes('user@kaamzo.in') || raw.includes('Google User'))) {
+              try {
+                var arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                  var filtered = arr.filter(function(u) {
+                    return u && u.id !== 'user@kaamzo.in' && u.email !== 'user@kaamzo.in' && u.name !== 'Google User';
+                  });
+                  localStorage.setItem(key, JSON.stringify(filtered));
+                }
+              } catch (_) {}
+            }
+          });
+
           if (localStorage.getItem('kaamzo_final_version') !== FINAL_VERSION) {
-            localStorage.removeItem('kaamzo_google_accounts_v1');
             localStorage.removeItem('kaamzo_is_reset_state_v8');
             localStorage.removeItem('kaamzo_current_admin_v8');
             sessionStorage.clear();
@@ -60,7 +79,7 @@
       })();
     </script>
     <style>
-      /* Mobile OTP Notification Toast & Google Account Chooser Overlay */
+      /* Mobile OTP Notification Toast */
       #kaamzo-otp-toast {
         position: fixed;
         top: 12px;
@@ -81,24 +100,8 @@
       #kaamzo-otp-toast.visible {
         transform: translateX(-50%) translateY(0);
       }
-      #kaamzo-google-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 99998;
-        background: rgba(15, 23, 42, 0.82);
-        backdrop-filter: blur(6px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      }
-      #kaamzo-google-modal.open {
-        display: flex;
-      }
-    
-      </style>
-    <script type="module" crossorigin src="/assets/index-v19.js"></script>
+    </style>
+    <script type="module" crossorigin src="/assets/index-v20.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">
   
@@ -177,54 +180,6 @@
       </div>
     </div>
 
-    <!-- Google OAuth / SSO Native Mobile Chooser Modal -->
-    <div id="kaamzo-google-modal" role="dialog" aria-modal="true" aria-labelledby="kaamzo-google-title">
-      <div style="background:#ffffff;border-radius:24px;max-width:390px;width:100%;overflow:hidden;box-shadow:0 25px 60px -15px rgba(0,0,0,0.4);border:1px solid #dadce0;color:#202124;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;">
-        <div style="padding:18px 22px 14px;border-bottom:1px solid #f1f3f4;display:flex;align-items:center;justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <svg style="width:24px;height:24px;" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <div>
-              <h3 id="kaamzo-google-title" style="margin:0;font-size:16px;font-weight:700;color:#202124;">Sign in with Google</h3>
-              <p style="margin:2px 0 0;font-size:12px;color:#5f6368;">to continue to <strong>Kaamzo</strong></p>
-            </div>
-          </div>
-          <button id="kaamzo-google-cancel" type="button" style="background:#f1f3f4;border:none;color:#5f6368;width:32px;height:32px;border-radius:999px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
-        </div>
-        <div style="padding:20px 22px 24px;">
-          <p id="kaamzo-google-prompt" style="margin:0 0 16px;font-size:13px;color:#3c4043;font-weight:600;line-height:1.4;">
-            Press below to continue with your Google account:
-          </p>
-          
-          <!-- Connected account quick-select list -->
-          <div id="kaamzo-saved-google-accounts" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
-
-          <!-- Traditional Google Continue Button -->
-          <button id="kaamzo-google-continue-btn" type="button" style="width:100%;box-sizing:border-box;background:#ffffff;color:#3c4043;border:1.5px solid #dadce0;border-radius:24px;padding:12px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 1px 3px rgba(60,64,67,0.12);transition:all 0.15s ease;">
-            <svg style="width:18px;height:18px;flex-shrink:0;" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <span id="kaamzo-google-btn-text">Continue to Sign In with Google</span>
-          </button>
-
-          <p style="margin:16px 0 0;font-size:11px;color:#70757a;text-align:center;line-height:1.4;">
-            Google Identity Services • Secured by Kaamzo Cloud
-          </p>
-        </div>
-      </div>
-    </div>
-
-    
-
-    
-    
     <script type="text/javascript">
       (function() {
         // 1. Real-time OTP Toast & Auto-Fill Handler
@@ -282,27 +237,7 @@
           }
         };
 
-        // 2. Google SSO Fallback & Native Android Bridge Handler
-        const modalEl = document.getElementById("kaamzo-google-modal");
-        const cancelBtn = document.getElementById("kaamzo-google-cancel");
-        const continueBtn = document.getElementById("kaamzo-google-continue-btn");
-        const savedContainer = document.getElementById("kaamzo-saved-google-accounts");
-
-        function getSavedAccounts() {
-          try {
-            const raw = localStorage.getItem("kaamzo_google_accounts_v1");
-            const parsed = raw ? JSON.parse(raw) : [];
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              return parsed.filter(function(a) {
-                const em = (a.email || "").toLowerCase();
-                return em && !em.includes("rajesh") && !em.includes("amit") && !em.includes("worker@gmail") && !em.includes("employer@gmail");
-              });
-            }
-          } catch (e) {}
-          return [];
-        }
-
-        // 3. Enterprise Admin Security & Audit Vault
+        // 2. Enterprise Admin Security & Audit Vault
         window.kaamzoAdminSecurity = {
           // Admin credentials, whitelist and PIN live ONLY on the server (see admin-security.js).
           // These stubs intentionally verify nothing client-side.
@@ -341,124 +276,10 @@
               };
               logs.unshift(entry);
               localStorage.setItem("kaamzo_admin_audit_logs_v1", JSON.stringify(logs.slice(0, 60)));
-              
             } catch (e) {}
           }
         };
-
-        function saveAccount(acc) {
-          try {
-            const list = getSavedAccounts().filter(function(a) { return a.email.toLowerCase() !== acc.email.toLowerCase(); });
-            list.unshift(acc);
-            localStorage.setItem("kaamzo_google_accounts_v1", JSON.stringify(list.slice(0, 5)));
-          } catch (e) {}
-        }
-
-        window.kaamzoGoogleSignInFallback = function(auth, provider, GoogleAuthProviderClass, signInWithCredFn, originalErr) {
-          return new Promise(function(resolve, reject) {
-            if (!modalEl) return reject(originalErr);
-            const accounts = getSavedAccounts();
-            savedContainer.innerHTML = "";
-            const promptEl = document.getElementById("kaamzo-google-prompt");
-            if (accounts.length > 0) {
-              if (promptEl) promptEl.textContent = "Choose an account or continue with your Google account:";
-              savedContainer.style.display = "flex";
-            } else {
-              if (promptEl) promptEl.textContent = "Press below to continue with your Google account:";
-              savedContainer.style.display = "none";
-            }
-
-            async function triggerTraditionalGoogleAuth() {
-              // 1. First attempt native Firebase Google Auth if available
-              if (auth && provider) {
-                try {
-                  if (typeof auth.signInWithPopup === "function") {
-                    const result = await auth.signInWithPopup(provider);
-                    if (result && result.user) {
-                      modalEl.classList.remove("open");
-                      saveAccount({
-                        email: result.user.email,
-                        displayName: result.user.displayName || result.user.email.split("@")[0],
-                        photoURL: result.user.photoURL
-                      });
-                      resolve(result);
-                      return;
-                    }
-                  }
-                } catch(firebaseErr) {
-                  console.debug("Native Firebase Popup notice:", firebaseErr.code || firebaseErr.message);
-                }
-              }
-
-              // 2. Seamless Instant Google SSO (Zero 401 Errors, works in Brave & all browsers)
-              completeInstantLogin();
-            }
-
-            function completeInstantLogin() {
-              modalEl.classList.remove("open");
-              const saved = accounts[0] || {
-                email: "user@kaamzo.in",
-                displayName: "Google User"
-              };
-              resolve({
-                user: {
-                  uid: "google_" + saved.email.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase(),
-                  email: saved.email,
-                  displayName: saved.displayName,
-                  emailVerified: true,
-                  photoURL: saved.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(saved.displayName) + "&background=f59e0b&color=0f172a&bold=true"
-                }
-              });
-            }
-
-            accounts.forEach(function(acc) {
-              const btn = document.createElement("button");
-              btn.type = "button";
-              btn.style.cssText = "display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:#f8fafc;border:1px solid #dadce0;border-radius:14px;cursor:pointer;text-align:left;transition:background 0.15s;";
-              btn.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><div style="width:34px;height:34px;border-radius:999px;background:#f59e0b;color:#0f172a;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;">' +
-                acc.displayName.charAt(0).toUpperCase() +
-                '</div><div><div style="font-size:13px;font-weight:700;color:#202124;">' + acc.displayName + '</div><div style="font-size:11px;color:#5f6368;">' + acc.email + '</div></div></div>' +
-                '<span style="font-size:11px;font-weight:700;color:#1a73e8;background:#e8f0fe;padding:4px 10px;border-radius:999px;">Continue</span>';
-              btn.addEventListener("click", function() {
-                modalEl.classList.remove("open");
-                resolve({
-                  user: {
-                    uid: "google_" + acc.email.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase(),
-                    email: acc.email,
-                    displayName: acc.displayName,
-                    emailVerified: true,
-                    photoURL: acc.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(acc.displayName) + "&background=f59e0b&color=0f172a&bold=true"
-                  }
-                });
-              });
-              savedContainer.appendChild(btn);
-            });
-
-            modalEl.classList.add("open");
-
-            function onCancel() {
-              cleanup();
-              modalEl.classList.remove("open");
-              reject({ code: "auth/popup-closed-by-user", message: "Popup closed by user." });
-            }
-
-            function onContinue() {
-              cleanup();
-              triggerTraditionalGoogleAuth();
-            }
-
-            function cleanup() {
-              cancelBtn.removeEventListener("click", onCancel);
-              if (continueBtn) continueBtn.removeEventListener("click", onContinue);
-            }
-
-            cancelBtn.addEventListener("click", onCancel);
-            if (continueBtn) continueBtn.addEventListener("click", onContinue);
-          });
-        };
       })();
     </script>
-    
-    
-    </body>
+  </body>
 </html>
