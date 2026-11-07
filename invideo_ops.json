@@ -1,0 +1,77 @@
+[
+  {
+    "op": "place_media",
+    "track": "V1",
+    "asset": "https://invideo.io/@danish-408136/kaamzo-advertisement/assets/downloads/stock/plumber-fixing-pipe/plumber-fixing-tap",
+    "at_f": 0,
+    "source_start_seconds": 0,
+    "source_end_seconds": 4.5,
+    "mode": "overwrite",
+    "linked_audio": false
+  },
+  {
+    "op": "place_media",
+    "track": "V1",
+    "asset": "https://invideo.io/@danish-408136/kaamzo-advertisement/assets/downloads/stock/plumber-fixing-pipe/plumber-with-toolbox-repairing-pipes",
+    "at_f": 135,
+    "source_start_seconds": 0,
+    "source_end_seconds": 5.0,
+    "mode": "append",
+    "linked_audio": false
+  },
+  {
+    "op": "place_media",
+    "track": "V1",
+    "asset": "https://invideo.io/@danish-408136/kaamzo-advertisement/assets/downloads/stock/plumber-fixing-pipe/plumber-in-blue-uniform-fixing-a-sink",
+    "at_f": 285,
+    "source_start_seconds": 0,
+    "source_end_seconds": 5.5,
+    "mode": "append",
+    "linked_audio": false
+  },
+  {
+    "op": "add_text",
+    "track": "V3",
+    "start_f": 0,
+    "end_f": 135,
+    "text": "BROKEN PIPE? NEED URGENT HELP?",
+    "style": {
+      "font_size": 48,
+      "color": "#FFFFFF",
+      "align": "center",
+      "stroke": true,
+      "stroke_color": "#000000",
+      "stroke_width": 4
+    }
+  },
+  {
+    "op": "add_text",
+    "track": "V3",
+    "start_f": 135,
+    "end_f": 285,
+    "text": "MEET KAAMZO: LOCAL PROS NEAR YOU",
+    "style": {
+      "font_size": 48,
+      "color": "#FFCC00",
+      "align": "center",
+      "stroke": true,
+      "stroke_color": "#000000",
+      "stroke_width": 4
+    }
+  },
+  {
+    "op": "add_text",
+    "track": "V3",
+    "start_f": 285,
+    "end_f": 450,
+    "text": "NO MIDDLEMEN • FAIR HOURLY RATES\nDOWNLOAD KAAMZO TODAY!",
+    "style": {
+      "font_size": 44,
+      "color": "#00FF66",
+      "align": "center",
+      "stroke": true,
+      "stroke_color": "#000000",
+      "stroke_width": 4
+    }
+  }
+]
