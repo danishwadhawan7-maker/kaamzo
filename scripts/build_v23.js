@@ -1046,9 +1046,216 @@ const newCustomerNav = `r.jsxs("nav",{id:"kaamzo-customer-navbar",className:"bg-
 
 replaceExact(oldCustomerNav, newCustomerNav, 'Clean CustomerPortal navbar tabs (no scrollbar, single-line, no duplicate Post a Job button)');
 
+// ============================================================================
+// 13. UPGRADE CUSTOMER PORTAL HERO BANNER (FULL-WIDTH SMART SEARCH + INTERACTIVE 10KM RADAR & RATE COMMAND CARD)
+// ============================================================================
+const oldCustomerHero = `r.jsxs("div",{className:"bg-slate-950 text-white rounded-3xl p-6 sm:p-10 lg:p-12 relative overflow-hidden shadow-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8",children:[" "," ",r.jsx("div",{className:"absolute -top-24 -right-24 w-96 h-96 bg-amber-600/15 rounded-full blur-3xl pointer-events-none"})," ",r.jsx("div",{className:"absolute -bottom-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"})," ",r.jsxs("div",{className:"max-w-2xl space-y-5 z-10",children:[" "," ",r.jsxs("div",{className:"inline-flex items-center gap-2 px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-amber-300 text-xs font-bold",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-400"})," ",r.jsx("span",{children:"Verified Local Daily Wage Workforce"})," "]})," "," ",r.jsxs("h2",{className:"text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight",children:[" ","Find Trusted Workers.",r.jsx("br",{})," ",r.jsx("span",{className:"text-amber-400",children:"Get The Job Done With Dignity."})," "]})," ",r.jsxs("p",{className:"text-sm sm:text-base text-slate-300 leading-relaxed font-normal",children:[" ","Connect directly with verified electricians, plumbers, carpenters, painters, and masons for daily wage or project work."," "]})," "," ",r.jsxs("div",{className:"flex flex-col sm:flex-row items-stretch gap-2.5 pt-2",children:[" ",r.jsxs("div",{className:"relative flex-1",children:[" ",r.jsx(Ru,{className:"w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"})," ",r.jsx("input",{type:"text",value:zs,onChange:ee=>as(ee.target.value),placeholder:"Search trade or skill (e.g. Electrician, Plumbing)...",className:"w-full bg-white text-slate-900 pl-11 pr-4 py-3.5 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-md placeholder:text-slate-400"})," ",zs&&r.jsxs("button",{onClick:()=>as(""),className:"absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700",children:[" ",r.jsx(Fn,{className:"w-4 h-4"})," "]})," "]})," ",r.jsxs("button",{type:"button",onClick:()=>Ae("click"),className:"px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-sm transition shadow-md flex items-center justify-center gap-2 shrink-0 border border-slate-700 cursor-pointer",children:[" ",r.jsx(Ru,{className:"w-4 h-4 text-amber-400"})," ",r.jsx("span",{children:"Search"})," "]})," ",r.jsxs("button",{id:"hero-post-job-btn",type:"button",onClick:()=>{er(!0),Ae("click")},className:"relative group px-6 py-3.5 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black rounded-2xl text-sm transition-all shadow-xl shadow-amber-500/40 hover:scale-105 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 border-2 border-amber-200 ring-4 ring-amber-400/30 cursor-pointer overflow-hidden",title:"Broadcast a new job to verified workers in 10km radius",children:[" ",r.jsxs("div",{className:"w-6 h-6 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center shadow-xs shrink-0",children:[" ",r.jsx(c0,{className:"w-4 h-4 stroke-[3]"})," "]})," ",r.jsx("span",{className:"text-sm sm:text-base font-black tracking-tight",children:"Post a Job Broadcast"})," ",r.jsxs("span",{className:"px-2 py-0.5 bg-slate-950 text-amber-300 text-[10px] font-black rounded-md uppercase tracking-wider hidden sm:inline-block",children:[" ","10km Radar"," "]})," "]})," ",r.jsxs("button",{type:"button",onClick:()=>{dt(!0),Ae("click")},className:"px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold rounded-2xl text-sm transition shadow-md flex items-center justify-center gap-2.5 shrink-0 border border-slate-700 cursor-pointer group",title:"Scan worker unique ID badge for instant profile verification and direct booking",children:[r.jsx(Su,{className:"w-5 h-5 text-amber-400 group-hover:scale-110 transition"}),r.jsx("span",{children:"Scan Worker Badge"}),r.jsx("span",{className:"px-1.5 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-black rounded-md border border-amber-400/30",children:"QR"})]})," "]})," "]})," "," ",r.jsxs("div",{className:"relative z-10 shrink-0 w-full sm:w-80 lg:w-96",children:[" ",r.jsxs("div",{className:"relative rounded-2xl overflow-hidden border-2 border-slate-700/60 shadow-2xl bg-slate-900",children:[" ",r.jsx("img",{src:"https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80",alt:"Kaamzo Verified Worker",className:"w-full h-56 sm:h-64 object-cover object-center",referrerPolicy:"no-referrer"})," ",r.jsx("div",{className:"absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"})," ",r.jsxs("div",{className:"absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white",children:[" ",r.jsxs("span",{className:"flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/50 px-2.5 py-1 rounded-lg text-amber-300 font-bold",children:[" ",r.jsx("span",{className:"w-2 h-2 rounded-full bg-amber-400 animate-pulse"})," ","Strict 10km GPS Radar"," "]})," ",r.jsxs("span",{className:"bg-slate-900/80 px-2 py-1 rounded-lg font-mono text-[11px] text-slate-300",children:[" ","Aadhaar KYC Verified"," "]})," "]})," "]})," "]})," "]})`;
+
+const newCustomerHero = `r.jsxs("div",{id:"kaamzo-customer-hero",style:{background:"linear-gradient(135deg, #0b0d13 0%, #121622 52%, #1d1508 100%)",borderColor:"rgba(245, 158, 11, 0.35)"},className:"text-white rounded-3xl p-6 sm:p-8 lg:p-10 relative overflow-hidden shadow-2xl border-2 flex flex-col lg:flex-row items-stretch justify-between gap-7",children:[
+  r.jsx("div",{className:"absolute -top-24 -right-24 w-96 h-96 bg-amber-600/15 rounded-full blur-3xl pointer-events-none"}),
+  r.jsx("div",{className:"absolute -bottom-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"}),
+
+  // LEFT COLUMN: Headline, Full-Width Smart Search Bar, Quick Trade Chips & Primary CTAs
+  r.jsxs("div",{className:"flex-1 space-y-4 z-10 flex flex-col justify-between min-w-0",children:[
+    r.jsxs("div",{className:"space-y-3.5",children:[
+      // Top Trust & Live Radar Badges
+      r.jsxs("div",{className:"flex flex-wrap items-center gap-2",children:[
+        r.jsxs("div",{className:"inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-amber-300 text-xs font-extrabold",children:[
+          r.jsx(Os,{className:"w-3.5 h-3.5 text-amber-400"}),
+          r.jsx("span",{children:"Verified Local Daily Wage Workforce"})
+        ]}),
+        r.jsxs("div",{style:{backgroundColor:"rgba(16, 185, 129, 0.14)",borderColor:"rgba(16, 185, 129, 0.4)",color:"#6ee7b7"},className:"inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-extrabold",children:[
+          r.jsx("span",{className:"w-2 h-2 rounded-full bg-emerald-400 animate-pulse"}),
+          r.jsxs("span",{children:["10km GPS Active • ",(e&&e.area)||t.name]})
+        ]}),
+        r.jsxs("div",{style:{backgroundColor:"rgba(255, 255, 255, 0.06)",borderColor:"rgba(255, 255, 255, 0.15)"},className:"hidden sm:inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-slate-200 text-[11px] font-bold",children:[
+          r.jsx("span",{children:"🛡️ 0% Middleman • 100% UPI Escrow"})
+        ]})
+      ]}),
+
+      // Main Headline
+      r.jsxs("h2",{className:"text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight",children:[
+        "Find Trusted Workers.",
+        r.jsx("br",{}),
+        r.jsx("span",{className:"text-amber-400",children:"Get The Job Done With Dignity."})
+      ]}),
+
+      // Subtitle
+      r.jsx("p",{className:"text-xs sm:text-sm lg:text-base text-slate-300 leading-relaxed max-w-2xl",children:"Hire Aadhaar & Face-ID verified Electricians, Plumbers, Carpenters, Painters, and Masons near your doorstep — transparent daily wages with 100% UPI Escrow protection."})
+    ]}),
+
+    // Search & Action Controls Block
+    r.jsxs("div",{className:"space-y-3 pt-1",children:[
+      // ROW 1: FULL-WIDTH UNIFIED SMART SEARCH BAR (Never squished!)
+      r.jsxs("div",{style:{backgroundColor:"#161924",borderColor:"rgba(245, 158, 11, 0.45)"},className:"w-full p-1.5 rounded-2xl border-2 shadow-xl flex items-center gap-2",children:[
+        r.jsx(Ru,{className:"w-5 h-5 text-amber-400 ml-3 shrink-0"}),
+        r.jsx("input",{
+          type:"text",
+          value:zs,
+          onChange:ee=>as(ee.target.value),
+          placeholder:"Search by trade, skill, or worker name (e.g. Electrician, Plumber, Painter)...",
+          style:{backgroundColor:"transparent",color:"#ffffff"},
+          className:"flex-1 min-w-0 px-2 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none placeholder:text-slate-400"
+        }),
+        zs&&r.jsx("button",{
+          type:"button",
+          onClick:()=>as(""),
+          className:"p-1.5 text-slate-400 hover:text-white rounded-lg cursor-pointer",
+          title:"Clear search",
+          children:r.jsx(Fn,{className:"w-4 h-4"})
+        }),
+        r.jsxs("button",{
+          type:"button",
+          onClick:()=>Ae("click"),
+          className:"px-4 sm:px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md",
+          children:[
+            r.jsx(Ru,{className:"w-3.5 h-3.5"}),
+            r.jsx("span",{children:"Search"})
+          ]
+        })
+      ]}),
+
+      // ROW 2: QUICK-TAP TRADE FILTER CHIPS
+      r.jsxs("div",{className:"flex items-center gap-1.5 flex-wrap",children:[
+        r.jsx("span",{className:"text-[11px] font-extrabold uppercase tracking-wider text-amber-300/90 mr-1",children:"Quick Pick:"}),
+        [
+          {trade:"All",label:"All Pros"},
+          {trade:"Electrician",label:"⚡ Electrician"},
+          {trade:"Plumber",label:"🔧 Plumber"},
+          {trade:"Carpenter",label:"🔨 Carpenter"},
+          {trade:"Painter",label:"🎨 Painter"},
+          {trade:"Mason",label:"🧱 Mason"}
+        ].map(chip=>{
+          const isAct = Rs === chip.trade;
+          return r.jsx("button",{
+            key:chip.trade,
+            type:"button",
+            onClick:()=>{Yt(chip.trade),Ae("click")},
+            style:isAct?{backgroundColor:"#fcd33f",color:"#090a0f",borderColor:"#fde68a"}:{backgroundColor:"rgba(255,255,255,0.07)",color:"#e2e8f0",borderColor:"rgba(255,255,255,0.16)"},
+            className:"px-2.5 py-1 rounded-xl border text-[11px] font-extrabold transition cursor-pointer hover:border-amber-400",
+            children:chip.label
+          });
+        })
+      ]}),
+
+      // ROW 3: DEDICATED PRIMARY ACTION BUTTONS
+      r.jsxs("div",{className:"flex flex-wrap items-center gap-3 pt-1",children:[
+        r.jsxs("button",{
+          id:"hero-post-job-btn",
+          type:"button",
+          onClick:()=>{er(!0),Ae("click")},
+          className:"relative group px-6 py-3.5 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black rounded-2xl text-sm transition-all shadow-xl shadow-amber-500/40 hover:scale-105 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 border-2 border-amber-200 ring-4 ring-amber-400/30 cursor-pointer overflow-hidden",
+          title:"Broadcast a new job to verified workers in 10km radius",
+          children:[
+            r.jsx("div",{className:"w-6 h-6 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center shadow-xs shrink-0",children:r.jsx(c0,{className:"w-4 h-4 stroke-[3]"})}),
+            r.jsx("span",{className:"text-sm sm:text-base font-black tracking-tight",children:"Post a Job Broadcast"}),
+            r.jsx("span",{className:"px-2 py-0.5 bg-slate-950 text-amber-300 text-[10px] font-black rounded-md uppercase tracking-wider",children:"10km Radar"})
+          ]
+        }),
+        r.jsxs("button",{
+          type:"button",
+          onClick:()=>{dt(!0),Ae("click")},
+          style:{backgroundColor:"#161924",borderColor:"rgba(245, 158, 11, 0.4)"},
+          className:"px-5 py-3.5 hover:border-amber-400 text-amber-300 font-extrabold rounded-2xl text-sm transition shadow-md flex items-center justify-center gap-2.5 shrink-0 border-2 cursor-pointer group",
+          title:"Scan worker unique ID badge for instant profile verification and direct booking",
+          children:[
+            r.jsx(Su,{className:"w-5 h-5 text-amber-400 group-hover:scale-110 transition"}),
+            r.jsx("span",{children:"Scan Worker Badge"}),
+            r.jsx("span",{className:"px-1.5 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-black rounded-md border border-amber-400/30",children:"QR"})
+          ]
+        })
+      ]})
+    ]})
+  ]}),
+
+  // RIGHT COLUMN: INTERACTIVE KAAMZO 10KM LIVE RADAR & TRANSPARENT RATE COMMAND CARD (Replaces generic stock image)
+  r.jsxs("div",{
+    id:"kaamzo-hero-command-card",
+    style:{background:"linear-gradient(180deg, rgba(22, 26, 38, 0.96) 0%, rgba(13, 16, 24, 0.98) 100%)",borderColor:"rgba(245, 158, 11, 0.42)",width:"100%",maxWidth:"410px"},
+    className:"relative z-10 shrink-0 rounded-3xl border-2 p-5 shadow-2xl flex flex-col justify-between space-y-4 self-center lg:self-stretch",
+    children:[
+      // Card Header: Live 10km Radar Status
+      r.jsxs("div",{className:"flex items-center justify-between gap-2 border-b border-slate-800 pb-3",children:[
+        r.jsxs("div",{className:"flex items-center gap-2.5",children:[
+          r.jsxs("div",{style:{backgroundColor:"rgba(16, 185, 129, 0.18)",borderColor:"rgba(16, 185, 129, 0.45)"},className:"w-10 h-10 rounded-2xl border flex items-center justify-center relative shrink-0",children:[
+            r.jsx(na,{className:"w-5 h-5 text-emerald-400"}),
+            r.jsx("span",{className:"absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-ping"}),
+            r.jsx("span",{className:"absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400"})
+          ]}),
+          r.jsxs("div",{children:[
+            r.jsxs("div",{className:"flex items-center gap-1.5",children:[
+              r.jsx("span",{className:"text-xs font-black uppercase tracking-wider text-amber-400",children:"Live 10km GPS Radar"}),
+              r.jsx("span",{style:{backgroundColor:"rgba(16, 185, 129, 0.2)",color:"#6ee7b7"},className:"px-1.5 py-0.2 rounded text-[9px] font-black uppercase",children:"ONLINE"})
+            ]}),
+            r.jsxs("p",{className:"text-xs font-bold text-slate-300",children:["📍 ",(e&&e.area)||t.defaultArea,", ",t.name]})
+          ]})
+        ]}),
+        r.jsxs("div",{style:{backgroundColor:"rgba(245, 158, 11, 0.16)",borderColor:"rgba(245, 158, 11, 0.4)"},className:"px-2.5 py-1.5 rounded-xl border text-right shrink-0",children:[
+          r.jsxs("span",{className:"text-sm font-black text-amber-300 block leading-none",children:[V.length," Pros"]}),
+          r.jsx("span",{className:"text-[9px] font-bold text-amber-200/80 uppercase",children:"Verified Nearby"})
+        ]})
+      ]}),
+
+      // Interactive 2x2 Transparent Daily Wage Rate Grid (Click to filter!)
+      r.jsxs("div",{className:"space-y-2",children:[
+        r.jsxs("div",{className:"flex items-center justify-between text-[11px]",children:[
+          r.jsx("span",{className:"font-extrabold uppercase tracking-wider text-slate-300",children:"⚡ Transparent Daily Wage Guide"}),
+          r.jsx("span",{className:"text-amber-400 font-bold text-[10px]",children:"Tap to filter →"})
+        ]}),
+        r.jsx("div",{className:"grid grid-cols-2 gap-2",children:[
+          {trade:"Electrician",icon:"⚡",rate:"₹850",sub:"Wiring, MCB & Fans"},
+          {trade:"Plumber",icon:"🔧",rate:"₹800",sub:"Pipes, Taps & Motors"},
+          {trade:"Carpenter",icon:"🔨",rate:"₹850",sub:"Doors, Locks & Wood"},
+          {trade:"Mason",icon:"🧱",rate:"₹900",sub:"Brickwork & Plaster"}
+        ].map(card=>{
+          const selected = Rs === card.trade;
+          return r.jsxs("button",{
+            key:card.trade,
+            type:"button",
+            onClick:()=>{Yt(selected?"All":card.trade),Ae("click")},
+            style:selected?{backgroundColor:"rgba(245, 158, 11, 0.25)",borderColor:"#fcd33f"}:{backgroundColor:"rgba(255, 255, 255, 0.04)",borderColor:"rgba(255, 255, 255, 0.12)"},
+            className:"p-2.5 rounded-2xl border text-left transition hover:border-amber-400 cursor-pointer flex flex-col justify-between",
+            children:[
+              r.jsxs("div",{className:"flex items-center justify-between w-full",children:[
+                r.jsxs("span",{className:"text-xs font-black text-white flex items-center gap-1",children:[card.icon," ",card.trade]}),
+                r.jsxs("span",{className:"text-xs font-black text-amber-400",children:[card.rate,r.jsx("span",{className:"text-[9px] text-slate-400 font-normal",children:"/d"})]})
+              ]}),
+              r.jsx("span",{className:"text-[10px] text-slate-400 font-medium mt-1 block truncate",children:selected?"✓ Showing "+card.trade+"s below":card.sub})
+            ]
+          });
+        })})
+      ]}),
+
+      // 3-Pillar Customer Protection Guarantee Strip
+      r.jsxs("div",{style:{backgroundColor:"rgba(245, 158, 11, 0.1)",borderColor:"rgba(245, 158, 11, 0.28)"},className:"p-3 rounded-2xl border space-y-1.5",children:[
+        r.jsx("p",{className:"text-[10px] font-black uppercase tracking-wider text-amber-300",children:"🛡️ Kaamzo 3-Point Customer Guarantee"}),
+        r.jsxs("div",{className:"grid grid-cols-3 gap-1.5 text-[10px] font-bold text-slate-200",children:[
+          r.jsx("div",{style:{backgroundColor:"rgba(0,0,0,0.35)"},className:"p-1.5 rounded-xl text-center",children:"🪪 Aadhaar + Face ID"}),
+          r.jsx("div",{style:{backgroundColor:"rgba(0,0,0,0.35)"},className:"p-1.5 rounded-xl text-center",children:"💳 100% Safe Escrow"}),
+          r.jsx("div",{style:{backgroundColor:"rgba(0,0,0,0.35)"},className:"p-1.5 rounded-xl text-center",children:"📍 Live Doorstep GPS"})
+        ]})
+      ]}),
+
+      // Card Bottom Quick Action
+      r.jsxs("div",{className:"flex items-center justify-between gap-2 pt-1",children:[
+        r.jsx("span",{className:"text-[11px] font-semibold text-slate-300",children:"Need a worker in 30 mins?"}),
+        r.jsxs("button",{
+          type:"button",
+          onClick:()=>{er(!0),Ae("click")},
+          className:"px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-md flex items-center gap-1",
+          children:["Instant Broadcast →"]
+        })
+      ]})
+    ]
+  })
+]})`;
+
+replaceExact(oldCustomerHero, newCustomerHero, 'Upgrade CustomerPortal Hero Banner with full-width smart search and interactive 10km Radar Command Card');
+
 fs.writeFileSync('www/assets/index-v23.js', js, 'utf8');
 fs.writeFileSync('www/assets/index-v24.js', js, 'utf8');
 fs.writeFileSync('www/assets/index-v25.js', js, 'utf8');
 fs.writeFileSync('www/assets/index-v26.js', js, 'utf8');
 fs.writeFileSync('www/assets/index-v27.js', js, 'utf8');
-console.log('Successfully wrote www/assets/index-v27.js, size:', js.length);
+fs.writeFileSync('www/assets/index-v28.js', js, 'utf8');
+console.log('Successfully wrote www/assets/index-v28.js, size:', js.length);
