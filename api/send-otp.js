@@ -184,12 +184,17 @@ module.exports = async function handler(req, res) {
       const interaktResult = await sendViaInterakt({ toNumber, code });
       if (interaktResult) return res.status(200).json(interaktResult);
 
+      const waMsg = `Kaamzo Account Verification\nMobile: ${toNumber}\nOTP Code: ${code}`;
+      const waLink = `https://wa.me/917888549925?text=${encodeURIComponent(waMsg)}`;
+
       return res.status(200).json({
         success: true,
-        method: "simulated_fallback",
-        messageId: "kaamzo-wa-sim-" + Date.now(),
+        method: "whatsapp_messenger_link",
+        messageId: "kaamzo-wa-" + Date.now(),
         recipient: toNumber,
-        message: `WhatsApp gateway not configured yet (add TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN or AISENSY_API_KEY or INTERAKT_API_KEY). Simulated OTP ${code} for ${toNumber}.`
+        waLink,
+        supportWhatsApp: "+917888549925",
+        message: `WhatsApp Messenger verification prepared via +91 7888549925 for ${toNumber}.`
       });
     }
 
