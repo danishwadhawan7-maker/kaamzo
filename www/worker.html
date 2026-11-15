@@ -360,21 +360,24 @@
         outline: 2px solid #ea580c !important;
       }
 
-      /* Spoken word turns High-Contrast Electric Blue while surrounding words stay orange */
+      /* Spoken word turns High-Contrast Cobalt Blue (#1d4ed8) with crisp white text for maximum contrast on orange */
       .kaamzo-spoken-word-active,
-      body.kaamzo-audio-active .kaamzo-spoken-word-active,
-      body.kaamzo-audio-active.dark .kaamzo-spoken-word-active {
-        background-color: #2563eb !important;
+      html body.kaamzo-audio-active .kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active.dark .kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active span.kaamzo-word.kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active.dark span.kaamzo-word.kaamzo-spoken-word-active {
+        background-color: #1d4ed8 !important;
         color: #ffffff !important;
-        outline: 2px solid #60a5fa !important;
-        box-shadow: 0 0 16px rgba(37, 99, 235, 0.9) !important;
-        border-radius: 4px !important;
-        padding: 1px 4px !important;
-        transform: scale(1.08) !important;
+        outline: 2.5px solid #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.85), 0 6px 20px rgba(37, 99, 235, 0.95) !important;
+        border-radius: 5px !important;
+        padding: 1px 5px !important;
+        transform: scale(1.1) !important;
         display: inline-block !important;
-        z-index: 20 !important;
+        z-index: 30 !important;
         position: relative !important;
         font-weight: 800 !important;
+        text-shadow: none !important;
       }
 
       /* Header active audio button glow */
@@ -451,18 +454,22 @@
           return 'en';
         }
 
-        function clearActiveSpokenWord() {
+        function clearSpokenHighlightOnly() {
           if (activeWordSpan) {
             activeWordSpan.classList.remove('kaamzo-spoken-word-active');
             activeWordSpan = null;
           }
-          if (wordInterval) {
-            clearInterval(wordInterval);
-            wordInterval = null;
-          }
           var spoken = document.querySelectorAll('.kaamzo-spoken-word-active');
           for (var i = 0; i < spoken.length; i++) {
             spoken[i].classList.remove('kaamzo-spoken-word-active');
+          }
+        }
+
+        function clearActiveSpokenWord() {
+          clearSpokenHighlightOnly();
+          if (wordInterval) {
+            clearInterval(wordInterval);
+            wordInterval = null;
           }
         }
 
@@ -492,7 +499,7 @@
           }
 
           var toolbar = document.getElementById('kaamzo-audio-toolbar');
-          var headerBtns = document.querySelectorAll('#kaamzo-header-audio-btn');
+          var headerBtns = document.querySelectorAll('.kaamzo-header-audio-btn, #kaamzo-header-audio-btn, #kaamzo-header-audio-btn-sec');
 
           if (isAudioMode) {
             document.body.classList.add('kaamzo-audio-active');
@@ -529,29 +536,47 @@
             statusEl.textContent = 'Speaking (' + langName + '): ' + rawText.substring(0, 30) + '...';
           }
 
-          // Wrap individual words if not already wrapped
-          var isAlreadyTokenized = element.querySelector('.kaamzo-word');
-          if (!isAlreadyTokenized && element.children.length === 0) {
-            var words = rawText.split(/(\s+)/);
-            element.innerHTML = '';
-            for (var w = 0; w < words.length; w++) {
-              if (/^\s+$/.test(words[w])) {
-                element.appendChild(document.createTextNode(words[w]));
-              } else {
-                var span = document.createElement('span');
-                span.className = 'kaamzo-word';
-                span.textContent = words[w];
-                element.appendChild(span);
+          // Wrap individual words across all text nodes if not already wrapped
+          if (!element.classList.contains('kaamzo-word') && !element.querySelector('.kaamzo-word')) {
+            try {
+              var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+              var textNodes = [];
+              var tn;
+              while ((tn = walker.nextNode())) {
+                if (tn.nodeValue && tn.nodeValue.trim().length > 0 && !(tn.parentElement && tn.parentElement.classList.contains('kaamzo-word'))) {
+                  textNodes.push(tn);
+                }
               }
-            }
+              for (var nIdx = 0; nIdx < textNodes.length; nIdx++) {
+                var node = textNodes[nIdx];
+                var frag = document.createDocumentFragment();
+                var parts = node.nodeValue.split(/(\s+)/);
+                for (var p = 0; p < parts.length; p++) {
+                  if (!parts[p]) continue;
+                  if (/^\s+$/.test(parts[p])) {
+                    frag.appendChild(document.createTextNode(parts[p]));
+                  } else {
+                    var wSpan = document.createElement('span');
+                    wSpan.className = 'kaamzo-word';
+                    wSpan.textContent = parts[p];
+                    frag.appendChild(wSpan);
+                  }
+                }
+                if (node.parentNode) node.parentNode.replaceChild(frag, node);
+              }
+            } catch (err) {}
           }
 
-          var wordSpans = element.querySelectorAll('.kaamzo-word');
+          var wordSpans = element.classList.contains('kaamzo-word') ? [element] : element.querySelectorAll('.kaamzo-word');
 
-          // Highlight the clicked word immediately in Blue while others remain Orange
+          // Highlight the clicked/first word immediately in Cobalt Blue while others remain Orange
+          var startIdx = 0;
           var targetSpan = null;
           if (clickedNode && clickedNode.classList && clickedNode.classList.contains('kaamzo-word')) {
             targetSpan = clickedNode;
+            for (var si = 0; si < wordSpans.length; si++) {
+              if (wordSpans[si] === clickedNode) { startIdx = si; break; }
+            }
           } else if (wordSpans.length > 0) {
             targetSpan = wordSpans[0];
           }
@@ -583,14 +608,33 @@
               }
               if (matchedVoice) utterance.voice = matchedVoice;
 
+              var boundaryFired = false;
+              if (wordSpans && wordSpans.length > 1) {
+                var fIdx = startIdx;
+                wordInterval = setInterval(function() {
+                  if (boundaryFired || fIdx >= wordSpans.length - 1) {
+                    if (boundaryFired && wordInterval) { clearInterval(wordInterval); wordInterval = null; }
+                    return;
+                  }
+                  fIdx++;
+                  clearSpokenHighlightOnly();
+                  if (wordSpans[fIdx]) {
+                    wordSpans[fIdx].classList.add('kaamzo-spoken-word-active');
+                    activeWordSpan = wordSpans[fIdx];
+                  }
+                }, 380);
+              }
+
               utterance.onboundary = function(event) {
                 if (event.name === 'word' && wordSpans.length > 0) {
+                  boundaryFired = true;
+                  if (wordInterval) { clearInterval(wordInterval); wordInterval = null; }
                   var charIndex = event.charIndex;
                   var accumulated = 0;
                   for (var i = 0; i < wordSpans.length; i++) {
                     var sLen = wordSpans[i].textContent.length;
                     if (charIndex >= accumulated && charIndex < accumulated + sLen + 2) {
-                      clearActiveSpokenWord();
+                      clearSpokenHighlightOnly();
                       wordSpans[i].classList.add('kaamzo-spoken-word-active');
                       activeWordSpan = wordSpans[i];
                       break;
@@ -633,7 +677,7 @@
                   clearInterval(wordInterval);
                   return;
                 }
-                clearActiveSpokenWord();
+                clearSpokenHighlightOnly();
                 if (wordSpans[currentIdx]) {
                   wordSpans[currentIdx].classList.add('kaamzo-spoken-word-active');
                   activeWordSpan = wordSpans[currentIdx];
@@ -658,15 +702,15 @@
           var target = ev.target;
           if (!target) return;
 
-          // Ignore clicks on audio toolbar controls or close buttons
-          if (target.closest && target.closest('.kaamzo-ui-ignore')) return;
-          if (target.id === 'kaamzo-header-audio-btn' || (target.closest && target.closest('#kaamzo-header-audio-btn'))) return;
+          // Ignore clicks on audio toolbar controls or header audio toggle buttons
+          if (target.closest && target.closest('.kaamzo-ui-ignore, .kaamzo-header-audio-btn, #kaamzo-header-audio-btn, #kaamzo-header-audio-btn-sec')) return;
 
           // Prevent navigation when in audio reading mode
           ev.preventDefault();
           ev.stopPropagation();
 
-          var readableParent = target.closest('p, h1, h2, h3, h4, h5, h6, span, label, a, button, li, .kaamzo-word');
+          var readableParent = target.closest('p, h1, h2, h3, h4, h5, h6, label, a, button, li');
+          if (!readableParent) readableParent = target.closest('span:not(.kaamzo-word)');
           if (readableParent) {
             handleElementSpeak(readableParent, target);
           } else {
