@@ -1,5 +1,13 @@
 const crypto = require("crypto");
 
+function normalizeIndianWhatsAppNumber(raw) {
+  const digits = String(raw || "").replace(/[^0-9]/g, "");
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`;
+  if (String(raw || "").trim().startsWith("+")) return `+${digits}`;
+  return digits ? `+${digits}` : "";
+}
+
 function buildOtpEmailHtml({ recipient, code, role = "customer", customerName, workerName }) {
   const name = customerName || workerName || "Kaamzo User";
   const roleLabel = role === "worker" ? "Worker KYC & Portal Access" : "Customer / Employer Account";
@@ -31,6 +39,116 @@ function buildOtpEmailHtml({ recipient, code, role = "customer", customerName, w
   };
 }
 
+async function sendViaTwilioWhatsApp({ toNumber, code, role }) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromWhatsApp = process.env.TWILIO_WHATSAPP_FROM || "whatsapp:+14155238886";
+  if (!accountSid || !authToken) return null;
+
+  const toFormatted = toNumber.startsWith("whatsapp:") ? toNumber : `whatsapp:${toNumber}`;
+  const fromFormatted = fromWhatsApp.startsWith("whatsapp:") ? fromWhatsApp : `whatsapp:${fromWhatsApp}`;
+  const roleLabel = role === "worker" ? "Worker Portal" : "Customer Account";
+  const bodyText = `Kaamzo Security Code: *${code}*\n\nUse this 6-digit OTP to verify your ${roleLabel}. Valid for 10 minutes. Never share this code with anyone.`;
+
+  const params = new URLSearchParams();
+  params.append("To", toFormatted);
+  params.append("From", fromFormatted);
+  params.append("Body", bodyText);
+
+  const authHeader = "Basic " + Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+  const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+    method: "POST",
+    headers: {
+      Authorization: authHeader,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: params.toString()
+  });
+
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data.message || `Twilio WhatsApp error (${resp.status})`);
+  }
+  return {
+    success: true,
+    method: "twilio_whatsapp",
+    messageId: data.sid || ("kaamzo-wa-" + Date.now()),
+    recipient: toNumber,
+    message: `WhatsApp OTP sent to ${toNumber}`
+  };
+}
+
+async function sendViaAiSensy({ toNumber, code, name }) {
+  const apiKey = process.env.AISENSY_API_KEY;
+  const campaignName = process.env.AISENSY_CAMPAIGN_NAME || "kaamzo_otp";
+  if (!apiKey) return null;
+
+  const resp = await fetch("https://backend.aisensy.com/campaign/t1/api/v2", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      apiKey,
+      campaignName,
+      destination: toNumber.replace("+", ""),
+      userName: name || "Kaamzo User",
+      templateParams: [code]
+    })
+  });
+
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data.message || `AiSensy error (${resp.status})`);
+  }
+  return {
+    success: true,
+    method: "aisensy_whatsapp",
+    messageId: data.id || ("kaamzo-aisensy-" + Date.now()),
+    recipient: toNumber,
+    message: `WhatsApp OTP sent to ${toNumber}`
+  };
+}
+
+async function sendViaInterakt({ toNumber, code }) {
+  const apiKey = process.env.INTERAKT_API_KEY;
+  const templateName = process.env.INTERAKT_TEMPLATE_NAME || "kaamzo_otp";
+  if (!apiKey) return null;
+
+  const digits = toNumber.replace(/[^0-9]/g, "");
+  const phoneNumber = digits.length > 10 ? digits.slice(-10) : digits;
+  const countryCode = digits.length > 10 ? `+${digits.slice(0, digits.length - 10)}` : "+91";
+
+  const resp = await fetch("https://api.interakt.ai/v1/public/message/", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      countryCode,
+      phoneNumber,
+      callbackData: "kaamzo_otp",
+      type: "Template",
+      template: {
+        name: templateName,
+        languageCode: "en",
+        bodyValues: [code]
+      }
+    })
+  });
+
+  const data = await resp.json();
+  if (!resp.ok || data.result === false) {
+    throw new Error(data.message || `Interakt error (${resp.status})`);
+  }
+  return {
+    success: true,
+    method: "interakt_whatsapp",
+    messageId: data.id || ("kaamzo-interakt-" + Date.now()),
+    recipient: toNumber,
+    message: `WhatsApp OTP sent to ${toNumber}`
+  };
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -45,13 +163,37 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
-    const recipient = String(body.recipient || body.email || "").trim();
+    const recipient = String(body.recipient || body.email || body.phone || "").trim();
     const code = String(body.code || crypto.randomInt(100000, 999999)).trim();
 
     if (!recipient) {
       return res.status(400).json({ success: false, error: "Recipient is required" });
     }
 
+    // 1. Phone / WhatsApp OTP Path (when recipient is a phone number)
+    if (!recipient.includes("@")) {
+      const toNumber = normalizeIndianWhatsAppNumber(recipient);
+      const userName = body.customerName || body.workerName || "Kaamzo User";
+
+      const twilioResult = await sendViaTwilioWhatsApp({ toNumber, code, role: body.role });
+      if (twilioResult) return res.status(200).json(twilioResult);
+
+      const aiSensyResult = await sendViaAiSensy({ toNumber, code, name: userName });
+      if (aiSensyResult) return res.status(200).json(aiSensyResult);
+
+      const interaktResult = await sendViaInterakt({ toNumber, code });
+      if (interaktResult) return res.status(200).json(interaktResult);
+
+      return res.status(200).json({
+        success: true,
+        method: "simulated_fallback",
+        messageId: "kaamzo-wa-sim-" + Date.now(),
+        recipient: toNumber,
+        message: `WhatsApp gateway not configured yet (add TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN or AISENSY_API_KEY or INTERAKT_API_KEY). Simulated OTP ${code} for ${toNumber}.`
+      });
+    }
+
+    // 2. Gmail SMTP Path (when recipient is an email)
     const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
     const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
 
