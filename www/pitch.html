@@ -2429,7 +2429,7 @@
     <!-- 4-Tab Mobile Bottom Navigation -->
     <nav id="kaamzo-bottom-nav" class="kaamzo-ui-ignore" aria-label="Primary Bottom Navigation"></nav>
 
-        <script>
+            <script>
       (function() {
         var ICON_PATHS = {
           "home": '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
@@ -2796,15 +2796,18 @@
         };
 
         window.kaamzoSignOutAction = function() {
+          try {
+            localStorage.removeItem("kaamzo_current_customer_v8");
+            localStorage.removeItem("kaamzo_current_worker_v8");
+          } catch (e) {}
           if (window.kaamzoCustomerBridge && window.kaamzoCustomerBridge.logout) {
-            window.kaamzoCustomerBridge.logout();
-          } else {
-            try {
-              localStorage.removeItem("kaamzo_current_customer_v8");
-              localStorage.removeItem("kaamzo_current_worker_v8");
-            } catch (e) {}
-            window.location.href = "/";
+            try { window.kaamzoCustomerBridge.logout(); } catch (e) {}
           }
+          if (window.kaamzoSetRole) {
+            try { window.kaamzoSetRole("select_role"); } catch (e) {}
+          }
+          lastPortal = "";
+          window.kaamzoNavigate("/", { replace: true });
         };
 
         window.kaamzoOpenVerifyAccountAction = function() {
@@ -2852,13 +2855,16 @@
         var workerJobsState = { search: "", trade: "All", filtersOpen: false, maxDist: 10, minPay: 0, skipped: {} };
         var workerDutyOnline = true;
         var currentLangSeen = getLang();
+        var lastPortal = "";
+        var lastDataSig = "";
 
         window.kaamzoCurrentPortal = function() {
+          var rawP = (window.location.pathname || "/").replace(/\/+$/, "").toLowerCase() || "/";
+          if (rawP === "/admin" || rawP.indexOf("/admin/") === 0 || rawP === "/pitch" || rawP.indexOf("/pitch/") === 0) return "";
+          if (rawP === "/worker" || rawP.indexOf("/worker/") === 0) return "worker";
+          if (rawP === "/customer" || rawP.indexOf("/customer/") === 0) return "customer";
           if (window.kaamzoCustomerBridge && window.kaamzoCustomerBridge.customer) return "customer";
           if (window.kaamzoWorkerBridge && window.kaamzoWorkerBridge.worker) return "worker";
-          var p = window.location.pathname || "/";
-          if (p.indexOf("/customer") === 0 && localStorage.getItem("kaamzo_current_customer_v8")) return "customer";
-          if (p.indexOf("/worker") === 0 && localStorage.getItem("kaamzo_current_worker_v8")) return "worker";
           return "";
         };
 
@@ -2877,7 +2883,8 @@
           if (drawer) drawer.classList.remove("active");
           var trust = document.getElementById("kaamzo-trust-sheet-backdrop");
           if (trust) trust.classList.remove("active");
-          if (!opts || !opts.replace) {
+          var useReplace = opts === true || (opts && opts.replace);
+          if (!useReplace) {
             if (window.location.pathname !== path) window.history.pushState({ kaamzoPath: path }, "", path);
           } else {
             window.history.replaceState({ kaamzoPath: path }, "", path);
@@ -3752,13 +3759,36 @@
         }
 
         function renderRoute() {
-          var route = window.location.pathname || "/";
-          var portal = window.kaamzoCurrentPortal();
-          if (portal) document.body.setAttribute("data-kaamzo-portal", portal);
-          else document.body.removeAttribute("data-kaamzo-portal");
+          var rawPath = (window.location.pathname || "/").replace(/\/+$/, "") || "/";
+          var route = rawPath.toLowerCase();
+          if (route === "/index.html") {
+            rawPath = "/";
+            route = "/";
+          }
 
-          if (portal && (route === "/" || route === "/index.html")) {
+          if (route === "/customer") {
+            rawPath = "/customer/home";
+            route = "/customer/home";
+            window.history.replaceState({ kaamzoPath: route }, "", route);
+          } else if (route === "/worker") {
+            rawPath = "/worker/home";
+            route = "/worker/home";
+            window.history.replaceState({ kaamzoPath: route }, "", route);
+          }
+
+          var portal = window.kaamzoCurrentPortal();
+          if (portal) {
+            document.body.setAttribute("data-kaamzo-portal", portal);
+            if (window.kaamzoSetRole) {
+              try { window.kaamzoSetRole(portal); } catch (e) {}
+            }
+          } else {
+            document.body.removeAttribute("data-kaamzo-portal");
+          }
+
+          if (portal && route === "/") {
             route = portal === "worker" ? "/worker/home" : "/customer/home";
+            rawPath = route;
             window.history.replaceState({ kaamzoPath: route }, "", route);
           }
           document.body.setAttribute("data-kaamzo-route", route);
@@ -3778,21 +3808,23 @@
 
           if (portal === "customer") {
             if (route === "/customer/find-workers") renderCustomerFindWorkersPage(container);
-            else if (route.indexOf("/customer/workers/") === 0) renderWorkerDetailPage(container, route.slice("/customer/workers/".length));
+            else if (route.indexOf("/customer/workers/") === 0) renderWorkerDetailPage(container, rawPath.slice("/customer/workers/".length));
             else if (route === "/customer/post-job") renderPostJobWizard(container);
-            else if (route.indexOf("/customer/bookings/") === 0) renderCustomerBookingDetailPage(container, route.slice("/customer/bookings/".length));
+            else if (route.indexOf("/customer/bookings/") === 0) renderCustomerBookingDetailPage(container, rawPath.slice("/customer/bookings/".length));
             else if (route === "/customer/bookings") renderCustomerBookingsPage(container);
             else if (route === "/customer/tools/scan-badge" || route === "/customer/tools/crew" || route === "/customer/tools/khata" || route === "/customer/ai-shortlist" || route === "/customer/safety" || route === "/customer/profile" || route === "/customer/support" || route === "/customer/settings") renderCustomerToolPage(container, route);
             else renderCustomerHome(container);
           } else {
             if (route === "/worker/jobs") renderWorkerJobsPage(container);
-            else if (route.indexOf("/worker/jobs/") === 0) renderWorkerJobDetailPage(container, route.slice("/worker/jobs/".length));
+            else if (route.indexOf("/worker/jobs/") === 0) renderWorkerJobDetailPage(container, rawPath.slice("/worker/jobs/".length));
             else if (route === "/worker/radar" || route === "/worker/active" || route === "/worker/rewards" || route === "/worker/wallet" || route === "/worker/history" || route === "/worker/profile" || route === "/worker/support" || route === "/worker/settings") renderWorkerOtherPage(container, route);
             else renderWorkerHome(container);
           }
         }
 
-        window.addEventListener("popstate", renderRoute);
+        window.addEventListener("popstate", function() {
+          setTimeout(renderRoute, 30);
+        });
         document.addEventListener("click", function(e) {
           var t = e.target;
           if (!t || !t.closest) return;
@@ -3803,9 +3835,24 @@
           }
         }, true);
 
-        var lastPortal = "";
-        var lastDataSig = "";
         setInterval(function() {
+          var curPath = (window.location.pathname || "/").replace(/\/+$/, "").toLowerCase() || "/";
+          if (curPath === "/index.html") curPath = "/";
+          if (curPath === "/") {
+            var cbRoot = window.kaamzoCustomerBridge;
+            var wbRoot = window.kaamzoWorkerBridge;
+            var rootText = (document.getElementById("root") || {}).innerText || "";
+            if (((cbRoot && cbRoot.customer) || (rootText.indexOf("Find Workers") !== -1 && rootText.indexOf("My Bookings") !== -1)) && lastPortal !== "customer") {
+              lastPortal = "customer";
+              window.kaamzoNavigate("/customer/home", { replace: true });
+              return;
+            }
+            if (((wbRoot && wbRoot.worker) || (rootText.indexOf("10km Radar") !== -1 && rootText.indexOf("Active Work") !== -1)) && lastPortal !== "worker") {
+              lastPortal = "worker";
+              window.kaamzoNavigate("/worker/home", { replace: true });
+              return;
+            }
+          }
           var p = window.kaamzoCurrentPortal();
           var l = getLang();
           var cb = window.kaamzoCustomerBridge;
