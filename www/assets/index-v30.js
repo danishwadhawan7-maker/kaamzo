@@ -4375,7 +4375,7 @@ Enter this 4-digit code in your Kaamzo app upon arrival to start the work clock!
           r.jsx("span",{className:"px-1.5 py-0.5 bg-amber-400/20 text-amber-300 text-[9px] font-black rounded-md",children:"QR"})
         ]
       })
-    ]})
+    ]}),s.jsxs("button",{onClick:()=>window.kaamzoOpenLiveTracker&&window.kaamzoOpenLiveTracker(),className:"bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-4 py-3.5 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 border border-emerald-500/40 active:scale-95 text-sm sm:text-base",children:["📍 Live ETA & OTP Timer"]}),s.jsxs("button",{onClick:()=>window.kaamzoOpenCrewModal&&window.kaamzoOpenCrewModal(),className:"bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-4 py-3.5 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 border border-blue-500/40 active:scale-95 text-sm sm:text-base",children:["👷‍♂️ Crew & 1-Tap Rebook"]}),s.jsxs("button",{onClick:()=>window.kaamzoOpenKhataModal&&window.kaamzoOpenKhataModal(),className:"bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-3.5 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 border border-amber-500/40 active:scale-95 text-sm sm:text-base",children:["📒 Worker Khata & ID"]}),s.jsxs("button",{onClick:()=>window.kaamzoOpenSosModal&&window.kaamzoOpenSosModal(),className:"bg-red-600/25 hover:bg-red-600/40 text-red-300 px-4 py-3.5 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 border border-red-500/50 active:scale-95 text-sm sm:text-base",children:["🚨 SOS Check-In"]})
   ]}),
 
   // RIGHT COLUMN: Pinterest-Inspired 2x2 Visual Craftsmanship Bento Grid
