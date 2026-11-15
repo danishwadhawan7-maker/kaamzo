@@ -1674,20 +1674,14 @@
         padding-bottom: 76px !important;
       }
 
-      /* Hide duplicate Customer Secondary Header & Hero clutter when in simplified multi-page mode */
-      body[data-kaamzo-route="/customer/home"] #root main,
-      body[data-kaamzo-route="/customer/post-job"] #root main,
-      body[data-kaamzo-route="/customer/ai-shortlist"] #root main,
-      body[data-kaamzo-route="/customer/profile"] #root main,
-      body[data-kaamzo-route="/customer/settings"] #root main,
-      body[data-kaamzo-route^="/customer/workers/"] #root main,
-      body[data-kaamzo-route^="/customer/bookings/"] #root main,
-      body[data-kaamzo-route^="/customer/tools/"] #root main,
-      body[data-kaamzo-route="/customer/safety"] #root main,
-      body[data-kaamzo-route="/worker/home"] #root main,
-      body[data-kaamzo-route="/worker/rewards"] #root main,
-      body[data-kaamzo-route="/worker/settings"] #root main,
-      body[data-kaamzo-route^="/worker/jobs/"] #root main {
+      /* Collapse #root 100vh wrapper & hide <main>/<footer> ONLY when a dedicated custom page is visible */
+      body[data-kaamzo-custom-page="true"] #root,
+      body[data-kaamzo-custom-page="true"] #root > div {
+        min-height: 0 !important;
+        height: auto !important;
+      }
+      body[data-kaamzo-custom-page="true"] #root main,
+      body[data-kaamzo-custom-page="true"] #root footer {
         display: none !important;
       }
 
@@ -2601,6 +2595,13 @@
             if (subTitle) subTitle.textContent = "⚙️ Worker Settings";
             pageContainer.classList.add("visible");
             renderSettingsPage(pageContainer, "worker");
+          }
+
+          // Toggle body[data-kaamzo-custom-page] so #root never creates a 100vh empty gap above #kaamzo-page-container
+          if (pageContainer.classList.contains("visible")) {
+            document.body.setAttribute("data-kaamzo-custom-page", "true");
+          } else {
+            document.body.setAttribute("data-kaamzo-custom-page", "false");
           }
         }
 
