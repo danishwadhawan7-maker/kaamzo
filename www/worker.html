@@ -845,6 +845,28 @@
           border-radius: 20px;
         }
       }
+      @media print {
+        body * {
+          visibility: hidden !important;
+        }
+        #kaamzo-gatepass-card,
+        #kaamzo-gatepass-card * {
+          visibility: visible !important;
+        }
+        #kaamzo-gatepass-card {
+          position: fixed !important;
+          left: 20px !important;
+          top: 20px !important;
+          width: calc(100% - 40px) !important;
+          background: #0f172a !important;
+          color: #f8fafc !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .kaamzo-no-print {
+          display: none !important;
+        }
+      }
     </style>
 
     <!-- MODAL 1: LIVE ARRIVAL & WORK TIMER ("UBER-STYLE" JOB TRACKING) -->
@@ -1039,13 +1061,13 @@
         <!-- Earnings Summary Cards -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
           <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#94a3b8;font-weight:700;">TODAY'S EARNINGS</div>
+            <div style="font-size:11px;color:#94a3b8;font-weight:700;">WITHDRAWABLE</div>
             <div id="kaamzo-khata-today" style="font-size:22px;font-weight:900;color:#4ade80;margin-top:4px;">₹850</div>
-            <div style="font-size:10px;color:#64748b;">1 Job Completed</div>
+            <div id="kaamzo-khata-today-sub" style="font-size:10px;color:#64748b;">Ready for UPI Payout</div>
           </div>
           <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
             <div style="font-size:11px;color:#94a3b8;font-weight:700;">ESCROW PENDING</div>
-            <div id="kaamzo-khata-escrow" style="font-size:22px;font-weight:900;color:#fbbf24;margin-top:4px;">₹1,700</div>
+            <div id="kaamzo-khata-escrow" style="font-size:22px;font-weight:900;color:#fbbf24;margin-top:4px;">₹850</div>
             <div style="font-size:10px;color:#64748b;">Releases on End OTP</div>
           </div>
           <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
@@ -1055,15 +1077,37 @@
           </div>
         </div>
 
-        <!-- Instant UPI Payout Bar -->
-        <div style="background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-size:13px;font-weight:800;color:#fff;">🏦 Linked UPI ID: <span style="color:#4ade80;">gurpreet.kaamzo@okaxis</span></div>
-            <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#94a3b8;">Zero commission taken from worker daily wage • Instant IMPS/UPI</div>
+        <!-- Instant UPI Payout Bar + Inline UPI & Profile Editor -->
+        <div style="background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#fff;">🏦 Linked UPI ID: <span id="kaamzo-khata-upi-display" style="color:#4ade80;">gurpreet.kaamzo@okaxis</span></div>
+              <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#94a3b8;">Zero commission taken from worker daily wage • Instant / Admin-settled UPI</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" onclick="window.kaamzoToggleKhataEdit()" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">
+                ✏️ Edit UPI / Profile
+              </button>
+              <button id="kaamzo-khata-withdraw-btn" type="button" onclick="window.kaamzoWithdrawKhataUpi()" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+                ⚡ Withdraw to UPI
+              </button>
+            </div>
           </div>
-          <button type="button" onclick="window.kaamzoWithdrawKhataUpi()" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">
-            ⚡ Instant UPI Payout
-          </button>
+
+          <div id="kaamzo-khata-edit-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
+            <input id="kaamzo-edit-worker-name" type="text" placeholder="Full Name" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <input id="kaamzo-edit-worker-trade" type="text" placeholder="Primary Trade" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <input id="kaamzo-edit-worker-upi" type="text" placeholder="yourname@okaxis" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <button type="button" onclick="window.kaamzoSaveKhataProfile()" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;">
+              💾 Save Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Khata Transaction Ledger -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:800;color:#fff;margin-bottom:8px;">📜 Recent Khata Ledger (Escrow &amp; Payouts)</div>
+          <div id="kaamzo-khata-ledger-list" style="display:flex;flex-direction:column;gap:6px;max-height:130px;overflow-y:auto;font-size:11px;"></div>
         </div>
 
         <!-- Verified Work Certificate & Digital Gate-Pass ID Card -->
@@ -1078,25 +1122,25 @@
 
           <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;">
             <div style="font-size:12px;line-height:1.7;color:#e2e8f0;">
-              <div><strong>Worker Name:</strong> Gurpreet Singh</div>
-              <div><strong>Primary Trade:</strong> Master Electrician &amp; Appliance Pro</div>
-              <div><strong>Kaamzo Badge ID:</strong> <span style="color:#38bdf8;font-weight:800;">KMZ-LDH-2026-8841</span></div>
+              <div><strong>Worker Name:</strong> <span id="kaamzo-gp-name">Gurpreet Singh</span></div>
+              <div><strong>Primary Trade:</strong> <span id="kaamzo-gp-trade">Master Electrician &amp; Appliance Pro</span></div>
+              <div><strong>Kaamzo Badge ID:</strong> <span id="kaamzo-gp-badge" style="color:#38bdf8;font-weight:800;">KMZ-LDH-2026-8841</span></div>
               <div><strong>Aadhaar &amp; Police KYC:</strong> Verified on File (XXXX-XXXX-4912)</div>
-              <div><strong>Track Record:</strong> 142 Verified Jobs • 4.9 ★ Customer Rating</div>
+              <div><strong>Track Record:</strong> <span id="kaamzo-gp-jobs">142 Verified Jobs</span> • 4.9 ★ Customer Rating</div>
               <div><strong>Support Helpline:</strong> +91 7888549925 (www.kaamzo.site)</div>
             </div>
             <div style="background:#fff;padding:8px;border-radius:12px;text-align:center;">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=https://www.kaamzo.site/?verify=KMZ-LDH-2026-8841" alt="Kaamzo Gate Pass QR" width="88" height="88" style="display:block;border-radius:6px;" />
+              <img id="kaamzo-gp-qr-img" crossorigin="anonymous" src="https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=https://www.kaamzo.site/?verify=KMZ-LDH-2026-8841" alt="Kaamzo Gate Pass QR" width="88" height="88" style="display:block;border-radius:6px;" />
               <div style="font-size:9px;font-weight:900;color:#0f172a;margin-top:4px;">SCAN AT GATE</div>
             </div>
           </div>
 
-          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+          <div class="kaamzo-no-print" style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
             <button type="button" onclick="window.kaamzoDownloadGatePassImage()" style="flex:1;background:#f97316;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
-              📥 Download Gate-Pass ID (PNG Image)
+              📥 Download Gate-Pass ID (PNG w/ QR)
             </button>
             <button type="button" onclick="window.print()" style="background:#334155;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
-              🖨️ Print / Save PDF Certificate
+              🖨️ Print / Save PDF Card Only
             </button>
           </div>
         </div>
@@ -1251,8 +1295,25 @@
             fb.style.color = "#4ade80";
             fb.textContent = "🎉 End Work OTP (" + code + ") verified! Exact work hours logged and ₹850 UPI Escrow released to worker's Digital Khata.";
           }
+          // Credit worker's Digital Khata state
+          var st = getKhataState();
+          var releasedAmt = 850;
+          st.escrowPending = Math.max(0, st.escrowPending - releasedAmt);
+          st.availableBalance += releasedAmt;
+          st.weeklyTotal += releasedAmt;
+          st.jobsCompleted += 1;
+          st.ledger.unshift({
+            type: "CREDIT",
+            title: "Escrow Released (End OTP " + code + " • " + formatHMS(attendanceSeconds) + ")",
+            amount: releasedAmt,
+            time: new Date().toLocaleTimeString(),
+            status: "Credited"
+          });
+          saveKhataState(st);
+          renderKhataUI();
+
           if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
-            window.kaamzoAdminSecurity.logEvent("WORK_END_OTP_ESCROW_RELEASED", "End OTP (" + code + ") verified. Duration: " + formatHMS(attendanceSeconds) + ". ₹850 UPI Escrow released.", "VERIFIED");
+            window.kaamzoAdminSecurity.logEvent("WORK_END_OTP_ESCROW_RELEASED", "End OTP (" + code + ") verified. Duration: " + formatHMS(attendanceSeconds) + ". ₹850 UPI Escrow released to Khata.", "VERIFIED");
           }
         };
 
@@ -1315,31 +1376,186 @@
           }
         };
 
+        function getKhataState() {
+          var saved = null;
+          try { saved = JSON.parse(localStorage.getItem("kaamzo_khata_state_v2") || "null"); } catch (e) {}
+          if (saved && typeof saved === "object") return saved;
+
+          // Try to hydrate initial name/trade from active Kaamzo session if signed in
+          var sessionName = "Gurpreet Singh";
+          var sessionTrade = "Master Electrician & Appliance Pro";
+          try {
+            var u = JSON.parse(localStorage.getItem("kaamzo_user") || localStorage.getItem("kaamzo_worker_profile") || "null");
+            if (u && (u.name || u.displayName || u.fullName)) sessionName = u.name || u.displayName || u.fullName;
+            if (u && (u.skill || u.trade || u.category)) sessionTrade = u.skill || u.trade || u.category;
+          } catch (e) {}
+
+          return {
+            workerName: sessionName,
+            workerTrade: sessionTrade,
+            badgeId: "KMZ-LDH-2026-8841",
+            upiId: "gurpreet.kaamzo@okaxis",
+            availableBalance: 850,
+            escrowPending: 850,
+            weeklyTotal: 6450,
+            jobsCompleted: 142,
+            ledger: [
+              { type: "CREDIT", title: "MCB Panel & Wiring (Model Town)", amount: 850, time: "Today, 10:15 AM", status: "Available" },
+              { type: "ESCROW", title: "Active Job Escrow Lock", amount: 850, time: "In Progress", status: "Locked" },
+              { type: "PAYOUT", title: "UPI Payout • UTR KMZ491022", amount: 1700, time: "Yesterday", status: "Settled" }
+            ]
+          };
+        }
+
+        function saveKhataState(st) {
+          try { localStorage.setItem("kaamzo_khata_state_v2", JSON.stringify(st)); } catch (e) {}
+        }
+
+        function renderKhataUI() {
+          var st = getKhataState();
+          var todayEl = document.getElementById("kaamzo-khata-today");
+          var todaySubEl = document.getElementById("kaamzo-khata-today-sub");
+          var escrowEl = document.getElementById("kaamzo-khata-escrow");
+          var weeklyEl = document.getElementById("kaamzo-khata-weekly");
+          var upiDisp = document.getElementById("kaamzo-khata-upi-display");
+          var withdrawBtn = document.getElementById("kaamzo-khata-withdraw-btn");
+
+          if (todayEl) todayEl.textContent = "₹" + st.availableBalance.toLocaleString("en-IN");
+          if (todaySubEl) todaySubEl.textContent = st.availableBalance > 0 ? "Ready for UPI Payout" : "All funds withdrawn";
+          if (escrowEl) escrowEl.textContent = "₹" + st.escrowPending.toLocaleString("en-IN");
+          if (weeklyEl) weeklyEl.textContent = "₹" + st.weeklyTotal.toLocaleString("en-IN");
+          if (upiDisp) upiDisp.textContent = st.upiId || "Not Set (Click Edit)";
+          if (withdrawBtn) {
+            withdrawBtn.disabled = st.availableBalance <= 0;
+            withdrawBtn.style.opacity = st.availableBalance <= 0 ? "0.5" : "1";
+            withdrawBtn.style.cursor = st.availableBalance <= 0 ? "not-allowed" : "pointer";
+          }
+
+          // Gate-Pass ID Card fields
+          var gpName = document.getElementById("kaamzo-gp-name");
+          var gpTrade = document.getElementById("kaamzo-gp-trade");
+          var gpBadge = document.getElementById("kaamzo-gp-badge");
+          var gpJobs = document.getElementById("kaamzo-gp-jobs");
+          var gpQr = document.getElementById("kaamzo-gp-qr-img");
+          if (gpName) gpName.textContent = st.workerName;
+          if (gpTrade) gpTrade.textContent = st.workerTrade;
+          if (gpBadge) gpBadge.textContent = st.badgeId;
+          if (gpJobs) gpJobs.textContent = st.jobsCompleted + " Verified Jobs";
+          if (gpQr) {
+            gpQr.src = "https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=" + encodeURIComponent("https://www.kaamzo.site/?verify=" + st.badgeId);
+          }
+
+          // Edit panel prefill
+          var inName = document.getElementById("kaamzo-edit-worker-name");
+          var inTrade = document.getElementById("kaamzo-edit-worker-trade");
+          var inUpi = document.getElementById("kaamzo-edit-worker-upi");
+          if (inName && !inName.value) inName.value = st.workerName;
+          if (inTrade && !inTrade.value) inTrade.value = st.workerTrade;
+          if (inUpi && !inUpi.value) inUpi.value = st.upiId;
+
+          // Ledger rows
+          var listEl = document.getElementById("kaamzo-khata-ledger-list");
+          if (listEl) {
+            listEl.innerHTML = st.ledger.slice(0, 8).map(function(item) {
+              var isCredit = item.type === "CREDIT";
+              var isEscrow = item.type === "ESCROW";
+              var color = isCredit ? "#4ade80" : (isEscrow ? "#fbbf24" : "#38bdf8");
+              var sign = isCredit ? "+" : (isEscrow ? "🔒 " : "-");
+              return '<div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:7px 10px;border-radius:8px;border:1px solid #334155;">' +
+                '<div><div style="font-weight:700;color:#e2e8f0;">' + item.title + '</div><div style="font-size:10px;color:#64748b;">' + item.time + ' • ' + item.status + '</div></div>' +
+                '<div style="font-weight:900;color:' + color + ';">' + sign + '₹' + Number(item.amount).toLocaleString("en-IN") + '</div>' +
+                '</div>';
+            }).join("");
+          }
+        }
+
+        window.kaamzoToggleKhataEdit = function() {
+          var panel = document.getElementById("kaamzo-khata-edit-panel");
+          if (!panel) return;
+          panel.style.display = panel.style.display === "grid" ? "none" : "grid";
+        };
+
+        window.kaamzoSaveKhataProfile = function() {
+          var st = getKhataState();
+          var n = (document.getElementById("kaamzo-edit-worker-name") || {}).value || "";
+          var t = (document.getElementById("kaamzo-edit-worker-trade") || {}).value || "";
+          var u = (document.getElementById("kaamzo-edit-worker-upi") || {}).value || "";
+          if (n.trim()) st.workerName = n.trim();
+          if (t.trim()) st.workerTrade = t.trim();
+          if (u.trim()) {
+            if (u.indexOf("@") === -1) {
+              alert("Please enter a valid UPI ID (e.g. name@okaxis or 98xxxxxxxx@ybl).");
+              return;
+            }
+            st.upiId = u.trim();
+          }
+          saveKhataState(st);
+          renderKhataUI();
+          var panel = document.getElementById("kaamzo-khata-edit-panel");
+          if (panel) panel.style.display = "none";
+          var statusEl = document.getElementById("kaamzo-khata-payout-status");
+          if (statusEl) {
+            statusEl.style.color = "#38bdf8";
+            statusEl.textContent = "✅ Profile & UPI ID (" + st.upiId + ") saved for future payouts & Gate-Pass ID.";
+          }
+        };
+
         window.kaamzoOpenKhataModal = function() {
           window.kaamzoCloseAllSuiteModals();
+          renderKhataUI();
           var m = document.getElementById("kaamzo-khata-modal-backdrop");
           if (m) m.classList.add("active");
         };
 
         window.kaamzoWithdrawKhataUpi = function() {
+          var st = getKhataState();
           var statusEl = document.getElementById("kaamzo-khata-payout-status");
+          if (!st.upiId || st.upiId.indexOf("@") === -1) {
+            alert("Please click 'Edit UPI / Profile' and enter your valid UPI ID first.");
+            window.kaamzoToggleKhataEdit();
+            return;
+          }
+          if (st.availableBalance <= 0) {
+            if (statusEl) {
+              statusEl.style.color = "#fbbf24";
+              statusEl.textContent = "⚠️ ₹0 withdrawable balance. Complete a job via End OTP to unlock new earnings.";
+            }
+            return;
+          }
+          var payoutAmt = st.availableBalance;
+          var refId = "KMZ" + Date.now().toString().slice(-6);
+          st.availableBalance = 0;
+          st.ledger.unshift({
+            type: "PAYOUT",
+            title: "UPI Payout Request to " + st.upiId + " (Ref: " + refId + ")",
+            amount: payoutAmt,
+            time: new Date().toLocaleTimeString(),
+            status: "Processing / Queued"
+          });
+          saveKhataState(st);
+          renderKhataUI();
+
           if (statusEl) {
             statusEl.style.color = "#4ade80";
-            statusEl.textContent = "✅ ₹850 Instant UPI Transfer Initiated to gurpreet.kaamzo@okaxis (UTR: KMZ" + Date.now().toString().slice(-6) + ")";
+            statusEl.textContent = "✅ ₹" + payoutAmt.toLocaleString("en-IN") + " UPI Payout queued to " + st.upiId + " (Ref: " + refId + "). Balance updated to ₹0.";
+          }
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent("WORKER_UPI_PAYOUT_REQUEST", st.workerName + " requested ₹" + payoutAmt + " UPI payout to " + st.upiId + " (Ref: " + refId + ")", "VERIFIED");
           }
         };
 
         window.kaamzoDownloadGatePassImage = function() {
+          var st = getKhataState();
           try {
             var canvas = document.createElement("canvas");
-            canvas.width = 760;
+            canvas.width = 780;
             canvas.height = 420;
             var ctx = canvas.getContext("2d");
             ctx.fillStyle = "#0f172a";
-            ctx.fillRect(0, 0, 760, 420);
+            ctx.fillRect(0, 0, 780, 420);
             ctx.strokeStyle = "#f97316";
             ctx.lineWidth = 6;
-            ctx.strokeRect(12, 12, 736, 396);
+            ctx.strokeRect(12, 12, 756, 396);
 
             ctx.fillStyle = "#f97316";
             ctx.font = "bold 24px sans-serif";
@@ -1351,23 +1567,51 @@
 
             ctx.fillStyle = "#f8fafc";
             ctx.font = "bold 20px sans-serif";
-            ctx.fillText("Worker Name: Gurpreet Singh", 36, 136);
+            ctx.fillText("Worker Name: " + st.workerName, 36, 136);
             ctx.font = "18px sans-serif";
-            ctx.fillText("Primary Trade: Master Electrician & Appliance Pro", 36, 172);
-            ctx.fillText("Kaamzo Badge ID: KMZ-LDH-2026-8841", 36, 208);
+            ctx.fillText("Primary Trade: " + st.workerTrade, 36, 172);
+            ctx.fillText("Kaamzo Badge ID: " + st.badgeId, 36, 208);
             ctx.fillText("Aadhaar KYC: XXXX-XXXX-4912 (Verified)", 36, 244);
-            ctx.fillText("Track Record: 142 Jobs Completed • 4.9 ★ Rating", 36, 280);
+            ctx.fillText("Track Record: " + st.jobsCompleted + " Verified Jobs • 4.9 ★ Rating", 36, 280);
             ctx.fillStyle = "#38bdf8";
-            ctx.fillText("24x7 Society Gate Verification: +91 7888549925 • www.kaamzo.site", 36, 336);
+            ctx.fillText("24x7 Society Gate Verification: +91 7888549925 • www.kaamzo.site", 36, 340);
 
+            var qrImg = document.getElementById("kaamzo-gp-qr-img");
+            if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(584, 114, 152, 174);
+              ctx.drawImage(qrImg, 594, 124, 132, 132);
+              ctx.fillStyle = "#0f172a";
+              ctx.font = "bold 12px sans-serif";
+              ctx.fillText("SCAN AT GATE", 616, 276);
+            }
+
+            var dataUrl = canvas.toDataURL("image/png");
             var link = document.createElement("a");
-            link.download = "Kaamzo-Verified-GatePass-ID.png";
-            link.href = canvas.toDataURL("image/png");
+            link.download = "Kaamzo-GatePass-" + st.badgeId + ".png";
+            link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
           } catch (e) {
             window.print();
           }
         };
+
+        // If a society security guard scans ?verify=KMZ-... open the verified Gate-Pass directly
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (params.get("verify")) {
+            setTimeout(function() {
+              window.kaamzoOpenKhataModal();
+              var statusEl = document.getElementById("kaamzo-khata-payout-status");
+              if (statusEl) {
+                statusEl.style.color = "#4ade80";
+                statusEl.textContent = "🛡️ SECURITY GATE SCAN VERIFIED: Worker badge " + params.get("verify") + " is active & KYC verified on Kaamzo.";
+              }
+            }, 600);
+          }
+        } catch (e) {}
 
         window.kaamzoOpenSosModal = function() {
           window.kaamzoCloseAllSuiteModals();
