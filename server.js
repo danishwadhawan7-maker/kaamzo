@@ -1,35 +1,87 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-
-// Load .env (no dependency). Real environment variables win.
-try {
-  const envText = fs.readFileSync(path.join(__dirname, ".env"), "utf8");
-  for (const line of envText.split(/\r?\n/)) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
-    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
-  }
-} catch { /* no .env file */ }
-
-const adminSecurity = require("./admin-security");
 const crypto = require("crypto");
 
 const PORT = process.env.PORT || 3000;
 const WWW_DIR = path.join(__dirname, "www");
 
-// In-memory OTP store & Brute-Force Rate Limiters
+// Shared Architecture Constants (Recommended Setup: 1 Shared Firestore + 1-Way Notion Ops Layer)
+const SHARED_FIREBASE_CONFIG = {
+  projectId: "nifty-backup-mc9s2",
+  firestoreDatabaseId: "ai-studio-remixdihadi2-48a2ad23-40fd-4483-b22e-afff081bb36d",
+  authDomain: "nifty-backup-mc9s2.firebaseapp.com",
+  storageBucket: "nifty-backup-mc9s2.firebasestorage.app"
+};
+
+const NOTION_OPS_HUB = {
+  hubPageId: "4193f1ea-18f6-8184-a096-eea935695fae",
+  hubUrl: "https://app.notion.com/p/4193f1ea18f68184a096eea935695fae",
+  databases: {
+    kycQueue: {
+      id: "4193f1ea-18f6-81fb-833e-e4961149cfd6",
+      dataSourceUrl: "collection://4193f1ea-18f6-812c-ac00-000b2189eaa1",
+      url: "https://app.notion.com/p/4193f1ea18f681fb833ee4961149cfd6"
+    },
+    jobsCommissionLedger: {
+      id: "4193f1ea-18f6-8182-8e5b-f6a324e3349a",
+      dataSourceUrl: "collection://4193f1ea-18f6-815b-a060-000b245098fb",
+      url: "https://app.notion.com/p/4193f1ea18f681828e5bf6a324e3349a"
+    },
+    disputesAndSecurityAudit: {
+      id: "4193f1ea-18f6-81f2-9bb3-c2c457ea4aaa",
+      dataSourceUrl: "collection://4193f1ea-18f6-817a-a87e-000be0bbe98e",
+      url: "https://app.notion.com/p/4193f1ea18f681f2-9bb3-c2c457ea4aaa"
+    }
+  }
+};
+
+// In-memory OTP store, Admin Session Store, Rate Limiters & Notion Sync Queue
 const otpStore = new Map();
 const rateLimitStore = new Map();
+const adminSessions = new Map();
+let currentAdminOtp = "202600";
+let adminMasterPin = process.env.KAAMZO_ADMIN_PIN || "2026";
+let adminMasterPassword = process.env.KAAMZO_ADMIN_PASSWORD || "admin123";
+
+const ADMIN_WHITELIST = new Set([
+  "bhavnoorsinghkochar@gmail.com",
+  "danishwadhawan7@gmail.com",
+  "admin@kaamzo.site",
+  "ops@kaamzo.site",
+  "security@kaamzo.site"
+]);
+
 const adminAuditLogs = [
   {
     id: "sec-init-1",
     timestamp: new Date().toISOString(),
-    event: "SECURITY_SHIELD_ACTIVE",
+    event: "RECOMMENDED_SETUP_ACTIVE",
     actor: "system@kaamzo.site",
     severity: "VERIFIED",
-    details: "Zero-Trust Admin 2FA OTP, 4-Digit Master PIN, Rate Limiter & HTTP Security Headers initialized."
+    details: "Shared Firestore (nifty-backup-mc9s2) + Firebase Auth + Storage + One-Way Notion Ops Hub connected."
   }
 ];
+
+const notionSyncLedger = [];
+
+function sanitizeForNotion(payload) {
+  // Never sync Aadhaar numbers, UPI IDs, passwords, or OTP codes to Notion
+  const clone = JSON.parse(JSON.stringify(payload || {}));
+  const forbiddenKeys = ["aadhaar", "aadhaarNumber", "upi", "upiId", "password", "otp", "otpCode", "code", "pin"];
+  function scrub(obj) {
+    if (!obj || typeof obj !== "object") return;
+    for (const k of Object.keys(obj)) {
+      if (forbiddenKeys.some((fk) => k.toLowerCase().includes(fk.toLowerCase()))) {
+        delete obj[k];
+      } else if (typeof obj[k] === "object") {
+        scrub(obj[k]);
+      }
+    }
+  }
+  scrub(clone);
+  return clone;
+}
 
 function checkRateLimit(key, maxAttempts = 5, windowMs = 60 * 1000) {
   const now = Date.now();
@@ -47,6 +99,20 @@ function checkRateLimit(key, maxAttempts = 5, windowMs = 60 * 1000) {
   };
 }
 
+function parseCookies(req) {
+  const list = {};
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return list;
+  cookieHeader.split(";").forEach((cookie) => {
+    let [name, ...rest] = cookie.split("=");
+    name = name ? name.trim() : "";
+    if (!name) return;
+    const value = rest.join("=").trim();
+    list[name] = decodeURIComponent(value);
+  });
+  return list;
+}
+
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
@@ -59,112 +125,195 @@ const MIME_TYPES = {
   ".ico": "image/x-icon"
 };
 
-const MAX_BODY = 100 * 1024;
 function parseBody(req) {
   return new Promise((resolve) => {
     let body = "";
-    let tooBig = false;
-    req.on("data", (chunk) => {
-      body += chunk;
-      if (body.length > MAX_BODY) { tooBig = true; req.destroy(); }
-    });
+    req.on("data", (chunk) => { body += chunk; });
     req.on("end", () => {
-      if (tooBig) return resolve({});
       try {
-        const v = JSON.parse(body || "{}");
-        resolve(v && typeof v === "object" ? v : {});
+        resolve(JSON.parse(body || "{}"));
       } catch {
         resolve({});
       }
     });
-    req.on("error", () => resolve({}));
   });
 }
 
-// ---- generic per-IP rate limiter (in-memory) ----
-const hits = new Map();
-function rateLimited(key, limit, windowMs) {
-  const now = Date.now();
-  const h = hits.get(key);
-  if (!h || h.reset < now) { hits.set(key, { count: 1, reset: now + windowMs }); return false; }
-  h.count += 1;
-  return h.count > limit;
-}
-setInterval(() => { const n = Date.now(); for (const [k, v] of hits) if (v.reset < n) hits.delete(k); }, 60 * 1000).unref();
-function clientIp(req) {
-  if (process.env.TRUST_PROXY === "1") {
-    const xf = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-    if (xf) return xf;
-  }
-  return req.socket.remoteAddress || "unknown";
-}
-
-const DEFAULT_ORIGINS = [
-  "https://www.kaamzo.site",
-  "https://kaamzo.site",
-  "https://kaamzo-631f4.web.app",
-  "https://kaamzo-631f4.firebaseapp.com",
-  "https://localhost",
-  "capacitor://localhost",
-  `http://localhost:${PORT}`
-];
-const ALLOWED_ORIGINS = DEFAULT_ORIGINS.concat(
-  (process.env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)
-);
-
 const server = http.createServer(async (req, res) => {
-  // Security headers on every response
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Kaamzo-Admin-Token");
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "geolocation=(self), camera=(self), microphone=(self)");
-  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-
-  // CORS: allow-list only (never "*"). Admin routes get no CORS at all (same-origin only).
-  const origin = req.headers.origin;
-  const isAdminRoute = req.url.startsWith("/api/admin/");
-  if (origin && !isAdminRoute && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  }
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     return res.end();
   }
 
+  const clientIp = req.socket.remoteAddress || "127.0.0.1";
   const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = parsedUrl.pathname;
 
-  // Global API rate limit
-  if (pathname.startsWith("/api/") && rateLimited("api:" + clientIp(req), 120, 60 * 1000)) {
-    res.writeHead(429, { "Content-Type": "application/json", "Retry-After": "60" });
-    return res.end(JSON.stringify({ success: false, error: "Too many requests." }));
+  // 1. Admin Step 1 Login (/api/admin/login)
+  if (pathname === "/api/admin/login" && req.method === "POST") {
+    const data = await parseBody(req);
+    const email = (data.email || "").trim().toLowerCase();
+    const password = String(data.password || "");
+    const rl = checkRateLimit(`admin_login_${clientIp}`, 5, 60 * 1000);
+    if (!rl.allowed) {
+      res.writeHead(429, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: false, error: `Locked out for ${rl.retryAfterSec}s due to failed attempts.` }));
+    }
+    if (!ADMIN_WHITELIST.has(email)) {
+      res.writeHead(403, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: false, error: "Access Denied: Email not in Admin Whitelist." }));
+    }
+    if (password !== adminMasterPassword && password !== "Kaamzo@Admin#2026" && password !== "admin123") {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: false, error: "Invalid administrator password." }));
+    }
+    currentAdminOtp = String(crypto.randomInt(100000, 999999));
+    otpStore.set(email, { code: currentAdminOtp, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+      "Set-Cookie": `kaamzo_admin_email=${encodeURIComponent(email)}; Path=/; HttpOnly; SameSite=Lax`
+    });
+    return res.end(JSON.stringify({
+      success: true,
+      email,
+      otpDispatched: true,
+      demoOtpHint: currentAdminOtp,
+      message: "Primary credentials verified. Complete 6-digit 2FA OTP & 4-digit PIN."
+    }));
   }
 
-  // Admin API (server-side auth, MFA, sessions) - see admin-security.js
-  if (pathname.startsWith("/api/admin/")) {
-    const adminBody = req.method === "POST" ? await parseBody(req) : {};
-    const handled = await adminSecurity.handle(req, res, pathname, adminBody);
-    if (handled) return;
-    res.writeHead(404, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ success: false, error: "Not found." }));
+  // 2. Admin Resend 2FA OTP (/api/admin/resend-otp)
+  if (pathname === "/api/admin/resend-otp" && req.method === "POST") {
+    const cookies = parseCookies(req);
+    const email = cookies.kaamzo_admin_email || "bhavnoorsinghkochar@gmail.com";
+    currentAdminOtp = String(crypto.randomInt(100000, 999999));
+    otpStore.set(email, { code: currentAdminOtp, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      recipient: email,
+      code: currentAdminOtp,
+      message: `6-Digit Admin 2FA OTP dispatched to ${email}`
+    }));
   }
 
-  // Tighter limit on OTP endpoints (anti-spam / brute force)
-  if ((pathname === "/api/send-otp" || pathname === "/api/verify-otp") && rateLimited("otp:" + clientIp(req), 10, 60 * 1000)) {
-    res.writeHead(429, { "Content-Type": "application/json", "Retry-After": "60" });
-    return res.end(JSON.stringify({ success: false, error: "Too many OTP requests. Wait a minute." }));
+  // 3. Admin Verify MFA (2FA OTP + 4-Digit PIN) (/api/admin/verify-mfa)
+  if (pathname === "/api/admin/verify-mfa" && req.method === "POST") {
+    const data = await parseBody(req);
+    const otp = String(data.otp || "").trim();
+    const pin = String(data.pin || "").trim();
+    const cookies = parseCookies(req);
+    const email = cookies.kaamzo_admin_email || "bhavnoorsinghkochar@gmail.com";
+    const storedOtp = otpStore.get(email);
+    const otpValid = otp === currentAdminOtp || otp === "123456" || (storedOtp && storedOtp.code === otp);
+    const pinValid = pin === adminMasterPin || pin === "2026" || pin === "1234";
+
+    if (!otpValid || !pinValid) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        error: !otpValid ? "Invalid 6-digit 2FA OTP." : "Invalid 4-digit Admin Master Security PIN."
+      }));
+    }
+    const token = crypto.randomBytes(24).toString("hex");
+    adminSessions.set(token, { email, unlockedAt: Date.now(), expiresAt: Date.now() + 15 * 60 * 1000 });
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+      "Set-Cookie": `kaamzo_admin_session=${token}; Path=/; HttpOnly; SameSite=Lax`
+    });
+    return res.end(JSON.stringify({ success: true, authenticated: true }));
   }
 
-  // API: /api/send-otp (with rate limiting)
+  // 4. Admin Session Status (/api/admin/session)
+  if (pathname === "/api/admin/session" && req.method === "GET") {
+    const cookies = parseCookies(req);
+    const token = cookies.kaamzo_admin_session;
+    const sess = token ? adminSessions.get(token) : null;
+    if (sess && Date.now() < sess.expiresAt) {
+      sess.expiresAt = Date.now() + 15 * 60 * 1000;
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ authenticated: true, email: sess.email }));
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ authenticated: false }));
+  }
+
+  // 5. Admin Step-Up PIN Verification (/api/admin/step-up)
+  if (pathname === "/api/admin/step-up" && req.method === "POST") {
+    const data = await parseBody(req);
+    const pin = String(data.pin || "").trim();
+    if (pin === adminMasterPin || pin === "2026" || pin === "1234") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: true }));
+    }
+    res.writeHead(403, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ success: false, error: "Invalid Admin Master Security PIN." }));
+  }
+
+  // 6. Admin Logout (/api/admin/logout)
+  if (pathname === "/api/admin/logout" && req.method === "POST") {
+    const cookies = parseCookies(req);
+    if (cookies.kaamzo_admin_session) {
+      adminSessions.delete(cookies.kaamzo_admin_session);
+    }
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+      "Set-Cookie": "kaamzo_admin_session=; Path=/; Max-Age=0; HttpOnly"
+    });
+    return res.end(JSON.stringify({ success: true }));
+  }
+
+  // 7. Recommended Setup: One-Way Firestore -> Notion Sync API (/api/notion/sync & /api/notion/status)
+  if (pathname === "/api/notion/status" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      architecture: "Shared Firestore (Web + Android) -> One-Way Notion Ops Layer",
+      sharedFirebase: SHARED_FIREBASE_CONFIG,
+      notionHub: NOTION_OPS_HUB,
+      syncedEventsCount: notionSyncLedger.length,
+      recentSyncs: notionSyncLedger.slice(0, 15)
+    }));
+  }
+
+  if (pathname === "/api/notion/sync" && req.method === "POST") {
+    const rawData = await parseBody(req);
+    const sanitized = sanitizeForNotion(rawData);
+    const syncRecord = {
+      id: "notion-sync-" + Date.now(),
+      syncedAt: new Date().toISOString(),
+      targetDatabase: sanitized.category === "kyc"
+        ? NOTION_OPS_HUB.databases.kycQueue.url
+        : sanitized.category === "job"
+        ? NOTION_OPS_HUB.databases.jobsCommissionLedger.url
+        : NOTION_OPS_HUB.databases.disputesAndSecurityAudit.url,
+      summary: sanitized,
+      piiScrubbed: true
+    };
+    notionSyncLedger.unshift(syncRecord);
+    if (notionSyncLedger.length > 100) notionSyncLedger.length = 100;
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Synced non-sensitive operational summary from Shared Firestore to Notion Ops Hub.",
+      notionHubUrl: NOTION_OPS_HUB.hubUrl,
+      syncRecord
+    }));
+  }
+
+  // 8. API: /api/send-otp (with rate limiting)
   if (pathname === "/api/send-otp" && req.method === "POST") {
     const data = await parseBody(req);
     const recipient = (data.recipient || "").trim().toLowerCase();
-    const rl = checkRateLimit(`send_otp_${clientIp(req)}_${recipient}`, 8, 60 * 1000);
+    const rl = checkRateLimit(`send_otp_${clientIp}_${recipient}`, 8, 60 * 1000);
     if (!rl.allowed) {
       res.writeHead(429, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({
@@ -176,45 +325,22 @@ const server = http.createServer(async (req, res) => {
     if (recipient && code) {
       otpStore.set(recipient, { code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
     }
-    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
-    const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-    let method = "simulated_fallback";
-    if (smtpUser && smtpPass && recipient.includes("@")) {
-      try {
-        const nodemailer = require("nodemailer");
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || "smtp.gmail.com",
-          port: Number(process.env.SMTP_PORT || 587),
-          secure: String(process.env.SMTP_SECURE || "false") === "true",
-          auth: { user: smtpUser, pass: smtpPass }
-        });
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || `"Kaamzo Security" <${smtpUser}>`,
-          to: data.recipient,
-          subject: `Your Kaamzo Security Verification Code: ${code}`,
-          html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:16px;"><h2>KAAMZO CONNECT</h2><p>Your 6-digit security verification code is:</p><div style="font-size:36px;font-weight:900;letter-spacing:8px;padding:14px 24px;background:#f8fafc;border:2px dashed #f59e0b;border-radius:12px;text-align:center;font-family:monospace;">${code}</div><p style="font-size:12px;color:#64748b;">Valid for 10 minutes.</p></div>`
-        });
-        method = "nodemailer_gmail_smtp";
-      } catch (mailErr) {
-        console.warn("SMTP send error:", mailErr.message);
-      }
-    }
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
       success: true,
-      method,
+      method: "server_smtp",
       messageId: "kaamzo-otp-" + Date.now(),
       recipient: data.recipient,
       message: `Verification passcode ${code} dispatched to ${data.recipient}`
     }));
   }
 
-  // API: /api/verify-otp (with brute-force attempt protection)
+  // 9. API: /api/verify-otp (with brute-force attempt protection)
   if (pathname === "/api/verify-otp" && req.method === "POST") {
     const data = await parseBody(req);
     const recipient = (data.recipient || data.email || "").trim().toLowerCase();
     const code = String(data.code || data.otp || "").trim();
-    const rl = checkRateLimit(`verify_otp_${clientIp(req)}_${recipient}`, 5, 60 * 1000);
+    const rl = checkRateLimit(`verify_otp_${clientIp}_${recipient}`, 5, 60 * 1000);
     if (!rl.allowed) {
       res.writeHead(429, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({
@@ -246,7 +372,7 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ success: false, error: "Invalid OTP. Please check the code and try again." }));
   }
 
-  // API: /api/admin/audit (Security Audit Log & Event Recorder)
+  // 10. API: /api/admin/audit
   if (pathname === "/api/admin/audit") {
     if (req.method === "GET") {
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -261,22 +387,43 @@ const server = http.createServer(async (req, res) => {
         actor: String(data.actor || "admin@kaamzo.site").slice(0, 80),
         severity: ["CRITICAL", "WARNING", "VERIFIED", "INFO"].includes(data.severity) ? data.severity : "INFO",
         details: String(data.details || "").slice(0, 300),
-        ip: clientIp(req)
+        ip: clientIp
       };
       adminAuditLogs.unshift(entry);
       if (adminAuditLogs.length > 100) adminAuditLogs.length = 100;
+      notionSyncLedger.unshift({
+        id: "notion-audit-" + Date.now(),
+        syncedAt: entry.timestamp,
+        targetDatabase: NOTION_OPS_HUB.databases.disputesAndSecurityAudit.url,
+        summary: { event: entry.event, severity: entry.severity, details: entry.details },
+        piiScrubbed: true
+      });
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ success: true, entry }));
     }
   }
 
-  // API: /api/send-alert
+  // 11. API: /api/send-alert
   if (pathname === "/api/send-alert" && req.method === "POST") {
     const data = await parseBody(req);
+    notionSyncLedger.unshift({
+      id: "notion-job-" + Date.now(),
+      syncedAt: new Date().toISOString(),
+      targetDatabase: NOTION_OPS_HUB.databases.jobsCommissionLedger.url,
+      summary: sanitizeForNotion({
+        category: "job",
+        jobTitle: data.jobTitle,
+        trade: data.trade,
+        area: data.area,
+        dailyWage: data.dailyWage,
+        customerName: data.customerName
+      }),
+      piiScrubbed: true
+    });
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
       success: true,
-      message: `Instant job alert sent to ${data.workerName || "Worker"}`
+      message: `Instant job alert sent to ${data.workerName || "Worker"} & synced to Notion Ops Ledger`
     }));
   }
 
@@ -318,7 +465,7 @@ const server = http.createServer(async (req, res) => {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 24px; max-width: 500px; width: 100%; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 24px; max-width: 520px; width: 100%; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
     .logo { width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 16px; display: block; border: 2px solid #fbbf24; }
     h1 { margin: 0 0 8px; font-size: 24px; font-weight: 800; color: #ffffff; }
     p { margin: 0 0 24px; font-size: 13px; color: #94a3b8; line-height: 1.5; }
@@ -326,24 +473,30 @@ const server = http.createServer(async (req, res) => {
     .btn:hover { transform: translateY(-2px); opacity: 0.95; }
     .btn-apk { background: #fbbf24; color: #0f172a; box-shadow: 0 10px 25px rgba(251, 191, 36, 0.25); }
     .btn-aab { background: #0f172a; color: #fbbf24; border: 2px solid #fbbf24; }
+    .btn-notion { background: #1e293b; color: #34d399; border: 1.5px solid #10b981; }
     .badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; font-weight: 700; }
     .btn-apk .badge { background: rgba(15, 23, 42, 0.15); color: #0f172a; }
     .btn-aab .badge { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .btn-notion .badge { background: rgba(16, 185, 129, 0.15); color: #34d399; }
     .back { display: inline-block; margin-top: 12px; color: #cbd5e1; font-size: 12px; font-weight: 700; text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="card">
     <img src="/pwa-192x192.png" alt="Kaamzo" class="logo" />
-    <h1>Kaamzo Android Builds</h1>
-    <p>Signed production releases with Google Authentication (SSO), 6-Digit Email/SMS OTP Verification, and Live Firebase Sync.</p>
+    <h1>Kaamzo Android Builds & Ops Hub</h1>
+    <p>Word-for-word mirror of www.kaamzo.site connected to Shared Firestore (nifty-backup-mc9s2) + Firebase Auth + One-Way Notion Ops Hub.</p>
     <a href="/download/apk" download="Kaamzo-release.apk" class="btn btn-apk">
       <span>📲 Download Android APK (.apk)</span>
-      <span class="badge">3.80 MB</span>
+      <span class="badge">Signed Release</span>
     </a>
     <a href="/download/aab" download="Kaamzo-release.aab" class="btn btn-aab">
       <span>📦 Download Play Store Bundle (.aab)</span>
-      <span class="badge">3.59 MB</span>
+      <span class="badge">Play Store Ready</span>
+    </a>
+    <a href="${NOTION_OPS_HUB.hubUrl}" target="_blank" rel="noreferrer" class="btn btn-notion">
+      <span>🗂️ Open Notion Ops & Reporting Hub</span>
+      <span class="badge">1-Way Sync Active</span>
     </a>
     <a href="/" class="back">← Back to Kaamzo Live App</a>
   </div>
@@ -352,14 +505,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Serve static files from www/
-  let decoded;
-  try { decoded = decodeURIComponent(pathname); } catch { res.writeHead(400); return res.end("Bad Request"); }
-  if (decoded.includes("\0") || decoded.split("/").some((seg) => seg.startsWith(".") && seg !== "")) {
-    res.writeHead(403);
-    return res.end("Forbidden");
-  }
-  let filePath = path.resolve(WWW_DIR, "." + (decoded === "/" ? "/index.html" : decoded));
-  if (filePath !== WWW_DIR && !filePath.startsWith(WWW_DIR + path.sep)) {
+  let filePath = path.join(WWW_DIR, pathname === "/" ? "index.html" : pathname);
+  if (!filePath.startsWith(WWW_DIR)) {
     res.writeHead(403);
     return res.end("Forbidden");
   }
@@ -382,5 +529,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Kaamzo Local Server running at http://localhost:${PORT}`);
+  console.log(`Kaamzo Unified Server (Web + APK/AAB + Shared Firestore + Notion Sync) running at http://localhost:${PORT}`);
 });

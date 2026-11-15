@@ -18,6 +18,7 @@ buildscript {
 apply from: "variables.gradle"
 
 allprojects {
+    buildDir = new File(System.getProperty("java.io.tmpdir"), "kaamzo-android-build/" + project.name)
     repositories {
         google()
         mavenCentral()
