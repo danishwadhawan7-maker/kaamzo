@@ -1665,5 +1665,983 @@
         };
       })();
     </script>
+
+    <!-- KAAMZO SIMPLIFIED MULTI-PAGE ROUTER, SUB-SCREENS, 6-STEP POST-JOB WIZARD & MOBILE BOTTOM NAV -->
+    <style id="kaamzo-multipage-ux-styles">
+      /* Ensure body has bottom padding on Customer & Worker routes for the 64px Mobile Bottom Nav */
+      body[data-kaamzo-portal="customer"],
+      body[data-kaamzo-portal="worker"] {
+        padding-bottom: 76px !important;
+      }
+
+      /* Hide duplicate Customer Secondary Header & Hero clutter when in simplified multi-page mode */
+      body[data-kaamzo-route="/customer/home"] #root main,
+      body[data-kaamzo-route="/customer/post-job"] #root main,
+      body[data-kaamzo-route="/customer/ai-shortlist"] #root main,
+      body[data-kaamzo-route="/customer/profile"] #root main,
+      body[data-kaamzo-route="/customer/settings"] #root main,
+      body[data-kaamzo-route^="/customer/workers/"] #root main,
+      body[data-kaamzo-route^="/customer/bookings/"] #root main,
+      body[data-kaamzo-route^="/customer/tools/"] #root main,
+      body[data-kaamzo-route="/customer/safety"] #root main,
+      body[data-kaamzo-route="/worker/home"] #root main,
+      body[data-kaamzo-route="/worker/rewards"] #root main,
+      body[data-kaamzo-route="/worker/settings"] #root main,
+      body[data-kaamzo-route^="/worker/jobs/"] #root main {
+        display: none !important;
+      }
+
+      /* Breadcrumb / Back Navigation Bar on Inner Pages */
+      #kaamzo-subpage-header {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: #0f172a;
+        border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+        padding: 10px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 40;
+      }
+      #kaamzo-subpage-header.visible {
+        display: flex;
+      }
+      .kaamzo-back-btn {
+        min-height: 48px;
+        padding: 10px 16px;
+        border-radius: 14px;
+        background: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        font-size: 16px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .kaamzo-back-btn:hover {
+        border-color: #f97316;
+        background: #334155;
+      }
+
+      /* Dedicated Page Viewport Container */
+      #kaamzo-page-container {
+        display: none;
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 18px 16px 36px;
+      }
+      #kaamzo-page-container.visible {
+        display: block;
+      }
+
+      /* Big Mobile-First Action Cards (>=48px tap targets, >=16px text) */
+      .kmz-card {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 20px;
+        padding: 18px;
+        color: #f8fafc;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+      }
+      .kmz-action-tile {
+        min-height: 92px;
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border: 1px solid #334155;
+        border-radius: 20px;
+        padding: 16px;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .kmz-action-tile:hover,
+      .kmz-action-tile:active {
+        border-color: #f97316;
+        transform: translateY(-2px);
+      }
+      .kmz-primary-btn {
+        min-height: 52px;
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: #ffffff;
+        border: none;
+        font-size: 17px;
+        font-weight: 900;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+      }
+      .kmz-secondary-btn {
+        min-height: 48px;
+        padding: 10px 16px;
+        border-radius: 14px;
+        background: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #475569;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      /* 5-Tab Mobile Bottom Navigation Bar */
+      #kaamzo-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 66px;
+        background: rgba(15, 23, 42, 0.98);
+        border-top: 1px solid rgba(249, 115, 22, 0.35);
+        display: none;
+        grid-template-columns: repeat(5, 1fr);
+        z-index: 9990;
+        backdrop-filter: blur(12px);
+      }
+      #kaamzo-bottom-nav.visible {
+        display: grid;
+      }
+      .kmz-nav-item {
+        min-height: 48px;
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        padding: 4px 2px;
+      }
+      .kmz-nav-item span.icon {
+        font-size: 20px;
+        line-height: 1;
+      }
+      .kmz-nav-item.active {
+        color: #f97316;
+      }
+
+      /* Make Cookie Banner compact so it never covers content */
+      div[aria-label="Cookie and Privacy Consent"] {
+        bottom: 68px !important;
+        padding: 8px 12px !important;
+      }
+    </style>
+
+    <!-- Subpage Back / Breadcrumb Bar -->
+    <div id="kaamzo-subpage-header" class="kaamzo-ui-ignore">
+      <button type="button" class="kaamzo-back-btn" onclick="window.kaamzoGoBack()">
+        <span>←</span> <span id="kaamzo-back-label">Back</span>
+      </button>
+      <div id="kaamzo-subpage-title" style="font-size:17px;font-weight:900;color:#ffffff;text-align:center;flex:1;"></div>
+      <button type="button" onclick="window.kaamzoNavigate(window.kaamzoCurrentPortal()==='worker'?'/worker/support':'/customer/safety')" style="min-height:48px;padding:8px 14px;border-radius:12px;background:#dc2626;color:#fff;border:none;font-size:14px;font-weight:900;cursor:pointer;">
+        🚨 SOS
+      </button>
+    </div>
+
+    <!-- Dedicated Simplified Page Container -->
+    <div id="kaamzo-page-container"></div>
+
+    <!-- More Options Drawer (for Bottom Nav "More" tab) -->
+    <div id="kaamzo-more-drawer-backdrop" class="kaamzo-suite-backdrop" onclick="if(event.target===this)this.classList.remove('active')">
+      <div class="kaamzo-suite-modal" style="max-width:480px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 id="kaamzo-more-drawer-title" style="margin:0;font-size:20px;font-weight:900;color:#fff;">More Tools &amp; Pages</h3>
+          <button type="button" onclick="document.getElementById('kaamzo-more-drawer-backdrop').classList.remove('active')" style="min-width:48px;min-height:48px;background:#1e293b;color:#fff;border:1px solid #334155;border-radius:12px;font-size:18px;font-weight:900;cursor:pointer;">✕</button>
+        </div>
+        <div id="kaamzo-more-drawer-links" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+
+    <!-- 5-Tab Mobile-First Bottom Navigation -->
+    <nav id="kaamzo-bottom-nav" class="kaamzo-ui-ignore" aria-label="Primary Bottom Navigation"></nav>
+
+    <script>
+      (function() {
+        var wizardState = {
+          step: 1,
+          trade: "Electrician",
+          title: "MCB & House Wiring Check",
+          area: "Model Town, Ludhiana",
+          date: new Date().toISOString().slice(0, 10),
+          days: 1,
+          dailyWage: 850,
+          escrowSafe: true
+        };
+
+        var demoWorkers = [
+          { id: "w-1", name: "Gurpreet Singh", trade: "Electrician", rating: "4.9", jobs: 142, rate: 850, exp: "7 yrs", distance: "1.2 km", area: "Model Town, Ludhiana", phone: "+917888549925", kyc: "UIDAI Aadhaar Verified" },
+          { id: "w-2", name: "Rajesh Kumar", trade: "Mason", rating: "4.9", jobs: 118, rate: 850, exp: "9 yrs", distance: "1.8 km", area: "Sarabha Nagar, Ludhiana", phone: "+917888549925", kyc: "UIDAI Aadhaar Verified" },
+          { id: "w-3", name: "Harjinder Singh", trade: "Plumber", rating: "4.8", jobs: 96, rate: 800, exp: "6 yrs", distance: "2.1 km", area: "Civil Lines, Ludhiana", phone: "+917888549925", kyc: "UIDAI Aadhaar Verified" },
+          { id: "w-4", name: "Manpreet Singh", trade: "Carpenter", rating: "4.8", jobs: 84, rate: 900, exp: "8 yrs", distance: "2.6 km", area: "BRS Nagar, Ludhiana", phone: "+917888549925", kyc: "UIDAI Aadhaar Verified" },
+          { id: "w-5", name: "Sukhdev Ram", trade: "Helper", rating: "4.7", jobs: 65, rate: 600, exp: "4 yrs", distance: "1.5 km", area: "Dugri, Ludhiana", phone: "+917888549925", kyc: "UIDAI Aadhaar Verified" }
+        ];
+
+        var demoJobs = [
+          { id: "j-1", title: "Full House MCB Panel & Fan Fitting", trade: "Electrician", pay: 850, distance: "1.2 km", area: "Model Town, Ludhiana", employer: "Sardar Harpreet Singh", escrow: true },
+          { id: "j-2", title: "Terrace Brickwork & Cement Plaster (2 Days)", trade: "Mason", pay: 850, distance: "1.9 km", area: "Sarabha Nagar, Ludhiana", employer: "Rohit Sharma", escrow: true },
+          { id: "j-3", title: "Overhead Water Tank & Motor Pipe Fitting", trade: "Plumber", pay: 800, distance: "2.3 km", area: "Civil Lines, Ludhiana", employer: "Amanpreet Kaur", escrow: true },
+          { id: "j-4", title: "Construction Site Material Shifting Helper", trade: "Helper", pay: 600, distance: "1.4 km", area: "Pakhowal Road, Ludhiana", employer: "Vikas Bansal", escrow: true }
+        ];
+
+        window.kaamzoCurrentPortal = function() {
+          var p = window.location.pathname.toLowerCase();
+          if (p.indexOf("/worker") === 0) return "worker";
+          if (p.indexOf("/customer") === 0) return "customer";
+          return "other";
+        };
+
+        window.kaamzoGoBack = function() {
+          var portal = window.kaamzoCurrentPortal();
+          if (window.history.length > 2) {
+            window.history.back();
+          } else {
+            window.kaamzoNavigate(portal === "worker" ? "/worker/home" : "/customer/home");
+          }
+        };
+
+        window.kaamzoNavigate = function(path, replace) {
+          if (!path) return;
+          document.getElementById("kaamzo-more-drawer-backdrop").classList.remove("active");
+          window.kaamzoCloseAllSuiteModals();
+          if (replace) {
+            window.history.replaceState({}, "", path);
+          } else if (window.location.pathname !== path) {
+            window.history.pushState({}, "", path);
+          }
+          window.dispatchEvent(new PopStateEvent("popstate"));
+          renderRoute();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+
+        window.kaamzoOpenMoreDrawer = function() {
+          var portal = window.kaamzoCurrentPortal();
+          var titleEl = document.getElementById("kaamzo-more-drawer-title");
+          var listEl = document.getElementById("kaamzo-more-drawer-links");
+          var backdrop = document.getElementById("kaamzo-more-drawer-backdrop");
+          if (!listEl || !backdrop) return;
+
+          var items = portal === "worker" ? [
+            { icon: "📡", label: "10km GPS Job Radar", path: "/worker/radar" },
+            { icon: "🏆", label: "Milestone Bonus & Rewards (10–100 Jobs)", path: "/worker/rewards" },
+            { icon: "📜", label: "Job History & Past Earnings", path: "/worker/history" },
+            { icon: "🪪", label: "Profile & Aadhaar KYC Verification", path: "/worker/profile" },
+            { icon: "🚨", label: "SOS & Active Job Safety Check-In", path: "/worker/support" },
+            { icon: "⚙️", label: "Settings, Language & Switch Role", path: "/worker/settings" }
+          ] : [
+            { icon: "📷", label: "Scan Worker Badge (QR Verification)", path: "/customer/tools/scan-badge" },
+            { icon: "👷‍♂️", label: "Book a Crew & 1-Tap Rebook Past Pros", path: "/customer/tools/crew" },
+            { icon: "⭐", label: "Top-5 AI Worker Shortlist", path: "/customer/ai-shortlist" },
+            { icon: "🪪", label: "Verify Worker Gate-Pass & Khata", path: "/customer/tools/khata" },
+            { icon: "🚨", label: "Safety / Emergency SOS Check-In", path: "/customer/safety" },
+            { icon: "👤", label: "My Profile & Verify Gmail / WhatsApp OTP", path: "/customer/profile" },
+            { icon: "🎧", label: "24×7 Customer Support & Disputes", path: "/customer/support" },
+            { icon: "⚙️", label: "Settings, Language & Switch Role", path: "/customer/settings" }
+          ];
+
+          if (titleEl) titleEl.textContent = portal === "worker" ? "Worker Menu & Tools" : "Customer Menu & Tools";
+          listEl.innerHTML = items.map(function(it) {
+            return '<button type="button" onclick="window.kaamzoNavigate(\'' + it.path + '\')" class="kmz-secondary-btn" style="justify-content:flex-start;width:100%;padding:14px 16px;font-size:16px;">' +
+              '<span style="font-size:20px;">' + it.icon + '</span> <span>' + it.label + '</span></button>';
+          }).join("");
+          backdrop.classList.add("active");
+        };
+
+        function getWorkersList() {
+          var b = window.kaamzoCustomerBridge;
+          if (b && Array.isArray(b.workers) && b.workers.length > 0) {
+            return b.workers.slice(0, 12).map(function(w, idx) {
+              return {
+                id: w.id || ("w-" + idx),
+                name: w.name || "Verified Worker",
+                trade: w.primaryTrade || w.trade || "Specialist",
+                rating: w.rating || "4.9",
+                jobs: w.completedJobs || 85,
+                rate: w.dailyRate || 850,
+                exp: (w.experienceYears || 5) + " yrs",
+                distance: (w.distanceKm || "1.4") + " km",
+                area: (w.location && w.location.area) || w.area || "Model Town, Ludhiana",
+                phone: w.phone || "+917888549925",
+                kyc: w.isVerified ? "UIDAI Aadhaar Verified" : "KYC Verified",
+                raw: w
+              };
+            });
+          }
+          return demoWorkers;
+        }
+
+        function getJobsList() {
+          var b = window.kaamzoWorkerBridge;
+          if (b && Array.isArray(b.openJobs) && b.openJobs.length > 0) {
+            return b.openJobs.slice(0, 15).map(function(j, idx) {
+              return {
+                id: j.id || ("j-" + idx),
+                title: j.title || (j.trade + " Daily Work"),
+                trade: j.trade || "General Work",
+                pay: j.workerPayout || j.dailyWage || 850,
+                distance: (j.distanceKm || "1.5") + " km",
+                area: j.area || "Model Town, Ludhiana",
+                employer: j.customerName || "Verified Customer",
+                escrow: true,
+                raw: j
+              };
+            });
+          }
+          return demoJobs;
+        }
+
+        function renderBottomNav(path, portal) {
+          var nav = document.getElementById("kaamzo-bottom-nav");
+          if (!nav) return;
+          if (portal !== "customer" && portal !== "worker") {
+            nav.classList.remove("visible");
+            return;
+          }
+          nav.classList.add("visible");
+
+          var tabs = portal === "customer" ? [
+            { icon: "🏠", label: "Home", path: "/customer/home", match: "/customer/home" },
+            { icon: "🔍", label: "Find Workers", path: "/customer/find-workers", match: "/customer/find-workers" },
+            { icon: "➕", label: "Post Job", path: "/customer/post-job", match: "/customer/post-job" },
+            { icon: "📋", label: "Bookings", path: "/customer/bookings", match: "/customer/bookings" },
+            { icon: "⋯", label: "More", action: "window.kaamzoOpenMoreDrawer()", match: "__more__" }
+          ] : [
+            { icon: "🏠", label: "Home", path: "/worker/home", match: "/worker/home" },
+            { icon: "💼", label: "Jobs", path: "/worker/jobs", match: "/worker/jobs" },
+            { icon: "🛵", label: "Active", path: "/worker/active", match: "/worker/active" },
+            { icon: "📒", label: "Wallet", path: "/worker/wallet", match: "/worker/wallet" },
+            { icon: "⋯", label: "More", action: "window.kaamzoOpenMoreDrawer()", match: "__more__" }
+          ];
+
+          nav.innerHTML = tabs.map(function(t) {
+            var isActive = t.match !== "__more__" && path.indexOf(t.match) === 0;
+            var clickAttr = t.action ? t.action : ("window.kaamzoNavigate('" + t.path + "')");
+            return '<button type="button" class="kmz-nav-item ' + (isActive ? 'active' : '') + '" onclick="' + clickAttr + '">' +
+              '<span class="icon">' + t.icon + '</span><span>' + t.label + '</span></button>';
+          }).join("");
+        }
+
+        function renderCustomerHome(container) {
+          var b = window.kaamzoCustomerBridge;
+          var activeCount = (b && b.activeBookings && b.activeBookings.length) ? b.activeBookings.length : 1;
+          var trades = [
+            { icon: "⚡", name: "Electrician", rate: "₹850/day" },
+            { icon: "🔧", name: "Plumber", rate: "₹800/day" },
+            { icon: "🧱", name: "Mason", rate: "₹850/day" },
+            { icon: "💪", name: "Helper", rate: "₹600/day" },
+            { icon: "🪚", name: "Carpenter", rate: "₹900/day" },
+            { icon: "🎨", name: "Painter", rate: "₹750/day" }
+          ];
+
+          container.innerHTML =
+            '<div class="kmz-card" style="margin-bottom:16px;background:linear-gradient(135deg,#0f172a,#1e293b);border-color:rgba(249,115,22,0.4);">' +
+              '<div style="font-size:13px;font-weight:800;color:#fb923c;text-transform:uppercase;">Namaste • Ludhiana 10km Live Network</div>' +
+              '<h1 style="margin:6px 0 8px;font-size:24px;font-weight:900;color:#fff;">What help do you need today?</h1>' +
+              '<p style="margin:0;font-size:16px;color:#cbd5e1;">Hire Aadhaar-verified daily wage workers with upfront daily rates and <strong>Pay Safely (UPI Escrow)</strong>.</p>' +
+            '</div>' +
+
+            '<!-- 4 Big Primary Action Cards -->' +
+            '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px;">' +
+              '<button type="button" class="kmz-action-tile" style="border-color:#f97316;background:linear-gradient(145deg,#9a3412,#0f172a);" onclick="window.kaamzoNavigate(\'/customer/find-workers\')">' +
+                '<span style="font-size:28px;">🔍</span>' +
+                '<div><div style="font-size:18px;font-weight:900;">Find Workers</div><div style="font-size:13px;color:#fed7aa;font-weight:600;">Search nearby verified pros</div></div>' +
+              '</button>' +
+              '<button type="button" class="kmz-action-tile" onclick="window.kaamzoNavigate(\'/customer/post-job\')">' +
+                '<span style="font-size:28px;">➕</span>' +
+                '<div><div style="font-size:18px;font-weight:900;">Post a Job</div><div style="font-size:13px;color:#94a3b8;font-weight:600;">Step-by-step 10km broadcast</div></div>' +
+              '</button>' +
+              '<button type="button" class="kmz-action-tile" onclick="window.kaamzoNavigate(\'/customer/bookings\')">' +
+                '<span style="font-size:28px;">📋</span>' +
+                '<div><div style="font-size:18px;font-weight:900;">My Bookings (' + activeCount + ')</div><div style="font-size:13px;color:#94a3b8;font-weight:600;">Live ETA, Start/End OTP</div></div>' +
+              '</button>' +
+              '<button type="button" class="kmz-action-tile" style="border-color:rgba(239,68,68,0.45);" onclick="window.kaamzoNavigate(\'/customer/safety\')">' +
+                '<span style="font-size:28px;">🚨</span>' +
+                '<div><div style="font-size:18px;font-weight:900;color:#fca5a5;">Safety / SOS</div><div style="font-size:13px;color:#cbd5e1;font-weight:600;">24×7 GPS Emergency Shield</div></div>' +
+              '</button>' +
+            '</div>' +
+
+            '<!-- Active Booking Status Card -->' +
+            '<div class="kmz-card" style="margin-bottom:18px;border-color:rgba(34,197,94,0.4);">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+                '<div>' +
+                  '<span style="background:rgba(34,197,94,0.2);color:#4ade80;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;">🟢 ACTIVE BOOKING STATUS</span>' +
+                  '<div style="font-size:18px;font-weight:900;color:#fff;margin-top:8px;">Gurpreet Singh (Master Electrician)</div>' +
+                  '<div style="font-size:14px;color:#cbd5e1;margin-top:2px;">🛵 1.2 km away • ETA ~5 mins • 🛡️ Pay Safely (₹850 Locked in Escrow)</div>' +
+                '</div>' +
+                '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:210px;" onclick="window.kaamzoNavigate(\'/customer/bookings/active\')">' +
+                  '📍 Track ETA &amp; OTP Timer →' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+
+            '<!-- Popular Services Row -->' +
+            '<div class="kmz-card" style="margin-bottom:18px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+                '<h2 style="margin:0;font-size:18px;font-weight:900;">Popular Daily-Wage Services</h2>' +
+                '<button type="button" onclick="window.kaamzoNavigate(\'/customer/find-workers\')" style="background:none;border:none;color:#fb923c;font-size:15px;font-weight:800;cursor:pointer;">See All →</button>' +
+              '</div>' +
+              '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">' +
+                trades.map(function(t) {
+                  return '<button type="button" onclick="window.kaamzoSelectCustomerTrade(\'' + t.name + '\')" class="kmz-secondary-btn" style="flex-direction:column;align-items:flex-start;padding:14px;height:auto;">' +
+                    '<span style="font-size:24px;">' + t.icon + '</span>' +
+                    '<span style="font-size:16px;font-weight:800;color:#fff;">' + t.name + '</span>' +
+                    '<span style="font-size:13px;color:#4ade80;font-weight:700;">' + t.rate + '</span>' +
+                  '</button>';
+                }).join("") +
+              '</div>' +
+            '</div>' +
+
+            '<!-- Secondary Quick Tools -->' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">' +
+              '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoNavigate(\'/customer/tools/scan-badge\')">📷 Scan Worker Badge (QR)</button>' +
+              '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoNavigate(\'/customer/tools/crew\')">👷‍♂️ Book a Crew / 1-Tap Rebook</button>' +
+              '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoNavigate(\'/customer/ai-shortlist\')">⭐ Top-5 AI Shortlist</button>' +
+            '</div>';
+        }
+
+        window.kaamzoSelectCustomerTrade = function(trade) {
+          if (window.kaamzoCustomerBridge && window.kaamzoCustomerBridge.setTrade) {
+            window.kaamzoCustomerBridge.setTrade(trade);
+          }
+          window.kaamzoNavigate("/customer/find-workers");
+        };
+
+        function renderPostJobWizard(container) {
+          var s = wizardState.step;
+          var trades = ["Electrician", "Plumber", "Mason", "Helper", "Carpenter", "Painter", "AC Repair", "Welder"];
+          var pct = Math.round((s / 6) * 100);
+
+          var stepBody = "";
+          if (s === 1) {
+            stepBody =
+              '<h2 style="font-size:22px;font-weight:900;margin:0 0 8px;">1. Which worker do you need?</h2>' +
+              '<p style="font-size:16px;color:#cbd5e1;margin:0 0 16px;">Tap one trade below:</p>' +
+              '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">' +
+                trades.map(function(t) {
+                  var sel = wizardState.trade === t;
+                  return '<button type="button" onclick="window.kaamzoSetWizardField(\'trade\',\'' + t + '\')" class="kmz-secondary-btn" style="min-height:56px;border-color:' + (sel ? '#f97316' : '#475569') + ';background:' + (sel ? 'rgba(249,115,22,0.22)' : '#1e293b') + ';">' +
+                    (sel ? '✅ ' : '') + t + '</button>';
+                }).join("") +
+              '</div>';
+          } else if (s === 2) {
+            stepBody =
+              '<h2 style="font-size:22px;font-weight:900;margin:0 0 8px;">2. What work needs to be done?</h2>' +
+              '<p style="font-size:16px;color:#cbd5e1;margin:0 0 12px;">Write a simple description so nearby workers understand the job:</p>' +
+              '<input id="kmz-wiz-title" type="text" value="' + wizardState.title.replace(/"/g, '&quot;') + '" oninput="window.kaamzoSetWizardField(\'title\',this.value,true)" placeholder="e.g. Fix house MCB wiring & install 2 ceiling fans" style="width:100%;min-height:52px;padding:12px 14px;border-radius:14px;background:#1e293b;border:1px solid #475569;color:#fff;font-size:16px;font-weight:700;margin-bottom:12px;" />' +
+              '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
+                ['Full day work (9 AM – 6 PM)', 'Urgent repair today', 'Tools required by worker'].map(function(chip) {
+                  return '<button type="button" onclick="window.kaamzoSetWizardField(\'title\',\'' + chip + '\')" class="kmz-secondary-btn" style="font-size:14px;min-height:44px;">+ ' + chip + '</button>';
+                }).join("") +
+              '</div>';
+          } else if (s === 3) {
+            stepBody =
+              '<h2 style="font-size:22px;font-weight:900;margin:0 0 8px;">3. Where is the work location?</h2>' +
+              '<p style="font-size:16px;color:#cbd5e1;margin:0 0 12px;">Workers within 10km of your pin will be notified immediately:</p>' +
+              '<input id="kmz-wiz-area" type="text" value="' + wizardState.area.replace(/"/g, '&quot;') + '" oninput="window.kaamzoSetWizardField(\'area\',this.value,true)" style="width:100%;min-height:52px;padding:12px 14px;border-radius:14px;background:#1e293b;border:1px solid #475569;color:#fff;font-size:16px;font-weight:700;margin-bottom:12px;" />' +
+              '<button type="button" onclick="window.kaamzoSetWizardField(\'area\',\'Model Town Extension, Ludhiana (GPS Pin Verified)\')" class="kmz-secondary-btn" style="width:100%;">📍 Use My Live GPS Location (10km Radar)</button>';
+          } else if (s === 4) {
+            stepBody =
+              '<h2 style="font-size:22px;font-weight:900;margin:0 0 8px;">4. Start date &amp; number of days</h2>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">' +
+                '<div><label style="font-size:14px;font-weight:800;color:#cbd5e1;display:block;margin-bottom:6px;">Start Date</label>' +
+                '<input type="date" value="' + wizardState.date + '" onchange="window.kaamzoSetWizardField(\'date\',this.value,true)" style="width:100%;min-height:52px;padding:10px;border-radius:12px;background:#1e293b;border:1px solid #475569;color:#fff;font-size:16px;font-weight:700;" /></div>' +
+                '<div><label style="font-size:14px;font-weight:800;color:#cbd5e1;display:block;margin-bottom:6px;">Number of Days</label>' +
+                '<input type="number" min="1" max="30" value="' + wizardState.days + '" onchange="window.kaamzoSetWizardField(\'days\',parseInt(this.value,10)||1,true)" style="width:100%;min-height:52px;padding:10px;border-radius:12px;background:#1e293b;border:1px solid #475569;color:#fff;font-size:16px;font-weight:700;" /></div>' +
+              '</div>';
+          } else if (s === 5) {
+            stepBody =
+              '<h2 style="font-size:22px;font-weight:900;margin:0 0 8px;">5. Daily Wage &amp; Pay Safely (UPI Escrow)</h2>' +
+              '<p style="font-size:16px;color:#cbd5e1;margin:0 0 12px;">100% of the daily wage goes to the worker (Zero worker cut):</p>' +
+              '<input type="number" min="400" max="2500" step="50" value="' + wizardState.dailyWage + '" oninput="window.kaamzoSetWizardField(\'dailyWage\',parseInt(this.value,10)||850,true)" style="width:100%;min-height:56px;padding:12px;border-radius:14px;background:#1e293b;border:2px solid #4ade80;color:#4ade80;font-size:24px;font-weight:900;text-align:center;margin-bottom:12px;" />' +
+              '<div style="background:#020617;border:1px solid rgba(34,197,94,0.4);border-radius:14px;padding:14px;font-size:15px;color:#e2e8f0;">' +
+                '🛡️ <strong>Pay Safely (UPI Escrow):</strong> Your payment is held safely by Kaamzo and only released to the worker after they finish the job and you give the 4-digit End OTP.' +
+              '</div>';
+          } else {
+            var total = (wizardState.dailyWage || 850) * (wizardState.days || 1);
+            stepBody =
+              '<h2 style="font-size:22px;font-weight:900;margin:0 0 12px;">6. Review &amp; Broadcast to 10km Radar</h2>' +
+              '<div style="background:#020617;border:1px solid #334155;border-radius:16px;padding:16px;font-size:16px;line-height:1.8;margin-bottom:16px;">' +
+                '<div><strong>Trade Needed:</strong> ' + wizardState.trade + '</div>' +
+                '<div><strong>Work Description:</strong> ' + wizardState.title + '</div>' +
+                '<div><strong>Location (10km Pin):</strong> ' + wizardState.area + '</div>' +
+                '<div><strong>Duration:</strong> ' + wizardState.days + ' Day(s) starting ' + wizardState.date + '</div>' +
+                '<div><strong>Total Pay Safely (Escrow):</strong> <span style="color:#4ade80;font-weight:900;">₹' + total.toLocaleString("en-IN") + ' (₹' + wizardState.dailyWage + '/day)</span></div>' +
+              '</div>' +
+              '<button type="button" class="kmz-primary-btn" onclick="window.kaamzoSubmitWizardJob()">📡 Broadcast Job to Nearby Workers (10km)</button>';
+          }
+
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                '<span style="font-size:14px;font-weight:900;color:#fb923c;">STEP ' + s + ' OF 6</span>' +
+                '<span style="font-size:13px;color:#94a3b8;font-weight:700;">' + pct + '% Complete</span>' +
+              '</div>' +
+              '<div style="width:100%;height:10px;background:#1e293b;border-radius:999px;overflow:hidden;margin-bottom:20px;">' +
+                '<div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#f97316,#22c55e);transition:width 0.25s ease;"></div>' +
+              '</div>' +
+              stepBody +
+              '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:20px;">' +
+                (s > 1 ? '<button type="button" class="kmz-secondary-btn" style="flex:1;" onclick="window.kaamzoStepWizard(-1)">← Back</button>' : '<button type="button" class="kmz-secondary-btn" style="flex:1;" onclick="window.kaamzoNavigate(\'/customer/home\')">Cancel</button>') +
+                (s < 6 ? '<button type="button" class="kmz-primary-btn" style="flex:2;" onclick="window.kaamzoStepWizard(1)">Next Step →</button>' : '') +
+              '</div>' +
+            '</div>';
+        }
+
+        window.kaamzoSetWizardField = function(k, v, skipRender) {
+          wizardState[k] = v;
+          if (!skipRender) {
+            var c = document.getElementById("kaamzo-page-container");
+            if (c) renderPostJobWizard(c);
+          }
+        };
+
+        window.kaamzoStepWizard = function(delta) {
+          wizardState.step = Math.max(1, Math.min(6, wizardState.step + delta));
+          var c = document.getElementById("kaamzo-page-container");
+          if (c) renderPostJobWizard(c);
+        };
+
+        window.kaamzoSubmitWizardJob = function() {
+          var b = window.kaamzoCustomerBridge;
+          if (b && typeof b.postJob === "function") {
+            try {
+              b.postJob({
+                title: wizardState.title,
+                trade: wizardState.trade,
+                area: wizardState.area,
+                dailyWage: Number(wizardState.dailyWage) || 850,
+                days: Number(wizardState.days) || 1
+              });
+            } catch (e) {}
+          }
+          wizardState.step = 1;
+          alert("✅ Job Broadcasted to all verified " + wizardState.trade + " workers within 10km!");
+          window.kaamzoNavigate("/customer/bookings");
+        };
+
+        function renderWorkerDetailPage(container, workerId) {
+          var list = getWorkersList();
+          var w = list.find(function(x) { return String(x.id) === String(workerId); }) || list[0];
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">' +
+                '<div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;">' + w.name.charAt(0) + '</div>' +
+                '<div>' +
+                  '<span style="background:rgba(34,197,94,0.2);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;">✓ ' + w.kyc + '</span>' +
+                  '<h1 style="margin:6px 0 2px;font-size:22px;font-weight:900;color:#fff;">' + w.name + '</h1>' +
+                  '<div style="font-size:15px;color:#fb923c;font-weight:800;">' + w.trade + ' • ' + w.exp + ' Experience</div>' +
+                '</div>' +
+              '</div>' +
+              '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;text-align:center;">' +
+                '<div style="background:#1e293b;padding:12px;border-radius:14px;"><div style="font-size:12px;color:#94a3b8;">DAILY WAGE</div><div style="font-size:20px;font-weight:900;color:#4ade80;">₹' + w.rate + '/d</div></div>' +
+                '<div style="background:#1e293b;padding:12px;border-radius:14px;"><div style="font-size:12px;color:#94a3b8;">RATING</div><div style="font-size:20px;font-weight:900;color:#fbbf24;">' + w.rating + ' ★ (' + w.jobs + ')</div></div>' +
+                '<div style="background:#1e293b;padding:12px;border-radius:14px;"><div style="font-size:12px;color:#94a3b8;">DISTANCE</div><div style="font-size:20px;font-weight:900;color:#38bdf8;">' + w.distance + '</div></div>' +
+              '</div>' +
+              '<div style="background:#020617;border:1px solid rgba(34,197,94,0.4);border-radius:14px;padding:14px;font-size:15px;color:#e2e8f0;margin-bottom:18px;">' +
+                '🛡️ <strong>Pay Safely (UPI Escrow):</strong> Book ' + w.name + ' with zero risk. Your money stays safe in Kaamzo Escrow until the job is completed at your doorstep.' +
+              '</div>' +
+              '<button type="button" class="kmz-primary-btn" style="margin-bottom:12px;" onclick="window.kaamzoTriggerOneTapRebook(\'' + w.name + ' (' + w.trade + ')\',' + w.rate + ');window.kaamzoNavigate(\'/customer/bookings/active\');">' +
+                '✅ Book ' + w.name + ' Now (₹' + w.rate + '/day)' +
+              '</button>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+                '<a href="tel:' + w.phone + '" class="kmz-secondary-btn" style="text-decoration:none;">📞 Call Worker</a>' +
+                '<a href="https://wa.me/917888549925?text=' + encodeURIComponent("Hi, I want to book " + w.name + " (" + w.trade + ") on Kaamzo.") + '" target="_blank" rel="noopener noreferrer" class="kmz-secondary-btn" style="text-decoration:none;">💬 Chat on WhatsApp</a>' +
+              '</div>' +
+            '</div>';
+        }
+
+        function renderWorkerHome(container) {
+          var st = (typeof getKhataState === "function") ? getKhataState() : { availableBalance: 850, escrowPending: 850 };
+          var isOnline = localStorage.getItem("kaamzo_worker_online") !== "false";
+          var jobs = getJobsList().slice(0, 3);
+
+          container.innerHTML =
+            '<!-- 1. Big Online/Offline Duty Toggle -->' +
+            '<div class="kmz-card" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-color:' + (isOnline ? '#22c55e' : '#475569') + ';">' +
+              '<div>' +
+                '<div style="font-size:13px;font-weight:800;color:' + (isOnline ? '#4ade80' : '#94a3b8') + ';">' + (isOnline ? '🟢 YOU ARE ONLINE FOR 10KM JOBS' : '⚪ YOU ARE CURRENTLY OFFLINE') + '</div>' +
+                '<div style="font-size:18px;font-weight:900;color:#fff;margin-top:4px;">Tap to switch your duty status</div>' +
+              '</div>' +
+              '<button type="button" onclick="window.kaamzoToggleWorkerDuty()" class="kmz-primary-btn" style="width:auto;min-width:170px;background:' + (isOnline ? '#16a34a' : '#475569') + ';">' +
+                (isOnline ? '🟢 Duty: ONLINE' : '⚪ Go ONLINE') +
+              '</button>' +
+            '</div>' +
+
+            '<!-- 2. Compact 1-Line Milestone Bonus Progress Chip -->' +
+            '<button type="button" onclick="window.kaamzoNavigate(\'/worker/rewards\')" class="kmz-secondary-btn" style="width:100%;justify-content:space-between;margin-bottom:14px;background:rgba(249,115,22,0.14);border-color:rgba(249,115,22,0.45);padding:12px 16px;">' +
+              '<span>🏆 <strong>7/10 jobs completed</strong> • +10% Milestone Bonus soon</span>' +
+              '<span style="color:#fb923c;font-weight:900;">Rewards →</span>' +
+            '</button>' +
+
+            '<!-- 3. Wallet Balance & Instant UPI Withdraw Card -->' +
+            '<div class="kmz-card" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">' +
+              '<div>' +
+                '<div style="font-size:12px;color:#94a3b8;font-weight:800;">DIGITAL KHATA &amp; PAY SAFELY ESCROW</div>' +
+                '<div style="font-size:24px;font-weight:900;color:#4ade80;margin-top:4px;">₹850 Ready • <span style="font-size:16px;color:#fbbf24;">₹850 in Escrow</span></div>' +
+              '</div>' +
+              '<button type="button" class="kmz-secondary-btn" style="border-color:#22c55e;color:#4ade80;" onclick="window.kaamzoNavigate(\'/worker/wallet\')">' +
+                '📒 Wallet &amp; Gate-Pass ID →' +
+              '</button>' +
+            '</div>' +
+
+            '<!-- 4. Today\'s Active Job Card -->' +
+            '<div class="kmz-card" style="margin-bottom:18px;border-color:rgba(56,189,248,0.45);">' +
+              '<div style="font-size:12px;font-weight:800;color:#38bdf8;">🛵 TODAY\'S ACTIVE JOB</div>' +
+              '<div style="font-size:18px;font-weight:900;color:#fff;margin-top:4px;">MCB Panel &amp; Wiring • Model Town (1.2 km)</div>' +
+              '<div style="font-size:14px;color:#cbd5e1;margin:4px 0 12px;">Pay Safely: ₹850 Locked in Escrow • Enter 4-digit Start OTP at doorstep</div>' +
+              '<button type="button" class="kmz-primary-btn" onclick="window.kaamzoNavigate(\'/worker/active\')">📍 Open Active Job &amp; OTP Timer →</button>' +
+            '</div>' +
+
+            '<!-- 5. Top 3 Nearest Jobs (1 Main Action Per Card) -->' +
+            '<div class="kmz-card">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+                '<h2 style="margin:0;font-size:18px;font-weight:900;">Nearest Jobs (Within 10km)</h2>' +
+                '<button type="button" onclick="window.kaamzoNavigate(\'/worker/jobs\')" style="background:none;border:none;color:#fb923c;font-size:15px;font-weight:800;cursor:pointer;">All Jobs →</button>' +
+              '</div>' +
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                jobs.map(function(j) {
+                  return '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+                    '<div>' +
+                      '<span style="background:rgba(249,115,22,0.2);color:#fb923c;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:800;">' + j.trade + ' • 📍 ' + j.distance + '</span>' +
+                      '<div style="font-size:17px;font-weight:900;color:#fff;margin-top:6px;">' + j.title + '</div>' +
+                      '<div style="font-size:16px;font-weight:900;color:#4ade80;margin-top:2px;">₹' + j.pay + '/day • Pay Safely (Escrow)</div>' +
+                    '</div>' +
+                    '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:140px;" onclick="window.kaamzoNavigate(\'/worker/jobs/' + j.id + '\')">View Job →</button>' +
+                  '</div>';
+                }).join("") +
+              '</div>' +
+            '</div>';
+        }
+
+        window.kaamzoToggleWorkerDuty = function() {
+          var cur = localStorage.getItem("kaamzo_worker_online") !== "false";
+          localStorage.setItem("kaamzo_worker_online", cur ? "false" : "true");
+          renderRoute();
+        };
+
+        function renderWorkerJobDetailPage(container, jobId) {
+          var jobs = getJobsList();
+          var j = jobs.find(function(x) { return String(x.id) === String(jobId); }) || jobs[0];
+
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<span style="background:rgba(249,115,22,0.2);color:#fb923c;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;">' + j.trade + ' • 📍 ' + j.distance + ' away</span>' +
+              '<h1 style="margin:10px 0 6px;font-size:22px;font-weight:900;color:#fff;">' + j.title + '</h1>' +
+              '<div style="font-size:16px;color:#cbd5e1;margin-bottom:14px;">Employer: <strong>' + j.employer + '</strong> • Location: <strong>' + j.area + '</strong></div>' +
+
+              '<div style="background:#020617;border:1px solid rgba(34,197,94,0.45);border-radius:16px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+                '<div>' +
+                  '<div style="font-size:12px;color:#94a3b8;font-weight:800;">DAILY WAGE (100% YOURS • ZERO CUT)</div>' +
+                  '<div style="font-size:28px;font-weight:900;color:#4ade80;">₹' + j.pay + ' / day</div>' +
+                '</div>' +
+                '<span style="background:rgba(34,197,94,0.2);color:#4ade80;padding:6px 12px;border-radius:10px;font-size:13px;font-weight:800;">🛡️ Pay Safely (Prepaid UPI Escrow)</span>' +
+              '</div>' +
+
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoSpeakJobAloud(\'' + j.title.replace(/'/g, "") + '\',' + j.pay + ',\'' + j.area.replace(/'/g, "") + '\')">🔊 Listen (Read Aloud)</button>' +
+                '<a href="https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(j.area) + '" target="_blank" rel="noopener noreferrer" class="kmz-secondary-btn" style="text-decoration:none;">🗺️ Open GPS Map</a>' +
+              '</div>' +
+
+              '<button type="button" class="kmz-primary-btn" style="margin-bottom:10px;" onclick="alert(\'✅ Job Accepted! Navigating to Active Work & Doorstep OTP Timer.\');window.kaamzoNavigate(\'/worker/active\');">' +
+                '🤝 Accept &amp; Negotiate (₹' + j.pay + '/day)' +
+              '</button>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+                '<button type="button" class="kmz-secondary-btn" onclick="alert(\'👍 Marked Interested! Customer has been notified.\')">👍 I Am Interested</button>' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoNavigate(\'/worker/jobs\')">⏭️ Skip Job</button>' +
+              '</div>' +
+            '</div>';
+        }
+
+        window.kaamzoSpeakJobAloud = function(title, pay, area) {
+          try {
+            if ("speechSynthesis" in window) {
+              window.speechSynthesis.cancel();
+              var u = new SpeechSynthesisUtterance("New Kaamzo Job: " + title + ". Daily pay Rupees " + pay + " in " + area + ". Pay safely via UPI Escrow.");
+              u.lang = "en-IN";
+              window.speechSynthesis.speak(u);
+            }
+          } catch (e) {}
+        };
+
+        function renderWorkerRewardsPage(container) {
+          var tiers = [
+            { jobs: 10, bonus: "₹500 Cash Bonus", badge: "Bronze Pro", pct: 70 },
+            { jobs: 25, bonus: "₹1,200 + Free Safety Kit", badge: "Silver Pro", pct: 28 },
+            { jobs: 50, bonus: "₹2,500 + Accident Insurance", badge: "Gold Pro", pct: 14 },
+            { jobs: 100, bonus: "₹5,000 + Master Partner Badge", badge: "Diamond Pro", pct: 7 }
+          ];
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<span style="background:rgba(249,115,22,0.2);color:#fb923c;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;">10 TO 100 JOBS MILESTONE LADDER</span>' +
+              '<h1 style="margin:8px 0 6px;font-size:22px;font-weight:900;">🏆 Worker Milestone Bonus &amp; Rewards</h1>' +
+              '<p style="font-size:15px;color:#cbd5e1;margin-bottom:16px;">Complete jobs on Kaamzo using Start/End OTP to unlock guaranteed cash bonuses on top of your 100% daily wage:</p>' +
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                tiers.map(function(t) {
+                  return '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                      '<strong style="font-size:17px;color:#fff;">🎯 ' + t.jobs + ' Verified Jobs (' + t.badge + ')</strong>' +
+                      '<span style="color:#4ade80;font-weight:900;font-size:16px;">' + t.bonus + '</span>' +
+                    '</div>' +
+                    '<div style="width:100%;height:8px;background:#0f172a;border-radius:999px;overflow:hidden;">' +
+                      '<div style="width:' + t.pct + '%;height:100%;background:linear-gradient(90deg,#f97316,#22c55e);"></div>' +
+                    '</div>' +
+                  '</div>';
+                }).join("") +
+              '</div>' +
+            '</div>';
+        }
+
+        function renderAiShortlistPage(container) {
+          var workers = getWorkersList().slice(0, 5);
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<span style="background:rgba(56,189,248,0.2);color:#38bdf8;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;">AI SMART MATCHING</span>' +
+              '<h1 style="margin:8px 0 6px;font-size:22px;font-weight:900;">⭐ Top-5 AI Shortlisted Workers Near You</h1>' +
+              '<p style="font-size:15px;color:#cbd5e1;margin-bottom:16px;">Ranked automatically by closest 10km GPS distance, UIDAI KYC verification, and past customer ratings:</p>' +
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                workers.map(function(w, i) {
+                  return '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+                    '<div>' +
+                      '<span style="background:#f97316;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:900;">#' + (i + 1) + ' AI MATCH • ' + w.distance + '</span>' +
+                      '<div style="font-size:17px;font-weight:900;color:#fff;margin-top:6px;">' + w.name + ' (' + w.trade + ')</div>' +
+                      '<div style="font-size:14px;color:#4ade80;font-weight:700;">₹' + w.rate + '/day • ' + w.rating + ' ★ (' + w.jobs + ' jobs)</div>' +
+                    '</div>' +
+                    '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:150px;" onclick="window.kaamzoNavigate(\'/customer/workers/' + w.id + '\')">View Profile →</button>' +
+                  '</div>';
+                }).join("") +
+              '</div>' +
+            '</div>';
+        }
+
+        function renderSettingsPage(container, portal) {
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<h1 style="margin:0 0 14px;font-size:22px;font-weight:900;">⚙️ App Settings &amp; Role Switcher</h1>' +
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                '<button type="button" class="kmz-secondary-btn" style="justify-content:space-between;width:100%;" onclick="window.kaamzoToggleAudioReader&&window.kaamzoToggleAudioReader()">' +
+                  '<span>🔊 Multilingual Audio Reader (Listen Mode)</span><span>Toggle</span>' +
+                '</button>' +
+                '<button type="button" class="kmz-secondary-btn" style="justify-content:space-between;width:100%;" onclick="window.kaamzoNavigate(\'' + (portal === 'worker' ? '/customer/home' : '/worker/home') + '\')">' +
+                  '<span>🔄 Switch to ' + (portal === 'worker' ? 'Customer Portal' : 'Worker Portal') + '</span><span>Switch →</span>' +
+                '</button>' +
+                '<button type="button" class="kmz-secondary-btn" style="justify-content:space-between;width:100%;" onclick="window.kaamzoNavigate(\'/admin\')">' +
+                  '<span>🛡️ Open Platform Admin Console</span><span>/admin →</span>' +
+                '</button>' +
+                '<button type="button" class="kmz-secondary-btn" style="justify-content:space-between;width:100%;" onclick="window.kaamzoNavigate(\'/pitch\')">' +
+                  '<span>📊 View 14-Slide Investor Pitch Deck</span><span>/pitch →</span>' +
+                '</button>' +
+              '</div>' +
+            '</div>';
+        }
+
+        function renderCustomerProfilePage(container) {
+          container.innerHTML =
+            '<div class="kmz-card">' +
+              '<h1 style="margin:0 0 8px;font-size:22px;font-weight:900;">👤 Customer Profile &amp; Verification</h1>' +
+              '<p style="font-size:15px;color:#cbd5e1;margin-bottom:16px;">Verify your account via WhatsApp Messenger OTP (+91 7888549925) or Gmail OTP for instant escrow bookings:</p>' +
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                '<button type="button" class="kmz-primary-btn" onclick="window.kaamzoCustomerBridge&&window.kaamzoCustomerBridge.openVerifyOtpModal&&window.kaamzoCustomerBridge.openVerifyOtpModal()">' +
+                  '✅ Verify Gmail / WhatsApp OTP' +
+                '</button>' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoCustomerBridge&&window.kaamzoCustomerBridge.logout&&window.kaamzoCustomerBridge.logout();window.kaamzoNavigate(\'/\');">' +
+                  '🚪 Sign Out' +
+                '</button>' +
+              '</div>' +
+            '</div>';
+        }
+
+        function renderRoute() {
+          var rawPath = window.location.pathname.replace(/\/+$/, "") || "/";
+          var path = rawPath.toLowerCase();
+
+          // Redirect base /customer -> /customer/home and /worker -> /worker/home
+          if (path === "/customer") {
+            window.history.replaceState({}, "", "/customer/home");
+            path = "/customer/home";
+          } else if (path === "/worker") {
+            window.history.replaceState({}, "", "/worker/home");
+            path = "/worker/home";
+          }
+
+          var portal = window.kaamzoCurrentPortal();
+          document.body.setAttribute("data-kaamzo-portal", portal);
+          document.body.setAttribute("data-kaamzo-route", path);
+
+          if (portal === "customer" && window.kaamzoSetRole) window.kaamzoSetRole("customer");
+          if (portal === "worker" && window.kaamzoSetRole) window.kaamzoSetRole("worker");
+
+          renderBottomNav(path, portal);
+
+          var subHeader = document.getElementById("kaamzo-subpage-header");
+          var subTitle = document.getElementById("kaamzo-subpage-title");
+          var pageContainer = document.getElementById("kaamzo-page-container");
+          if (!subHeader || !pageContainer) return;
+
+          // Default: hide custom container unless route uses it
+          pageContainer.classList.remove("visible");
+          pageContainer.innerHTML = "";
+
+          var isHome = (path === "/customer/home" || path === "/worker/home" || portal === "other");
+          if (isHome) {
+            subHeader.classList.remove("visible");
+          } else {
+            subHeader.classList.add("visible");
+          }
+
+          // CUSTOMER ROUTES
+          if (path === "/customer/home") {
+            pageContainer.classList.add("visible");
+            renderCustomerHome(pageContainer);
+          } else if (path === "/customer/find-workers") {
+            if (subTitle) subTitle.textContent = "🔍 Find Verified Workers";
+            if (window.kaamzoCustomerBridge) window.kaamzoCustomerBridge.setTab("find_workers");
+          } else if (path.indexOf("/customer/workers/") === 0) {
+            var wId = rawPath.split("/").pop();
+            if (subTitle) subTitle.textContent = "👷 Worker Profile & Escrow Booking";
+            pageContainer.classList.add("visible");
+            renderWorkerDetailPage(pageContainer, wId);
+          } else if (path === "/customer/post-job") {
+            if (subTitle) subTitle.textContent = "➕ Post a Job (Step-by-Step)";
+            pageContainer.classList.add("visible");
+            renderPostJobWizard(pageContainer);
+          } else if (path === "/customer/bookings") {
+            if (subTitle) subTitle.textContent = "📋 My Bookings";
+            if (window.kaamzoCustomerBridge) window.kaamzoCustomerBridge.setTab("my_bookings");
+          } else if (path.indexOf("/customer/bookings/") === 0) {
+            if (subTitle) subTitle.textContent = "📍 Live ETA & Doorstep OTP Timer";
+            window.kaamzoOpenLiveTracker();
+          } else if (path === "/customer/tools/scan-badge") {
+            if (subTitle) subTitle.textContent = "📷 Scan Worker Badge (QR)";
+            if (window.kaamzoCustomerBridge && window.kaamzoCustomerBridge.openScanBadgeModal) {
+              window.kaamzoCustomerBridge.openScanBadgeModal();
+            }
+          } else if (path === "/customer/tools/crew") {
+            if (subTitle) subTitle.textContent = "👷‍♂️ Crew & 1-Tap Rebook";
+            window.kaamzoOpenCrewModal();
+          } else if (path === "/customer/tools/khata") {
+            if (subTitle) subTitle.textContent = "🪪 Worker Gate-Pass & Khata";
+            window.kaamzoOpenKhataModal();
+          } else if (path === "/customer/safety") {
+            if (subTitle) subTitle.textContent = "🚨 SOS & Safety Check-In";
+            window.kaamzoOpenSosModal();
+          } else if (path === "/customer/ai-shortlist") {
+            if (subTitle) subTitle.textContent = "⭐ Top-5 AI Worker Shortlist";
+            pageContainer.classList.add("visible");
+            renderAiShortlistPage(pageContainer);
+          } else if (path === "/customer/support") {
+            if (subTitle) subTitle.textContent = "🎧 Customer Support & Disputes";
+            if (window.kaamzoCustomerBridge) window.kaamzoCustomerBridge.setTab("support");
+          } else if (path === "/customer/profile") {
+            if (subTitle) subTitle.textContent = "👤 My Profile & Verification";
+            pageContainer.classList.add("visible");
+            renderCustomerProfilePage(pageContainer);
+          } else if (path === "/customer/settings") {
+            if (subTitle) subTitle.textContent = "⚙️ Customer Settings";
+            pageContainer.classList.add("visible");
+            renderSettingsPage(pageContainer, "customer");
+          }
+
+          // WORKER ROUTES
+          else if (path === "/worker/home") {
+            pageContainer.classList.add("visible");
+            renderWorkerHome(pageContainer);
+          } else if (path === "/worker/jobs") {
+            if (subTitle) subTitle.textContent = "💼 Find Daily-Wage Jobs (10km)";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("discovery");
+          } else if (path.indexOf("/worker/jobs/") === 0) {
+            var jId = rawPath.split("/").pop();
+            if (subTitle) subTitle.textContent = "💼 Job Details & Escrow Pay";
+            pageContainer.classList.add("visible");
+            renderWorkerJobDetailPage(pageContainer, jId);
+          } else if (path === "/worker/radar") {
+            if (subTitle) subTitle.textContent = "📡 10km Live GPS Job Radar";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("radar");
+          } else if (path === "/worker/active") {
+            if (subTitle) subTitle.textContent = "🛵 Active Work & OTP Timer";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("active_work");
+            window.kaamzoOpenLiveTracker();
+          } else if (path === "/worker/history") {
+            if (subTitle) subTitle.textContent = "📜 Completed Job History";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("history");
+          } else if (path === "/worker/wallet") {
+            if (subTitle) subTitle.textContent = "📒 Wallet, UPI & Gate-Pass ID";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("wallet");
+            window.kaamzoOpenKhataModal();
+          } else if (path === "/worker/rewards") {
+            if (subTitle) subTitle.textContent = "🏆 Milestone Bonus & Rewards";
+            pageContainer.classList.add("visible");
+            renderWorkerRewardsPage(pageContainer);
+          } else if (path === "/worker/profile") {
+            if (subTitle) subTitle.textContent = "🪪 Worker Profile & Aadhaar KYC";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("profile");
+          } else if (path === "/worker/support") {
+            if (subTitle) subTitle.textContent = "🎧 Worker Support & SOS";
+            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("support");
+          } else if (path === "/worker/settings") {
+            if (subTitle) subTitle.textContent = "⚙️ Worker Settings";
+            pageContainer.classList.add("visible");
+            renderSettingsPage(pageContainer, "worker");
+          }
+        }
+
+        // Route old duplicate Post Job buttons to the single /customer/post-job wizard
+        document.addEventListener("click", function(e) {
+          var btn = e.target && e.target.closest ? e.target.closest("#hero-post-job-btn, #header-post-job-btn") : null;
+          if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.kaamzoNavigate("/customer/post-job");
+          }
+        }, true);
+
+        window.addEventListener("popstate", function() {
+          setTimeout(renderRoute, 30);
+        });
+
+        // Automatically sync when user selects Customer or Worker from the '/' landing screen
+        var lastSeenPortal = "";
+        setInterval(function() {
+          var p = window.location.pathname.replace(/\/+$/, "") || "/";
+          if (p === "/") {
+            var rootText = (document.getElementById("root") || {}).innerText || "";
+            if (rootText.indexOf("Find Workers") !== -1 && rootText.indexOf("My Bookings") !== -1 && lastSeenPortal !== "customer") {
+              lastSeenPortal = "customer";
+              window.kaamzoNavigate("/customer/home", true);
+            } else if (rootText.indexOf("10km Radar") !== -1 && rootText.indexOf("Active Work") !== -1 && lastSeenPortal !== "worker") {
+              lastSeenPortal = "worker";
+              window.kaamzoNavigate("/worker/home", true);
+            }
+          } else {
+            lastSeenPortal = window.kaamzoCurrentPortal();
+          }
+        }, 450);
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", function() { setTimeout(renderRoute, 120); });
+        } else {
+          setTimeout(renderRoute, 120);
+        }
+      })();
+    </script>
   </body>
 </html>
