@@ -24,6 +24,7 @@ if (fs.existsSync(indexHtmlPath)) {
     "customer",
     "customer/home",
     "customer/find-workers",
+    "customer/radar",
     "customer/post-job",
     "customer/bookings",
     "customer/tools/scan-badge",
@@ -37,15 +38,13 @@ if (fs.existsSync(indexHtmlPath)) {
     "pitch"
   ];
   for (const r of routes) {
-    // 1. Write clean URL file (for top-level routes)
-    if (!r.includes("/")) {
-      fs.writeFileSync(path.join(wwwDir, `${r}.html`), indexHtml, "utf8");
-    }
-
-    // 2. Write directory index (e.g. www/customer/home/index.html)
+    // 1. Write directory index (e.g. www/customer/home/index.html)
     const routeDir = path.join(wwwDir, r);
     if (!fs.existsSync(routeDir)) fs.mkdirSync(routeDir, { recursive: true });
     fs.writeFileSync(path.join(routeDir, "index.html"), indexHtml, "utf8");
+
+    // 2. Write clean URL file (e.g. www/admin.html, www/customer/radar.html)
+    fs.writeFileSync(path.join(wwwDir, `${r}.html`), indexHtml, "utf8");
   }
 }
 
