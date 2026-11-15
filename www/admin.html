@@ -811,53 +811,6 @@
 
     <!-- KAAMZO POWER SUITE: Live Arrival & OTP Timer, Crew & 1-Tap Rebook, Worker Digital Khata + Gate-Pass ID, and SOS Check-In -->
     <style id="kaamzo-power-suite-styles">
-      #kaamzo-power-dock {
-        position: fixed;
-        bottom: 16px;
-        left: 16px;
-        z-index: 99980;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-        background: rgba(15, 23, 42, 0.94);
-        border: 1px solid rgba(249, 115, 22, 0.45);
-        border-radius: 9999px;
-        padding: 6px 10px;
-        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(12px);
-        max-width: calc(100vw - 96px);
-      }
-      .kaamzo-dock-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 12px;
-        border-radius: 9999px;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.01em;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        cursor: pointer;
-        transition: all 0.18s ease;
-        white-space: nowrap;
-        color: #f8fafc;
-        background: rgba(30, 41, 59, 0.9);
-      }
-      .kaamzo-dock-btn:hover {
-        transform: translateY(-1px);
-        border-color: #f97316;
-        background: rgba(249, 115, 22, 0.18);
-      }
-      .kaamzo-dock-btn.sos-btn {
-        background: linear-gradient(135deg, #dc2626, #991b1b);
-        border-color: #f87171;
-        color: #ffffff;
-        box-shadow: 0 0 14px rgba(220, 38, 38, 0.45);
-      }
-      .kaamzo-dock-btn.sos-btn:hover {
-        background: linear-gradient(135deg, #ef4444, #b91c1c);
-      }
       .kaamzo-suite-backdrop {
         position: fixed;
         inset: 0;
@@ -887,39 +840,12 @@
         position: relative;
       }
       @media (max-width: 640px) {
-        #kaamzo-power-dock {
-          bottom: 10px;
-          left: 10px;
-          padding: 5px 8px;
-          gap: 5px;
-          border-radius: 18px;
-        }
-        .kaamzo-dock-btn {
-          padding: 6px 9px;
-          font-size: 11px;
-        }
         .kaamzo-suite-modal {
           padding: 16px;
           border-radius: 20px;
         }
       }
     </style>
-
-    <!-- Floating Quick-Access Dock for the 4 Feature Suites -->
-    <div id="kaamzo-power-dock" class="kaamzo-ui-ignore" role="region" aria-label="Kaamzo Live Job & Worker Tools">
-      <button type="button" class="kaamzo-dock-btn kaamzo-ui-ignore" onclick="window.kaamzoOpenLiveTracker()">
-        <span>📍</span> <span>Live ETA &amp; OTP Timer</span>
-      </button>
-      <button type="button" class="kaamzo-dock-btn kaamzo-ui-ignore" onclick="window.kaamzoOpenCrewModal()">
-        <span>👷‍♂️</span> <span>Crew &amp; 1-Tap Rebook</span>
-      </button>
-      <button type="button" class="kaamzo-dock-btn kaamzo-ui-ignore" onclick="window.kaamzoOpenKhataModal()">
-        <span>📒</span> <span>Digital Khata &amp; ID</span>
-      </button>
-      <button type="button" class="kaamzo-dock-btn sos-btn kaamzo-ui-ignore" onclick="window.kaamzoOpenSosModal()">
-        <span>🚨</span> <span>SOS Check-In</span>
-      </button>
-    </div>
 
     <!-- MODAL 1: LIVE ARRIVAL & WORK TIMER ("UBER-STYLE" JOB TRACKING) -->
     <div id="kaamzo-live-tracker-backdrop" class="kaamzo-suite-backdrop kaamzo-ui-ignore" onclick="if(event.target===this)window.kaamzoCloseAllSuiteModals()">
