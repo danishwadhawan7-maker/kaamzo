@@ -1,17 +1,21 @@
 package site.kaamzo.app;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebViewClient;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +44,24 @@ public class MainActivity extends BridgeActivity {
                 String cleanUa = originalUa.replace("; wv", "").replace("Version/4.0 ", "");
                 settings.setUserAgentString(cleanUa);
             }
+
+            // Route WhatsApp links (wa.me / whatsapp://) directly to native WhatsApp Messenger app
+            webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    Uri url = request.getUrl();
+                    String urlStr = url != null ? url.toString() : "";
+                    if (urlStr.startsWith("whatsapp://") || urlStr.contains("wa.me/")) {
+                        try {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, url);
+                            startActivity(intent);
+                            return true;
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    return super.shouldOverrideUrlLoading(view, request);
+                }
+            });
         }
     }
 
