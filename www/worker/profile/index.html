@@ -1674,6 +1674,72 @@
         padding-bottom: 76px !important;
       }
 
+      /* Hide old duplicate Customer & Worker secondary sticky headers so only our clean unified nav shows */
+      body[data-kaamzo-portal="customer"] #kaamzo-customer-navbar,
+      body[data-kaamzo-portal="worker"] #root nav.sticky.top-0.z-20 {
+        display: none !important;
+      }
+
+      /* Persistent Unified Main Navigation Bar across ALL Customer & Worker layouts */
+      #kaamzo-portal-top-nav {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        background: #0f172a;
+        border-bottom: 1px solid rgba(249, 115, 22, 0.35);
+        padding: 10px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 45;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      }
+      #kaamzo-portal-top-nav.visible {
+        display: flex;
+      }
+      .kmz-top-pill {
+        min-height: 44px;
+        padding: 8px 14px;
+        border-radius: 12px;
+        background: #1e293b;
+        color: #cbd5e1;
+        border: 1px solid #334155;
+        font-size: 14px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+      }
+      .kmz-top-pill:hover {
+        border-color: #f97316;
+        color: #ffffff;
+      }
+      .kmz-top-pill.active {
+        background: rgba(249, 115, 22, 0.22);
+        border-color: #f97316;
+        color: #fb923c;
+      }
+      .kmz-top-cta-post {
+        min-height: 44px;
+        padding: 8px 16px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: #ffffff;
+        border: none;
+        font-size: 14px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+      }
+
       /* Collapse #root 100vh wrapper & hide <main>/<footer> ONLY when a dedicated custom page is visible */
       body[data-kaamzo-custom-page="true"] #root,
       body[data-kaamzo-custom-page="true"] #root > div {
@@ -1691,12 +1757,11 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        background: #0f172a;
-        border-bottom: 1px solid rgba(249, 115, 22, 0.3);
-        padding: 10px 16px;
-        position: sticky;
-        top: 0;
-        z-index: 40;
+        background: #020617;
+        border-bottom: 1px solid rgba(249, 115, 22, 0.25);
+        padding: 8px 16px;
+        position: relative;
+        z-index: 35;
       }
       #kaamzo-subpage-header.visible {
         display: flex;
@@ -1842,6 +1907,9 @@
       }
     </style>
 
+    <!-- Persistent Main Navigation Bar (keeps Home, Main Options & Post a Job accessible on ALL layouts) -->
+    <div id="kaamzo-portal-top-nav" class="kaamzo-ui-ignore"></div>
+
     <!-- Subpage Back / Breadcrumb Bar -->
     <div id="kaamzo-subpage-header" class="kaamzo-ui-ignore">
       <button type="button" class="kaamzo-back-btn" onclick="window.kaamzoGoBack()">
@@ -1881,6 +1949,26 @@
           days: 1,
           dailyWage: 850,
           escrowSafe: true
+        };
+
+        var findWorkersState = {
+          search: "",
+          trade: "All",
+          maxRate: 1500,
+          minRating: 0,
+          strict10km: true,
+          showFilters: false,
+          mode: "list"
+        };
+
+        var bookingsFilterTab = "all";
+
+        var workerJobsState = {
+          search: "",
+          trade: "All",
+          minPay: 500,
+          strict10km: true,
+          showFilters: false
         };
 
         var demoWorkers = [
@@ -2004,6 +2092,60 @@
           return demoJobs;
         }
 
+        function renderPortalTopNav(path, portal) {
+          var topNav = document.getElementById("kaamzo-portal-top-nav");
+          if (!topNav) return;
+          if (portal !== "customer" && portal !== "worker") {
+            topNav.classList.remove("visible");
+            topNav.innerHTML = "";
+            return;
+          }
+          topNav.classList.add("visible");
+
+          if (portal === "customer") {
+            var cLinks = [
+              { icon: "🏠", label: "Home", path: "/customer/home", match: "/customer/home" },
+              { icon: "🔍", label: "Find Workers", path: "/customer/find-workers", match: "/customer/find-workers" },
+              { icon: "📋", label: "Bookings", path: "/customer/bookings", match: "/customer/bookings" }
+            ];
+            topNav.innerHTML =
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                cLinks.map(function(l) {
+                  var act = path.indexOf(l.match) === 0;
+                  return '<button type="button" class="kmz-top-pill ' + (act ? 'active' : '') + '" onclick="window.kaamzoNavigate(\'' + l.path + '\')">' +
+                    '<span>' + l.icon + '</span><span>' + l.label + '</span></button>';
+                }).join("") +
+                '<button type="button" class="kmz-top-pill" onclick="window.kaamzoOpenMoreDrawer()">⋯ More</button>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                '<button type="button" class="kmz-top-cta-post" onclick="window.kaamzoNavigate(\'/customer/post-job\')">➕ Post a Job</button>' +
+                '<button type="button" onclick="window.kaamzoNavigate(\'/customer/safety\')" style="min-height:44px;padding:8px 12px;border-radius:12px;background:#dc2626;color:#fff;border:none;font-size:13px;font-weight:900;cursor:pointer;">🚨 SOS</button>' +
+              '</div>';
+          } else {
+            var isOnline = localStorage.getItem("kaamzo_worker_online") !== "false";
+            var wLinks = [
+              { icon: "🏠", label: "Home", path: "/worker/home", match: "/worker/home" },
+              { icon: "💼", label: "Find Jobs", path: "/worker/jobs", match: "/worker/jobs" },
+              { icon: "📡", label: "10km Radar", path: "/worker/radar", match: "/worker/radar" },
+              { icon: "🛵", label: "Active", path: "/worker/active", match: "/worker/active" },
+              { icon: "📒", label: "Wallet & ID", path: "/worker/wallet", match: "/worker/wallet" }
+            ];
+            topNav.innerHTML =
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                wLinks.map(function(l) {
+                  var act = path.indexOf(l.match) === 0;
+                  return '<button type="button" class="kmz-top-pill ' + (act ? 'active' : '') + '" onclick="window.kaamzoNavigate(\'' + l.path + '\')">' +
+                    '<span>' + l.icon + '</span><span>' + l.label + '</span></button>';
+                }).join("") +
+                '<button type="button" class="kmz-top-pill" onclick="window.kaamzoOpenMoreDrawer()">⋯ More</button>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                '<button type="button" onclick="window.kaamzoToggleWorkerDuty()" style="min-height:44px;padding:8px 14px;border-radius:12px;background:' + (isOnline ? '#16a34a' : '#475569') + ';color:#fff;border:none;font-size:13px;font-weight:900;cursor:pointer;">' + (isOnline ? '🟢 Online' : '⚪ Offline') + '</button>' +
+                '<button type="button" onclick="window.kaamzoNavigate(\'/worker/support\')" style="min-height:44px;padding:8px 12px;border-radius:12px;background:#dc2626;color:#fff;border:none;font-size:13px;font-weight:900;cursor:pointer;">🚨 SOS</button>' +
+              '</div>';
+          }
+        }
+
         function renderBottomNav(path, portal) {
           var nav = document.getElementById("kaamzo-bottom-nav");
           if (!nav) return;
@@ -2114,11 +2256,323 @@
         }
 
         window.kaamzoSelectCustomerTrade = function(trade) {
+          findWorkersState.trade = trade || "All";
           if (window.kaamzoCustomerBridge && window.kaamzoCustomerBridge.setTrade) {
             window.kaamzoCustomerBridge.setTrade(trade);
           }
           window.kaamzoNavigate("/customer/find-workers");
         };
+
+        window.kaamzoUpdateFindWorkersFilter = function(key, val, skipRender) {
+          findWorkersState[key] = val;
+          if (key === "trade" && window.kaamzoCustomerBridge && window.kaamzoCustomerBridge.setTrade) {
+            window.kaamzoCustomerBridge.setTrade(val);
+          }
+          if (!skipRender) {
+            var c = document.getElementById("kaamzo-page-container");
+            if (c) renderCustomerFindWorkersPage(c);
+          }
+        };
+
+        function renderCustomerFindWorkersPage(container) {
+          var trades = ["All", "Electrician", "Plumber", "Mason", "Helper", "Carpenter", "Painter"];
+          var allWorkers = getWorkersList();
+          var q = (findWorkersState.search || "").trim().toLowerCase();
+          var filtered = allWorkers.filter(function(w) {
+            var matchTrade = findWorkersState.trade === "All" || (w.trade || "").toLowerCase().indexOf(findWorkersState.trade.toLowerCase()) !== -1;
+            var matchQuery = !q || (w.name || "").toLowerCase().indexOf(q) !== -1 || (w.trade || "").toLowerCase().indexOf(q) !== -1 || (w.area || "").toLowerCase().indexOf(q) !== -1;
+            var matchRate = Number(w.rate || 850) <= Number(findWorkersState.maxRate || 1500);
+            var matchRating = Number(w.rating || 4.8) >= Number(findWorkersState.minRating || 0);
+            return matchTrade && matchQuery && matchRate && matchRating;
+          });
+
+          var filterPanelHtml = findWorkersState.showFilters ? (
+            '<div style="background:#020617;border:1px solid #334155;border-radius:16px;padding:14px;margin-top:12px;">' +
+              '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;">' +
+                '<div>' +
+                  '<label style="font-size:13px;font-weight:800;color:#cbd5e1;display:block;margin-bottom:6px;">Max Daily Wage: ₹' + findWorkersState.maxRate + '/day</label>' +
+                  '<input type="range" min="600" max="1500" step="50" value="' + findWorkersState.maxRate + '" oninput="window.kaamzoUpdateFindWorkersFilter(\'maxRate\',parseInt(this.value,10))" style="width:100%;" />' +
+                '</div>' +
+                '<div>' +
+                  '<label style="font-size:13px;font-weight:800;color:#cbd5e1;display:block;margin-bottom:6px;">Minimum Rating</label>' +
+                  '<select onchange="window.kaamzoUpdateFindWorkersFilter(\'minRating\',parseFloat(this.value))" style="width:100%;min-height:44px;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:10px;padding:6px 10px;font-weight:700;">' +
+                    '<option value="0" ' + (findWorkersState.minRating === 0 ? 'selected' : '') + '>All Ratings</option>' +
+                    '<option value="4.5" ' + (findWorkersState.minRating === 4.5 ? 'selected' : '') + '>4.5 ★ &amp; above</option>' +
+                    '<option value="4.8" ' + (findWorkersState.minRating === 4.8 ? 'selected' : '') + '>4.8 ★ &amp; above</option>' +
+                  '</select>' +
+                '</div>' +
+                '<div style="display:flex;align-items:center;gap:8px;padding-top:18px;">' +
+                  '<input id="kmz-strict-10km" type="checkbox" ' + (findWorkersState.strict10km ? 'checked' : '') + ' onchange="window.kaamzoUpdateFindWorkersFilter(\'strict10km\',this.checked)" style="width:20px;height:20px;" />' +
+                  '<label for="kmz-strict-10km" style="font-size:14px;font-weight:800;color:#4ade80;">Strict 10km GPS Radar</label>' +
+                '</div>' +
+              '</div>' +
+            '</div>'
+          ) : "";
+
+          var bodyHtml = "";
+          if (findWorkersState.mode === "map") {
+            bodyHtml =
+              '<div class="kmz-card" style="margin-bottom:14px;">' +
+                '<div style="font-size:15px;font-weight:900;color:#fb923c;margin-bottom:10px;">🗺️ Google Maps View — Verified Workers Around Ludhiana (10km)</div>' +
+                '<div style="border-radius:14px;overflow:hidden;border:1px solid #334155;height:260px;margin-bottom:14px;">' +
+                  '<iframe id="kmz-gmaps-embed" title="Kaamzo Ludhiana Workers Map" width="100%" height="260" style="border:0;" loading="lazy"></iframe>' +
+                '</div>' +
+                '<div style="display:flex;flex-direction:column;gap:10px;">' +
+                  filtered.map(function(w) {
+                    return '<div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+                      '<div><div style="font-weight:900;color:#fff;font-size:16px;">📍 ' + w.name + ' (' + w.trade + ')</div>' +
+                      '<div style="font-size:13px;color:#94a3b8;">' + w.area + ' • ' + w.distance + ' • ₹' + w.rate + '/day</div></div>' +
+                      '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:160px;" onclick="window.kaamzoNavigate(\'/customer/workers/' + w.id + '\')">View &amp; Book →</button>' +
+                    '</div>';
+                  }).join("") +
+                '</div>' +
+              '</div>';
+          } else if (findWorkersState.mode === "radar") {
+            bodyHtml =
+              '<div class="kmz-card" style="text-align:center;">' +
+                '<div style="font-size:16px;font-weight:900;color:#4ade80;margin-bottom:6px;">📡 10km Live GPS Worker Radar Active</div>' +
+                '<div style="font-size:14px;color:#cbd5e1;margin-bottom:16px;">Showing ' + filtered.length + ' Aadhaar-verified pros within 10km of your pin</div>' +
+                '<div style="width:240px;height:240px;margin:0 auto 18px;border-radius:50%;border:2px solid rgba(34,197,94,0.6);background:radial-gradient(circle,rgba(34,197,94,0.22) 0%,rgba(15,23,42,0.95) 70%);position:relative;display:flex;align-items:center;justify-content:center;">' +
+                  '<div style="width:150px;height:150px;border-radius:50%;border:1px dashed rgba(34,197,94,0.45);display:flex;align-items:center;justify-content:center;">' +
+                    '<div style="width:70px;height:70px;border-radius:50%;border:1px dashed rgba(249,115,22,0.6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fb923c;">YOU</div>' +
+                  '</div>' +
+                  '<span style="position:absolute;top:24px;left:42px;background:#22c55e;color:#020617;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:900;">1.2km</span>' +
+                  '<span style="position:absolute;bottom:34px;right:26px;background:#f97316;color:#fff;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:900;">1.8km</span>' +
+                  '<span style="position:absolute;top:64px;right:22px;background:#38bdf8;color:#020617;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:900;">2.1km</span>' +
+                '</div>' +
+                '<div style="display:flex;flex-direction:column;gap:10px;text-align:left;">' +
+                  filtered.map(function(w) {
+                    return '<div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+                      '<div><div style="font-weight:900;color:#fff;font-size:16px;">🟢 ' + w.name + ' • ' + w.distance + '</div>' +
+                      '<div style="font-size:13px;color:#cbd5e1;">' + w.trade + ' • ₹' + w.rate + '/day • ' + w.rating + ' ★</div></div>' +
+                      '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:150px;" onclick="window.kaamzoNavigate(\'/customer/workers/' + w.id + '\')">Book Now →</button>' +
+                    '</div>';
+                  }).join("") +
+                '</div>' +
+              '</div>';
+          } else {
+            bodyHtml = filtered.length === 0 ? (
+              '<div class="kmz-card" style="text-align:center;padding:28px;">' +
+                '<div style="font-size:32px;margin-bottom:8px;">🔍</div>' +
+                '<div style="font-size:18px;font-weight:900;margin-bottom:6px;">No matching workers found</div>' +
+                '<p style="font-size:15px;color:#94a3b8;margin-bottom:14px;">Broadcast a job on our 10km Radar and nearby pros will accept within minutes.</p>' +
+                '<button type="button" class="kmz-primary-btn" style="max-width:280px;margin:0 auto;" onclick="window.kaamzoNavigate(\'/customer/post-job\')">➕ Post a Job Broadcast</button>' +
+              '</div>'
+            ) : (
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                filtered.map(function(w) {
+                  return '<div class="kmz-card" style="padding:16px;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">' +
+                      '<div style="display:flex;gap:12px;align-items:center;">' +
+                        '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0;">' + w.name.charAt(0) + '</div>' +
+                        '<div>' +
+                          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                            '<span style="font-size:18px;font-weight:900;color:#fff;">' + w.name + '</span>' +
+                            '<span style="background:rgba(34,197,94,0.18);color:#4ade80;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;">✓ ' + w.kyc + '</span>' +
+                          '</div>' +
+                          '<div style="font-size:14px;color:#fb923c;font-weight:800;margin-top:2px;">' + w.trade + ' • ' + w.rating + ' ★ (' + w.jobs + ' jobs) • 📍 ' + w.distance + '</div>' +
+                          '<div style="font-size:13px;color:#94a3b8;margin-top:2px;">' + w.area + ' • 🛡️ Pay Safely (UPI Escrow)</div>' +
+                        '</div>' +
+                      '</div>' +
+                      '<div style="text-align:right;">' +
+                        '<div style="font-size:22px;font-weight:900;color:#4ade80;">₹' + w.rate + '<span style="font-size:13px;color:#94a3b8;">/day</span></div>' +
+                      '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">' +
+                      '<button type="button" class="kmz-primary-btn" style="flex:2;min-width:180px;" onclick="window.kaamzoNavigate(\'/customer/workers/' + w.id + '\')">View Profile &amp; Book →</button>' +
+                      '<a href="tel:' + w.phone + '" class="kmz-secondary-btn" style="flex:1;min-width:95px;text-decoration:none;">📞 Call</a>' +
+                      '<a href="https://wa.me/917888549925?text=' + encodeURIComponent("Hi, I want to book " + w.name + " (" + w.trade + ") on Kaamzo.") + '" target="_blank" rel="noopener noreferrer" class="kmz-secondary-btn" style="flex:1;min-width:95px;text-decoration:none;">💬 Chat</a>' +
+                    '</div>' +
+                  '</div>';
+                }).join("") +
+              '</div>'
+            );
+          }
+
+          container.innerHTML =
+            '<div class="kmz-card" style="margin-bottom:14px;">' +
+              '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
+                '<input id="kmz-fw-search" type="text" value="' + (findWorkersState.search || "").replace(/"/g, '&quot;') + '" oninput="window.kaamzoUpdateFindWorkersFilter(\'search\',this.value,true)" placeholder="🔍 Search trade, skill, or worker name..." style="flex:1;min-width:200px;min-height:48px;padding:10px 14px;border-radius:14px;background:#1e293b;border:1px solid #475569;color:#fff;font-size:16px;font-weight:700;" />' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoUpdateFindWorkersFilter(\'search\',document.getElementById(\'kmz-fw-search\').value)">Search</button>' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoUpdateFindWorkersFilter(\'showFilters\',!findWorkersState.showFilters)" style="border-color:' + (findWorkersState.showFilters ? '#f97316' : '#475569') + ';">⚙️ Filters</button>' +
+              '</div>' +
+              filterPanelHtml +
+              '<div style="display:flex;gap:8px;overflow-x:auto;padding-top:12px;">' +
+                trades.map(function(t) {
+                  var sel = findWorkersState.trade === t;
+                  return '<button type="button" onclick="window.kaamzoUpdateFindWorkersFilter(\'trade\',\'' + t + '\')" style="min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid ' + (sel ? '#f97316' : '#334155') + ';background:' + (sel ? '#f97316' : '#1e293b') + ';color:#fff;font-size:14px;font-weight:800;white-space:nowrap;cursor:pointer;">' + t + '</button>';
+                }).join("") +
+              '</div>' +
+            '</div>' +
+
+            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">' +
+              '<div style="font-size:15px;font-weight:800;color:#cbd5e1;">Showing <span style="color:#fb923c;">' + filtered.length + '</span> verified workers</div>' +
+              '<div style="display:flex;gap:6px;background:#0f172a;padding:4px;border-radius:14px;border:1px solid #334155;">' +
+                '<button type="button" onclick="window.kaamzoUpdateFindWorkersFilter(\'mode\',\'list\')" style="min-height:40px;padding:6px 12px;border-radius:10px;border:none;background:' + (findWorkersState.mode === 'list' ? '#f97316' : 'transparent') + ';color:#fff;font-size:13px;font-weight:800;cursor:pointer;">📋 List</button>' +
+                '<button type="button" onclick="window.kaamzoUpdateFindWorkersFilter(\'mode\',\'map\')" style="min-height:40px;padding:6px 12px;border-radius:10px;border:none;background:' + (findWorkersState.mode === 'map' ? '#f97316' : 'transparent') + ';color:#fff;font-size:13px;font-weight:800;cursor:pointer;">🗺️ Google Maps</button>' +
+                '<button type="button" onclick="window.kaamzoUpdateFindWorkersFilter(\'mode\',\'radar\')" style="min-height:40px;padding:6px 12px;border-radius:10px;border:none;background:' + (findWorkersState.mode === 'radar' ? '#f97316' : 'transparent') + ';color:#fff;font-size:13px;font-weight:800;cursor:pointer;">📡 10km Radar</button>' +
+              '</div>' +
+            '</div>' +
+            bodyHtml;
+          if (findWorkersState.mode === "map") {
+            var mapFrame = document.getElementById("kmz-gmaps-embed");
+            if (mapFrame) mapFrame.src = "https://maps.google.com/maps?q=Ludhiana,Punjab&z=13&output=embed";
+          }
+        }
+
+        window.kaamzoSetBookingsFilterTab = function(tab) {
+          bookingsFilterTab = tab;
+          var c = document.getElementById("kaamzo-page-container");
+          if (c) renderCustomerBookingsPage(c);
+        };
+
+        function renderCustomerBookingsPage(container) {
+          var b = window.kaamzoCustomerBridge;
+          var bridgeBookings = (b && Array.isArray(b.allBookings) && b.allBookings.length > 0) ? b.allBookings.map(function(j, idx) {
+            var isDone = j.status === "paid_and_closed" || j.status === "completed";
+            return {
+              id: j.id || ("b-" + idx),
+              title: j.title || (j.trade + " Booking"),
+              worker: j.assignedWorkerName || "Gurpreet Singh",
+              trade: j.trade || "Electrician",
+              area: j.area || "Model Town, Ludhiana",
+              wage: j.dailyWage || 850,
+              otp: j.otpCode || "4821",
+              endOtp: "9304",
+              state: isDone ? "completed" : (j.assignedWorkerName ? "ongoing" : "open")
+            };
+          }) : [
+            { id: "active", title: "MCB Panel & House Wiring", worker: "Gurpreet Singh", trade: "Electrician", area: "Model Town, Ludhiana", wage: 850, otp: "4821", endOtp: "9304", state: "ongoing" },
+            { id: "b-2", title: "Terrace Waterproofing & Cement Plaster", worker: "Waiting for 10km Worker Accept", trade: "Mason", area: "Sarabha Nagar, Ludhiana", wage: 850, otp: "6190", endOtp: "8812", state: "open" }
+          ];
+
+          var shown = bridgeBookings.filter(function(item) {
+            return bookingsFilterTab === "all" || item.state === bookingsFilterTab;
+          });
+
+          container.innerHTML =
+            '<div class="kmz-card" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+              '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                [
+                  { id: "all", label: "All Bookings (" + bridgeBookings.length + ")" },
+                  { id: "ongoing", label: "🟢 Ongoing" },
+                  { id: "open", label: "📡 Open Broadcasts" },
+                  { id: "completed", label: "✅ Completed" }
+                ].map(function(t) {
+                  var act = bookingsFilterTab === t.id;
+                  return '<button type="button" onclick="window.kaamzoSetBookingsFilterTab(\'' + t.id + '\')" style="min-height:42px;padding:6px 14px;border-radius:12px;border:1px solid ' + (act ? '#f97316' : '#334155') + ';background:' + (act ? '#f97316' : '#1e293b') + ';color:#fff;font-size:14px;font-weight:800;cursor:pointer;">' + t.label + '</button>';
+                }).join("") +
+              '</div>' +
+              '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:170px;" onclick="window.kaamzoNavigate(\'/customer/post-job\')">➕ Post New Job</button>' +
+            '</div>' +
+
+            (shown.length === 0 ? (
+              '<div class="kmz-card" style="text-align:center;padding:28px;">' +
+                '<div style="font-size:18px;font-weight:900;margin-bottom:8px;">No bookings in this filter yet</div>' +
+                '<button type="button" class="kmz-primary-btn" style="max-width:260px;margin:0 auto;" onclick="window.kaamzoNavigate(\'/customer/post-job\')">➕ Post a Job</button>' +
+              '</div>'
+            ) : (
+              '<div style="display:flex;flex-direction:column;gap:12px;">' +
+                shown.map(function(item) {
+                  return '<div class="kmz-card">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">' +
+                      '<div>' +
+                        '<span style="background:rgba(34,197,94,0.18);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">' + item.trade.toUpperCase() + ' • ' + item.state.toUpperCase() + '</span>' +
+                        '<h3 style="margin:6px 0 2px;font-size:18px;font-weight:900;color:#fff;">' + item.title + '</h3>' +
+                        '<div style="font-size:14px;color:#cbd5e1;">👷 Worker: <strong>' + item.worker + '</strong> • 📍 ' + item.area + '</div>' +
+                      '</div>' +
+                      '<div style="text-align:right;">' +
+                        '<div style="font-size:20px;font-weight:900;color:#4ade80;">₹' + item.wage + '/day</div>' +
+                        '<div style="font-size:12px;color:#fbbf24;font-weight:700;">🛡️ Pay Safely (Escrow)</div>' +
+                      '</div>' +
+                    '</div>' +
+                    '<div style="background:#020617;border:1px solid #334155;border-radius:12px;padding:10px 12px;font-size:14px;color:#e2e8f0;margin-bottom:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">' +
+                      '<span>🔑 <strong>Start Work OTP:</strong> <strong style="color:#38bdf8;">' + item.otp + '</strong></span>' +
+                      '<span>🏁 <strong>End Work OTP:</strong> <strong style="color:#4ade80;">' + item.endOtp + '</strong></span>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+                      '<button type="button" class="kmz-primary-btn" style="flex:2;min-width:210px;" onclick="window.kaamzoNavigate(\'/customer/bookings/' + item.id + '\')">📍 Track Live ETA &amp; OTP Timer →</button>' +
+                      '<button type="button" class="kmz-secondary-btn" style="flex:1;min-width:130px;border-color:rgba(239,68,68,0.5);color:#fca5a5;" onclick="window.kaamzoNavigate(\'/customer/safety\')">🚨 SOS Shield</button>' +
+                    '</div>' +
+                  '</div>';
+                }).join("") +
+              '</div>'
+            ));
+        }
+
+        window.kaamzoUpdateWorkerJobsFilter = function(key, val, skipRender) {
+          workerJobsState[key] = val;
+          if (!skipRender) {
+            var c = document.getElementById("kaamzo-page-container");
+            if (c) renderWorkerFindJobsPage(c);
+          }
+        };
+
+        window.kaamzoSpeakAllJobs = function() {
+          var jobs = getJobsList();
+          if (!jobs.length) return;
+          var summary = jobs.slice(0, 3).map(function(j, idx) {
+            return "Job " + (idx + 1) + ": " + j.trade + ", " + j.title + ", Rupees " + j.pay + " per day in " + j.area + ".";
+          }).join(" ");
+          try {
+            if ("speechSynthesis" in window) {
+              window.speechSynthesis.cancel();
+              var u = new SpeechSynthesisUtterance(summary);
+              u.lang = "en-IN";
+              window.speechSynthesis.speak(u);
+            }
+          } catch (e) {}
+        };
+
+        function renderWorkerFindJobsPage(container) {
+          var trades = ["All", "Electrician", "Mason", "Plumber", "Helper", "Carpenter", "Painter"];
+          var jobs = getJobsList();
+          var q = (workerJobsState.search || "").trim().toLowerCase();
+          var filtered = jobs.filter(function(j) {
+            var matchTrade = workerJobsState.trade === "All" || (j.trade || "").toLowerCase().indexOf(workerJobsState.trade.toLowerCase()) !== -1;
+            var matchQuery = !q || (j.title || "").toLowerCase().indexOf(q) !== -1 || (j.trade || "").toLowerCase().indexOf(q) !== -1 || (j.area || "").toLowerCase().indexOf(q) !== -1;
+            var matchPay = Number(j.pay || 850) >= Number(workerJobsState.minPay || 500);
+            return matchTrade && matchQuery && matchPay;
+          });
+
+          var filterBox = workerJobsState.showFilters ? (
+            '<div style="background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;margin-top:12px;">' +
+              '<label style="font-size:13px;font-weight:800;color:#cbd5e1;display:block;margin-bottom:6px;">Minimum Daily Wage: ₹' + workerJobsState.minPay + '/day</label>' +
+              '<input type="range" min="500" max="1200" step="50" value="' + workerJobsState.minPay + '" oninput="window.kaamzoUpdateWorkerJobsFilter(\'minPay\',parseInt(this.value,10))" style="width:100%;" />' +
+            '</div>'
+          ) : "";
+
+          container.innerHTML =
+            '<div class="kmz-card" style="margin-bottom:14px;">' +
+              '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
+                '<input id="kmz-wj-search" type="text" value="' + (workerJobsState.search || "").replace(/"/g, '&quot;') + '" oninput="window.kaamzoUpdateWorkerJobsFilter(\'search\',this.value,true)" placeholder="🔍 Search nearby jobs..." style="flex:1;min-width:190px;min-height:48px;padding:10px 14px;border-radius:14px;background:#1e293b;border:1px solid #475569;color:#fff;font-size:16px;font-weight:700;" />' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoSpeakAllJobs()">🔊 Listen</button>' +
+                '<button type="button" class="kmz-secondary-btn" onclick="window.kaamzoUpdateWorkerJobsFilter(\'showFilters\',!workerJobsState.showFilters)" style="border-color:' + (workerJobsState.showFilters ? '#f97316' : '#475569') + ';">⚙️ Filters</button>' +
+              '</div>' +
+              filterBox +
+              '<div style="display:flex;gap:8px;overflow-x:auto;padding-top:12px;">' +
+                trades.map(function(t) {
+                  var sel = workerJobsState.trade === t;
+                  return '<button type="button" onclick="window.kaamzoUpdateWorkerJobsFilter(\'trade\',\'' + t + '\')" style="min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid ' + (sel ? '#f97316' : '#334155') + ';background:' + (sel ? '#f97316' : '#1e293b') + ';color:#fff;font-size:14px;font-weight:800;white-space:nowrap;cursor:pointer;">' + t + '</button>';
+                }).join("") +
+              '</div>' +
+            '</div>' +
+
+            '<div style="display:flex;flex-direction:column;gap:12px;">' +
+              (filtered.length === 0 ? (
+                '<div class="kmz-card" style="text-align:center;padding:24px;">No jobs match your filters. Tap "All" above to see all nearby jobs.</div>'
+              ) : filtered.map(function(j) {
+                return '<div class="kmz-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">' +
+                  '<div>' +
+                    '<span style="background:rgba(249,115,22,0.2);color:#fb923c;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:800;">' + j.trade + ' • 📍 ' + j.distance + '</span>' +
+                    '<div style="font-size:18px;font-weight:900;color:#fff;margin-top:6px;">' + j.title + '</div>' +
+                    '<div style="font-size:16px;font-weight:900;color:#4ade80;margin-top:2px;">₹' + j.pay + '/day • 🛡️ Pay Safely (Escrow)</div>' +
+                  '</div>' +
+                  '<button type="button" class="kmz-primary-btn" style="width:auto;min-width:150px;" onclick="window.kaamzoNavigate(\'/worker/jobs/' + j.id + '\')">View Job →</button>' +
+                '</div>';
+              }).join("")) +
+            '</div>';
+        }
 
         function renderPostJobWizard(container) {
           var s = wizardState.step;
@@ -2484,6 +2938,7 @@
           if (portal === "customer" && window.kaamzoSetRole) window.kaamzoSetRole("customer");
           if (portal === "worker" && window.kaamzoSetRole) window.kaamzoSetRole("worker");
 
+          renderPortalTopNav(path, portal);
           renderBottomNav(path, portal);
 
           var subHeader = document.getElementById("kaamzo-subpage-header");
@@ -2508,7 +2963,8 @@
             renderCustomerHome(pageContainer);
           } else if (path === "/customer/find-workers") {
             if (subTitle) subTitle.textContent = "🔍 Find Verified Workers";
-            if (window.kaamzoCustomerBridge) window.kaamzoCustomerBridge.setTab("find_workers");
+            pageContainer.classList.add("visible");
+            renderCustomerFindWorkersPage(pageContainer);
           } else if (path.indexOf("/customer/workers/") === 0) {
             var wId = rawPath.split("/").pop();
             if (subTitle) subTitle.textContent = "👷 Worker Profile & Escrow Booking";
@@ -2520,7 +2976,8 @@
             renderPostJobWizard(pageContainer);
           } else if (path === "/customer/bookings") {
             if (subTitle) subTitle.textContent = "📋 My Bookings";
-            if (window.kaamzoCustomerBridge) window.kaamzoCustomerBridge.setTab("my_bookings");
+            pageContainer.classList.add("visible");
+            renderCustomerBookingsPage(pageContainer);
           } else if (path.indexOf("/customer/bookings/") === 0) {
             if (subTitle) subTitle.textContent = "📍 Live ETA & Doorstep OTP Timer";
             window.kaamzoOpenLiveTracker();
@@ -2561,7 +3018,8 @@
             renderWorkerHome(pageContainer);
           } else if (path === "/worker/jobs") {
             if (subTitle) subTitle.textContent = "💼 Find Daily-Wage Jobs (10km)";
-            if (window.kaamzoWorkerBridge) window.kaamzoWorkerBridge.setTab("discovery");
+            pageContainer.classList.add("visible");
+            renderWorkerFindJobsPage(pageContainer);
           } else if (path.indexOf("/worker/jobs/") === 0) {
             var jId = rawPath.split("/").pop();
             if (subTitle) subTitle.textContent = "💼 Job Details & Escrow Pay";
