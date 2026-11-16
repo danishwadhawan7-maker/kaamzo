@@ -1,5 +1,26 @@
 const crypto = require("crypto");
 
+function getEncryptionKey() {
+  const secret = process.env.KAAMZO_CRYPTO_SECRET || process.env.TWILIO_AUTH_TOKEN || "kaamzo-ludhiana-2026-aes256-default-key";
+  return crypto.createHash("sha256").update(secret).digest();
+}
+
+function encryptOtpToken({ recipient, code, ttlMs = 10 * 60 * 1000 }) {
+  const salt = crypto.randomBytes(8).toString("hex");
+  const codeHash = crypto.createHash("sha256").update(`${String(code)}:${salt}`).digest("hex");
+  const payload = JSON.stringify({
+    recipient: String(recipient || "").trim().toLowerCase(),
+    salt,
+    codeHash,
+    exp: Date.now() + ttlMs
+  });
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
+  const encrypted = Buffer.concat([cipher.update(payload, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${iv.toString("base64url")}.${tag.toString("base64url")}.${encrypted.toString("base64url")}`;
+}
+
 function normalizeIndianWhatsAppNumber(raw) {
   const digits = String(raw || "").replace(/[^0-9]/g, "");
   if (digits.length === 10) return `+91${digits}`;
@@ -186,6 +207,7 @@ module.exports = async function handler(req, res) {
 
       const waMsg = `Kaamzo Account Verification\nMobile: ${toNumber}\nOTP Code: ${code}`;
       const waLink = `https://wa.me/917888549925?text=${encodeURIComponent(waMsg)}`;
+      const encryptedOtpToken = encryptOtpToken({ recipient: toNumber, code });
 
       return res.status(200).json({
         success: true,
@@ -193,6 +215,8 @@ module.exports = async function handler(req, res) {
         messageId: "kaamzo-wa-" + Date.now(),
         recipient: toNumber,
         waLink,
+        encryptedOtpToken,
+        encryption: "AES-256-GCM",
         supportWhatsApp: "+917888549925",
         message: `WhatsApp Messenger verification prepared via +91 7888549925 for ${toNumber}.`
       });

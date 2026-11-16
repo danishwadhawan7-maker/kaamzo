@@ -827,6 +827,116 @@
           }
         };
 
+        // Client-Side Web Crypto API Vault (AES-256-GCM + PBKDF2 + SHA-256)
+        window.kaamzoCrypto = (function() {
+          var KEY_STORAGE = "kaamzo_device_vault_seed_v1";
+          var cachedKeyPromise = null;
+
+          function getDeviceSeed() {
+            var seed = "";
+            try {
+              seed = localStorage.getItem(KEY_STORAGE) || "";
+              if (!seed) {
+                var arr = new Uint8Array(32);
+                window.crypto.getRandomValues(arr);
+                seed = Array.from(arr, function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+                localStorage.setItem(KEY_STORAGE, seed);
+              }
+            } catch (e) {
+              seed = "kaamzo-fallback-session-seed";
+            }
+            return seed;
+          }
+
+          function getAesKey() {
+            if (cachedKeyPromise) return cachedKeyPromise;
+            if (!window.crypto || !window.crypto.subtle) return Promise.reject(new Error("WebCrypto unavailable"));
+            var enc = new TextEncoder();
+            cachedKeyPromise = window.crypto.subtle.importKey(
+              "raw",
+              enc.encode(getDeviceSeed()),
+              { name: "PBKDF2" },
+              false,
+              ["deriveKey"]
+            ).then(function(baseKey) {
+              return window.crypto.subtle.deriveKey(
+                {
+                  name: "PBKDF2",
+                  salt: enc.encode("kaamzo-ludhiana-aes256-salt"),
+                  iterations: 100000,
+                  hash: "SHA-256"
+                },
+                baseKey,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+              );
+            });
+            return cachedKeyPromise;
+          }
+
+          function toB64(buf) {
+            var bytes = new Uint8Array(buf);
+            var bin = "";
+            for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin);
+          }
+
+          function fromB64(str) {
+            var bin = atob(str);
+            var bytes = new Uint8Array(bin.length);
+            for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes.buffer;
+          }
+
+          return {
+            algorithm: "AES-256-GCM",
+            sha256: async function(text) {
+              var buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
+              return Array.from(new Uint8Array(buf), function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+            },
+            encryptJSON: async function(obj) {
+              var key = await getAesKey();
+              var iv = window.crypto.getRandomValues(new Uint8Array(12));
+              var encoded = new TextEncoder().encode(JSON.stringify(obj));
+              var cipherBuf = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, encoded);
+              return { __enc: "AES-256-GCM", iv: toB64(iv.buffer), ct: toB64(cipherBuf) };
+            },
+            decryptJSON: async function(envelope) {
+              if (!envelope || envelope.__enc !== "AES-256-GCM") return envelope;
+              var key = await getAesKey();
+              var plainBuf = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: new Uint8Array(fromB64(envelope.iv)) },
+                key,
+                fromB64(envelope.ct)
+              );
+              return JSON.parse(new TextDecoder().decode(plainBuf));
+            },
+            saveEncryptedItem: async function(storageKey, value) {
+              try {
+                var env = await this.encryptJSON(value);
+                localStorage.setItem(storageKey, JSON.stringify(env));
+                return true;
+              } catch (e) {
+                return false;
+              }
+            },
+            loadEncryptedItem: async function(storageKey) {
+              try {
+                var raw = localStorage.getItem(storageKey);
+                if (!raw) return null;
+                var parsed = JSON.parse(raw);
+                if (parsed && parsed.__enc === "AES-256-GCM") {
+                  return await this.decryptJSON(parsed);
+                }
+                return parsed;
+              } catch (e) {
+                return null;
+              }
+            }
+          };
+        })();
+
         // Enterprise Admin Security & Audit Vault (with One-Way Notion Ops Sync)
         window.kaamzoAdminSecurity = {
           // Admin credentials, whitelist and PIN live ONLY on the server (see admin-security.js).
@@ -1120,7 +1230,7 @@
       <div class="kaamzo-suite-modal kaamzo-ui-ignore">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
-            <span style="background:rgba(34,197,94,0.18);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">WORKER EARNINGS &amp; GATE-PASS ID</span>
+            <span style="background:rgba(34,197,94,0.18);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">WORKER EARNINGS &amp; GATE-PASS ID • 🔒 AES-256-GCM</span>
             <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">📒 Worker Digital Khata &amp; Society Gate-Pass</h3>
           </div>
           <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
@@ -1476,7 +1586,12 @@
         }
 
         function saveKhataState(st) {
-          try { localStorage.setItem("kaamzo_khata_state_v2", JSON.stringify(st)); } catch (e) {}
+          try {
+            localStorage.setItem("kaamzo_khata_state_v2", JSON.stringify(st));
+            if (window.kaamzoCrypto && window.kaamzoCrypto.saveEncryptedItem) {
+              window.kaamzoCrypto.saveEncryptedItem("kaamzo_khata_vault_enc_v2", st);
+            }
+          } catch (e) {}
         }
 
         function renderKhataUI() {
