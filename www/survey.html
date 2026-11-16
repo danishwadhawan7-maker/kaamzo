@@ -432,9 +432,17 @@
         </div>
         <span class="gf-doc-title">Kaamzo — Daily-Wage &amp; Local Hiring Survey</span>
       </div>
-      <div class="gf-top-actions" style="display:flex;gap:8px;align-items:center;">
-        <a class="gf-btn-outline" href="/" style="text-decoration:none;">← Back to Kaamzo</a>
-        <button class="gf-btn-outline" onclick="downloadCSV()">Download responses (.csv)</button>
+      <div class="gf-top-actions kaamzo-ui-ignore" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <a class="gf-btn-outline kaamzo-ui-ignore" href="/" style="text-decoration:none;">← Back to Kaamzo</a>
+        <select id="kaamzo-survey-lang" class="gf-btn-outline kaamzo-ui-ignore" onchange="window.kaamzoSetSurveyLang(this.value)" title="Switch Language (English / Hindi / Punjabi)" style="cursor:pointer;">
+          <option value="en">🌐 EN (English)</option>
+          <option value="hi">🇮🇳 HI (हिंदी)</option>
+          <option value="pa">🇮🇳 PA (ਪੰਜਾਬੀ)</option>
+        </select>
+        <button id="kaamzo-header-audio-btn" type="button" class="gf-btn-outline kaamzo-header-audio-btn kaamzo-ui-ignore" onclick="window.kaamzoToggleAudioReader()" title="Toggle Tap-to-Listen Audio Reader">
+          <span class="kaamzo-ui-ignore">🔊</span> <span class="kaamzo-ui-ignore">Audio</span>
+        </button>
+        <button class="gf-btn-outline kaamzo-ui-ignore" onclick="downloadCSV()">Download responses (.csv)</button>
       </div>
     </div>
     <div class="gf-main-tabs">
@@ -876,5 +884,346 @@
     renderFormQuestions();
     renderSummary();
   </script>
+
+  <!-- Google Translate (EN / HI / PA) + Kaamzo Highlighting Audio Reader -->
+  <div id="google_translate_element" class="kaamzo-ui-ignore" style="display:none;"></div>
+  <style id="kaamzo-audio-styles">
+    .goog-te-banner-frame.skiptranslate, .goog-te-gadget-simple { display: none !important; }
+    body { top: 0 !important; }
+
+    body.kaamzo-audio-active p,
+    body.kaamzo-audio-active h1,
+    body.kaamzo-audio-active h2,
+    body.kaamzo-audio-active h3,
+    body.kaamzo-audio-active h4,
+    body.kaamzo-audio-active span:not(.kaamzo-ui-ignore),
+    body.kaamzo-audio-active label,
+    body.kaamzo-audio-active .gf-q-title,
+    body.kaamzo-audio-active .gf-indiv-ans,
+    body.kaamzo-audio-active .gf-legend-left,
+    body.kaamzo-audio-active .gf-hbar-top,
+    body.kaamzo-audio-active .gf-person-name,
+    body.kaamzo-audio-active .kaamzo-word {
+      background-color: rgba(245, 158, 11, 0.25) !important;
+      color: #7c2d12 !important;
+      outline: 1.5px dashed #f59e0b !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      transition: background-color 0.15s ease, outline-color 0.15s ease, transform 0.15s ease !important;
+    }
+
+    body.kaamzo-audio-active .kaamzo-word:hover,
+    body.kaamzo-audio-active .gf-q-title:hover {
+      background-color: rgba(245, 158, 11, 0.5) !important;
+      outline: 2px solid #ea580c !important;
+    }
+
+    .kaamzo-spoken-word-active,
+    html body.kaamzo-audio-active .kaamzo-spoken-word-active,
+    html body.kaamzo-audio-active span.kaamzo-word.kaamzo-spoken-word-active {
+      background-color: #1d4ed8 !important;
+      color: #ffffff !important;
+      outline: 2.5px solid #ffffff !important;
+      box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.85), 0 6px 20px rgba(37, 99, 235, 0.95) !important;
+      border-radius: 5px !important;
+      padding: 1px 5px !important;
+      transform: scale(1.1) !important;
+      display: inline-block !important;
+      z-index: 30 !important;
+      position: relative !important;
+      font-weight: 800 !important;
+    }
+
+    .kaamzo-header-audio-active {
+      background: #f59e0b !important;
+      color: #0f172a !important;
+      border-color: #d97706 !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+      font-weight: 700 !important;
+    }
+
+    #kaamzo-audio-toolbar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(160%);
+      z-index: 99998;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 2px solid #f59e0b;
+      border-radius: 999px;
+      padding: 8px 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+      backdrop-filter: blur(12px);
+      color: #ffffff;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+    }
+    #kaamzo-audio-toolbar.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+
+  <div id="kaamzo-audio-toolbar" class="kaamzo-ui-ignore" role="region" aria-label="Audio Reader Controls">
+    <div class="kaamzo-ui-ignore" style="display:flex;align-items:center;gap:6px;">
+      <span class="kaamzo-ui-ignore" style="font-size:16px;">🔊</span>
+      <span class="kaamzo-ui-ignore" style="font-size:12px;font-weight:800;color:#fbbf24;letter-spacing:0.02em;">AUDIO READER</span>
+    </div>
+    <div id="kaamzo-audio-status" class="kaamzo-ui-ignore" style="font-size:11px;color:#cbd5e1;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;">
+      Click any text/word to listen
+    </div>
+    <button id="kaamzo-audio-stop-btn" type="button" onclick="window.kaamzoStopAudio()" class="kaamzo-ui-ignore" style="background:#ef4444;color:#ffffff;border:none;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+      <span class="kaamzo-ui-ignore">⏹</span> Stop Audio
+    </button>
+    <button id="kaamzo-audio-exit-btn" type="button" onclick="window.kaamzoToggleAudioReader(false)" class="kaamzo-ui-ignore" style="background:rgba(255,255,255,0.15);color:#cbd5e1;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">
+      ✕ Exit
+    </button>
+  </div>
+
+  <script>
+    function googleTranslateElementInit() {
+      try {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,hi,pa',
+          autoDisplay: false
+        }, 'google_translate_element');
+      } catch (e) {}
+    }
+
+    (function() {
+      function applyLangToTranslate(lang) {
+        try {
+          localStorage.setItem('kaamzo_language', lang);
+          localStorage.setItem('kaamzo_language_v8', lang);
+          var sel = document.getElementById('kaamzo-survey-lang');
+          if (sel) sel.value = lang;
+
+          if (lang === 'en') {
+            if (document.cookie.indexOf('googtrans=') !== -1) {
+              document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+              document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
+              window.location.reload();
+            }
+          } else {
+            document.cookie = 'googtrans=/en/' + lang + '; path=/;';
+            var combo = document.querySelector('.goog-te-combo');
+            if (combo && combo.value !== lang) {
+              combo.value = lang;
+              combo.dispatchEvent(new Event('change'));
+            }
+          }
+        } catch (e) {}
+      }
+
+      window.kaamzoSetSurveyLang = function(lang) {
+        applyLangToTranslate(lang || 'en');
+      };
+
+      try {
+        var savedLang = localStorage.getItem('kaamzo_language') || 'en';
+        var sel = document.getElementById('kaamzo-survey-lang');
+        if (sel) sel.value = savedLang;
+        if (savedLang !== 'en') {
+          setTimeout(function() { applyLangToTranslate(savedLang); }, 1200);
+          setTimeout(function() { applyLangToTranslate(savedLang); }, 2500);
+        }
+      } catch (e) {}
+
+      // Audio Reader Engine
+      var isAudioMode = false;
+      var activeAudio = null;
+      var activeWordSpan = null;
+      var wordInterval = null;
+
+      function detectLanguage(text) {
+        if (!text) return 'en';
+        if (/[\u0A00-\u0A7F]/.test(text)) return 'pa';
+        if (/[\u0900-\u097F]/.test(text)) return 'hi';
+        try {
+          var appLang = localStorage.getItem('kaamzo_language') || 'en';
+          if (appLang === 'pa' || appLang === 'hi') return appLang;
+        } catch (e) {}
+        return 'en';
+      }
+
+      function clearSpokenHighlightOnly() {
+        if (activeWordSpan) {
+          activeWordSpan.classList.remove('kaamzo-spoken-word-active');
+          activeWordSpan = null;
+        }
+        var spoken = document.querySelectorAll('.kaamzo-spoken-word-active');
+        for (var i = 0; i < spoken.length; i++) spoken[i].classList.remove('kaamzo-spoken-word-active');
+      }
+
+      function clearActiveSpokenWord() {
+        clearSpokenHighlightOnly();
+        if (wordInterval) { clearInterval(wordInterval); wordInterval = null; }
+      }
+
+      function stopAudio() {
+        if ('speechSynthesis' in window) {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+        }
+        if (activeAudio) {
+          try { activeAudio.pause(); activeAudio.currentTime = 0; } catch (e) {}
+          activeAudio = null;
+        }
+        clearActiveSpokenWord();
+        var statusEl = document.getElementById('kaamzo-audio-status');
+        if (statusEl) statusEl.textContent = 'Click any text/word to listen';
+      }
+      window.kaamzoStopAudio = stopAudio;
+
+      window.kaamzoToggleAudioReader = function(forceState) {
+        isAudioMode = typeof forceState === 'boolean' ? forceState : !isAudioMode;
+        var toolbar = document.getElementById('kaamzo-audio-toolbar');
+        var btns = document.querySelectorAll('.kaamzo-header-audio-btn');
+        if (isAudioMode) {
+          document.body.classList.add('kaamzo-audio-active');
+          if (toolbar) toolbar.classList.add('visible');
+          for (var b = 0; b < btns.length; b++) btns[b].classList.add('kaamzo-header-audio-active');
+          var statusEl = document.getElementById('kaamzo-audio-status');
+          if (statusEl) statusEl.textContent = 'Orange: highlighted text • Click to speak (turns blue)';
+        } else {
+          stopAudio();
+          document.body.classList.remove('kaamzo-audio-active');
+          if (toolbar) toolbar.classList.remove('visible');
+          for (var b = 0; b < btns.length; b++) btns[b].classList.remove('kaamzo-header-audio-active');
+        }
+      };
+
+      function handleElementSpeak(element, clickedNode) {
+        if (!isAudioMode) return;
+        stopAudio();
+        var rawText = (element.innerText || element.textContent || '').trim();
+        if (!rawText) return;
+
+        var lang = detectLanguage(rawText);
+        var langName = lang === 'pa' ? 'Punjabi' : lang === 'hi' ? 'Hindi' : 'English';
+        var statusEl = document.getElementById('kaamzo-audio-status');
+        if (statusEl) statusEl.textContent = 'Speaking (' + langName + '): ' + rawText.substring(0, 30) + '...';
+
+        if (!element.classList.contains('kaamzo-word') && !element.querySelector('.kaamzo-word')) {
+          try {
+            var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+            var textNodes = [], tn;
+            while ((tn = walker.nextNode())) {
+              if (tn.nodeValue && tn.nodeValue.trim().length > 0 && !(tn.parentElement && tn.parentElement.classList.contains('kaamzo-word'))) {
+                textNodes.push(tn);
+              }
+            }
+            for (var nIdx = 0; nIdx < textNodes.length; nIdx++) {
+              var node = textNodes[nIdx], frag = document.createDocumentFragment(), parts = node.nodeValue.split(/(\s+)/);
+              for (var p = 0; p < parts.length; p++) {
+                if (!parts[p]) continue;
+                if (/^\s+$/.test(parts[p])) frag.appendChild(document.createTextNode(parts[p]));
+                else {
+                  var wSpan = document.createElement('span');
+                  wSpan.className = 'kaamzo-word';
+                  wSpan.textContent = parts[p];
+                  frag.appendChild(wSpan);
+                }
+              }
+              if (node.parentNode) node.parentNode.replaceChild(frag, node);
+            }
+          } catch (err) {}
+        }
+
+        var wordSpans = element.classList.contains('kaamzo-word') ? [element] : element.querySelectorAll('.kaamzo-word');
+        var startIdx = 0, targetSpan = null;
+        if (clickedNode && clickedNode.classList && clickedNode.classList.contains('kaamzo-word')) {
+          targetSpan = clickedNode;
+          for (var si = 0; si < wordSpans.length; si++) {
+            if (wordSpans[si] === clickedNode) { startIdx = si; break; }
+          }
+        } else if (wordSpans.length > 0) {
+          targetSpan = wordSpans[0];
+        }
+        if (targetSpan) {
+          clearActiveSpokenWord();
+          targetSpan.classList.add('kaamzo-spoken-word-active');
+          activeWordSpan = targetSpan;
+        }
+
+        if ('speechSynthesis' in window) {
+          try {
+            var utterance = new SpeechSynthesisUtterance(rawText);
+            utterance.rate = 0.92;
+            var voices = window.speechSynthesis.getVoices();
+            var matchedVoice = null;
+            if (lang === 'pa') {
+              matchedVoice = voices.find(function(v) { return v.lang.startsWith('pa') || v.name.toLowerCase().includes('punjabi'); });
+              utterance.lang = 'pa-IN';
+            } else if (lang === 'hi') {
+              matchedVoice = voices.find(function(v) { return v.lang.startsWith('hi') || v.name.toLowerCase().includes('hindi'); });
+              utterance.lang = 'hi-IN';
+            } else {
+              matchedVoice = voices.find(function(v) { return v.lang.startsWith('en-IN') || v.lang.startsWith('en'); });
+              utterance.lang = 'en-IN';
+            }
+            if (matchedVoice) utterance.voice = matchedVoice;
+
+            var boundaryFired = false;
+            if (wordSpans && wordSpans.length > 1) {
+              var fIdx = startIdx;
+              wordInterval = setInterval(function() {
+                if (boundaryFired || fIdx >= wordSpans.length - 1) {
+                  if (boundaryFired && wordInterval) { clearInterval(wordInterval); wordInterval = null; }
+                  return;
+                }
+                fIdx++;
+                clearSpokenHighlightOnly();
+                if (wordSpans[fIdx]) {
+                  wordSpans[fIdx].classList.add('kaamzo-spoken-word-active');
+                  activeWordSpan = wordSpans[fIdx];
+                }
+              }, 380);
+            }
+
+            utterance.onboundary = function(event) {
+              if (event.name === 'word' && wordSpans.length > 0) {
+                boundaryFired = true;
+                if (wordInterval) { clearInterval(wordInterval); wordInterval = null; }
+                var charIndex = event.charIndex, accumulated = 0;
+                for (var i = 0; i < wordSpans.length; i++) {
+                  var sLen = wordSpans[i].textContent.length;
+                  if (charIndex >= accumulated && charIndex < accumulated + sLen + 2) {
+                    clearSpokenHighlightOnly();
+                    wordSpans[i].classList.add('kaamzo-spoken-word-active');
+                    activeWordSpan = wordSpans[i];
+                    break;
+                  }
+                  accumulated += sLen + 1;
+                }
+              }
+            };
+
+            utterance.onend = function() {
+              clearActiveSpokenWord();
+              if (statusEl) statusEl.textContent = 'Finished. Click any text/word to listen';
+            };
+            window.speechSynthesis.speak(utterance);
+            return;
+          } catch (e) {}
+        }
+      }
+
+      window.addEventListener('click', function(ev) {
+        if (!isAudioMode) return;
+        var target = ev.target;
+        if (!target) return;
+        if (target.closest && target.closest('.kaamzo-ui-ignore, .kaamzo-header-audio-btn, #kaamzo-header-audio-btn')) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        var readableParent = target.closest('p, h1, h2, h3, h4, label, a, button, li, .gf-q-title, .gf-indiv-ans, .gf-legend-left, .gf-person-name');
+        if (!readableParent) readableParent = target.closest('span:not(.kaamzo-word)');
+        handleElementSpeak(readableParent || target, target);
+      }, true);
+    })();
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
 </body>
 </html>
