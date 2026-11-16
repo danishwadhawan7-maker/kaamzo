@@ -1001,11 +1001,13 @@
           var sel = document.getElementById('kaamzo-survey-lang');
           if (sel) sel.value = lang;
 
+          if (window.kaamzoApplyFullLanguage) {
+            window.kaamzoApplyFullLanguage(lang);
+          }
           if (lang === 'en') {
             if (document.cookie.indexOf('googtrans=') !== -1) {
               document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
               document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
-              window.location.reload();
             }
           } else {
             document.cookie = 'googtrans=/en/' + lang + '; path=/;';
@@ -1224,6 +1226,7 @@
       }, true);
     })();
   </script>
+  <script src="/assets/kaamzo-translator.js" defer></script>
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
 </body>
 </html>
