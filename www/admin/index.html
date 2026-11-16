@@ -797,16 +797,16 @@
         window.kaamzoShowOtpBanner = function() {};
 
         // Recommended Setup Configuration:
-        // 1. Live Data: Shared Firestore (nifty-backup-mc9s2 / ai-studio-remixdihadi2-48a2ad23-40fd-4483-b22e-afff081bb36d)
-        // 2. Authentication: Shared Firebase Auth (Google SSO + OTP)
+        // 1. Live Data: MongoDB Atlas (Mongoose + TLS + 256-Bit AES-256-GCM Field Encryption + HMAC-SHA256 Blind Indexes)
+        // 2. Authentication: Shared Firebase Auth (Google SSO + verifyIdToken)
         // 3. Files: Shared Firebase Storage (nifty-backup-mc9s2.firebasestorage.app)
-        // 4. Ops & Reporting: One-Way Firestore -> Notion Sync (PII scrubbed: no Aadhaar, UPI, passwords, or OTPs)
+        // 4. Ops & Reporting: One-Way MongoDB -> Notion Sync (PII scrubbed: no Aadhaar, UPI, passwords, or OTPs)
         window.kaamzoRecommendedSetup = {
           sharedDatabase: {
-            provider: "Cloud Firestore (Shared by Web & Android App)",
+            provider: "MongoDB Atlas (Mongoose + AES-256-GCM Field Encryption)",
             projectId: "nifty-backup-mc9s2",
-            databaseId: "ai-studio-remixdihadi2-48a2ad23-40fd-4483-b22e-afff081bb36d",
-            authPool: "Firebase Auth (Google OAuth + 6-Digit OTP)",
+            databaseId: "kaamzo",
+            authPool: "Firebase Auth (Google OAuth + verifyIdToken)",
             storageBucket: "nifty-backup-mc9s2.firebasestorage.app"
           },
           notionViewLayer: {
@@ -1252,7 +1252,7 @@
           <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
             <div style="font-size:11px;color:#94a3b8;font-weight:700;">WEEKLY TOTAL</div>
             <div id="kaamzo-khata-weekly" style="font-size:22px;font-weight:900;color:#38bdf8;margin-top:4px;">₹6,450</div>
-            <div style="font-size:10px;color:#64748b;">100% Zero-Cut Payout</div>
+            <div style="font-size:10px;color:#64748b;">80% Net Payout (20% Fee)</div>
           </div>
         </div>
 
@@ -1261,7 +1261,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
             <div>
               <div style="font-size:13px;font-weight:800;color:#fff;">🏦 Linked UPI ID: <span id="kaamzo-khata-upi-display" style="color:#4ade80;">gurpreet.kaamzo@okaxis</span></div>
-              <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#94a3b8;">Zero commission taken from worker daily wage • Instant / Admin-settled UPI</div>
+              <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#94a3b8;">Transparent 20% platform fee • 80% net daily wage settled via UPI</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button type="button" onclick="window.kaamzoToggleKhataEdit()" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">

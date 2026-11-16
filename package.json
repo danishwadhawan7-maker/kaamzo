@@ -10,6 +10,8 @@
     "build": "node ./scripts/vite-shim.js",
     "vite": "node ./scripts/vite-shim.js",
     "start": "node server.js",
+    "generate-keys": "node ./scripts/generate-keys.js",
+    "migrate": "node ./scripts/migrate-firestore-to-mongo.js",
     "cap:sync": "cap sync",
     "cap:sync:android": "cap sync android",
     "cap:sync:ios": "cap sync ios",
@@ -24,7 +26,14 @@
     "@capacitor/android": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@capacitor/ios": "^6.2.3",
-    "nodemailer": "^10.2.1"
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express-rate-limit": "^8.7.4",
+    "firebase-admin": "^14.5.1",
+    "helmet": "^8.3.0",
+    "mongoose": "^9.12.1",
+    "nodemailer": "^10.2.1",
+    "socket.io": "^4.8.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0"

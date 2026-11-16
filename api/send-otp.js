@@ -1,6 +1,10 @@
 const crypto = require("crypto");
 
 function getEncryptionKey() {
+  const hex = process.env.ENCRYPTION_KEY || "";
+  if (/^[0-9a-fA-F]{64}$/.test(hex)) {
+    return Buffer.from(hex, "hex");
+  }
   const secret = process.env.KAAMZO_CRYPTO_SECRET || process.env.TWILIO_AUTH_TOKEN || "kaamzo-ludhiana-2026-aes256-default-key";
   return crypto.createHash("sha256").update(secret).digest();
 }

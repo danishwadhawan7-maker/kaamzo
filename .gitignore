@@ -6,12 +6,14 @@ android/app/build/
 *.aab
 *.jks
 .env
+.env.*
+*.env
+!.env.example
+firebase-service-account*.json
+*service-account*.json
+* firebase-adminsdk *.json
 .DS_Store
 Thumbs.db
-
 logs/
-.env.*
-!.env.example
 .vercel
-.env*
 .firebase/

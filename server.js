@@ -1,10 +1,16 @@
+require("dotenv").config();
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const dbHandler = require("./api/db");
+const translateHandler = require("./api/translate");
+const { connectMongo, MODELS } = require("./lib/models");
+const { decryptDocumentFields } = require("./lib/encryption");
 
 const PORT = process.env.PORT || 3000;
 const WWW_DIR = path.join(__dirname, "www");
+let io = null;
 
 // Shared Architecture Constants (Recommended Setup: 1 Shared Firestore + 1-Way Notion Ops Layer)
 const SHARED_FIREBASE_CONFIG = {
@@ -140,9 +146,25 @@ function parseBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  const allowedOrigins = (
+    process.env.ALLOWED_ORIGINS ||
+    "https://kaamzo.site,https://www.kaamzo.site,http://localhost:3000,http://localhost:5173,capacitor://localhost,https://localhost"
+  )
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const reqOrigin = req.headers.origin;
+  if (reqOrigin && (allowedOrigins.includes(reqOrigin) || /^http:\/\/localhost(:\d+)?$/.test(reqOrigin))) {
+    res.setHeader("Access-Control-Allow-Origin", reqOrigin);
+    res.setHeader("Vary", "Origin");
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "https://www.kaamzo.site");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Kaamzo-Admin-Token");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("X-XSS-Protection", "1; mode=block");
@@ -156,6 +178,30 @@ const server = http.createServer(async (req, res) => {
   const clientIp = req.socket.remoteAddress || "127.0.0.1";
   const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = parsedUrl.pathname;
+
+  // 0. Unified MongoDB Atlas + AES-256-GCM API (/api/db) & Translation API (/api/translate)
+  if (pathname === "/api/db") {
+    if (req.method === "POST" || req.method === "PUT" || req.method === "DELETE") {
+      req.body = await parseBody(req);
+    }
+    return dbHandler(req, res, io);
+  }
+  if (pathname === "/api/translate") {
+    if (req.method === "POST") {
+      req.body = await parseBody(req);
+    }
+    res.status = (code) => {
+      res.statusCode = code;
+      return {
+        json: (obj) => {
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(JSON.stringify(obj));
+        },
+        end: () => res.end()
+      };
+    };
+    return translateHandler(req, res);
+  }
 
   // 1. Admin Step 1 Login (/api/admin/login)
   if (pathname === "/api/admin/login" && req.method === "POST") {
@@ -528,6 +574,51 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+// Attach Socket.io + MongoDB Change Streams for Real-Time Listeners
+try {
+  const { Server } = require("socket.io");
+  io = new Server(server, {
+    cors: {
+      origin: [
+        "https://kaamzo.site",
+        "https://www.kaamzo.site",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "capacitor://localhost"
+      ],
+      methods: ["GET", "POST"],
+      credentials: true
+    }
+  });
+
+  if (process.env.MONGODB_URI) {
+    connectMongo()
+      .then(() => {
+        console.log("✅ Connected to MongoDB Atlas (AES-256-GCM Field Encryption Active)");
+        // Watch collections via MongoDB Change Streams for real-time updates
+        Object.entries(MODELS).forEach(([colName, Model]) => {
+          try {
+            const changeStream = Model.watch([], { fullDocument: "updateLookup" });
+            changeStream.on("change", (change) => {
+              const doc = change.fullDocument ? decryptDocumentFields(change.fullDocument) : null;
+              io.emit("db:change", {
+                action: change.operationType,
+                collection: colName,
+                id: doc ? doc.id : null,
+                doc,
+                timestamp: Date.now()
+              });
+            });
+            changeStream.on("error", () => {});
+          } catch (_) {}
+        });
+      })
+      .catch((err) => {
+        console.warn("[MongoDB Atlas Notice]:", err.message);
+      });
+  }
+} catch (_) {}
+
 server.listen(PORT, () => {
-  console.log(`Kaamzo Unified Server (Web + APK/AAB + Shared Firestore + Notion Sync) running at http://localhost:${PORT}`);
+  console.log(`Kaamzo Unified Server (Web + MongoDB Atlas AES-256-GCM + Socket.io + Notion Sync) running at http://localhost:${PORT}`);
 });
