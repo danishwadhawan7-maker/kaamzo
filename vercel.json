@@ -56,10 +56,6 @@
       "destination": "/index.html"
     },
     {
-      "source": "/survey",
-      "destination": "/survey.html"
-    },
-    {
       "source": "/((?!api/|assets/|.*\\..*).*)",
       "destination": "/index.html"
     }

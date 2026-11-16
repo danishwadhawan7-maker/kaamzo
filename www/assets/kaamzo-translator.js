@@ -9,8 +9,6 @@
   var GLOSSARY = {
     hi: {
       "Switch Role": "भूमिका बदलें",
-      "Survey": "सर्वेक्षण",
-      "Market Survey": "बाज़ार सर्वेक्षण",
       "Install App Extension": "ऐप एक्सटेंशन इंस्टॉल करें",
       "Audio": "ऑडियो",
       "Find Workers": "कामगार खोजें",
@@ -85,8 +83,6 @@
     },
     pa: {
       "Switch Role": "ਭੂਮਿਕਾ ਬਦਲੋ",
-      "Survey": "ਸਰਵੇਖਣ",
-      "Market Survey": "ਮਾਰਕੀਟ ਸਰਵੇਖਣ",
       "Install App Extension": "ਐਪ ਐਕਸਟੈਂਸ਼ਨ ਇੰਸਟਾਲ ਕਰੋ",
       "Audio": "ਆਡੀਓ",
       "Find Workers": "ਕਾਮੇ ਲੱਭੋ",
