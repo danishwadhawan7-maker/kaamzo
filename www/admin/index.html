@@ -33,7 +33,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
     <script>
       (function() {
-        var FINAL_VERSION = 'v38_clean_wipe_2026_11_17';
+        var FINAL_VERSION = 'v39_verified_sso_and_mongo_auth';
         try {
           if (localStorage.getItem('kaamzo_final_version') !== FINAL_VERSION) {
             try {
@@ -1832,6 +1832,34 @@
               isEmergency ? "CRITICAL" : "VERIFIED"
             );
           }
+
+          try {
+            var sosEndpoint = (window.location.protocol === "capacitor:" || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()))
+              ? "https://www.kaamzo.site/api/db"
+              : "/api/db";
+            var workerSnapshot = null;
+            try { workerSnapshot = JSON.parse(localStorage.getItem("kaamzo_current_worker_v8") || "null"); } catch (_) {}
+            var sosId = "sos-" + Date.now();
+            fetch(sosEndpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "upsert",
+                collection: "sosAlerts",
+                id: sosId,
+                data: {
+                  id: sosId,
+                  workerId: (workerSnapshot && workerSnapshot.id) || "",
+                  workerName: (workerSnapshot && workerSnapshot.name) || "Active User",
+                  phone: (workerSnapshot && workerSnapshot.phone) || "",
+                  status: isEmergency ? "active" : "acknowledged",
+                  details: msg,
+                  location: currentGpsCoords,
+                  timestamp: new Date().toISOString()
+                }
+              })
+            }).catch(function() {});
+          } catch (_) {}
 
           var fb = document.getElementById("kaamzo-sos-feedback");
           if (fb) {

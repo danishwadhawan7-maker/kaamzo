@@ -17,8 +17,11 @@ const {
   getDocById,
   listDocs,
   lookupByPhone,
-  purgeAllCollections
+  purgeAllCollections,
+  hashPhoneForLookup,
+  hashEmailForLookup
 } = require("../lib/models");
+const { decryptDocumentFields } = require("../lib/encryption");
 const { verifyFirebaseIdToken } = require("../lib/firebase-auth");
 
 const ALLOWED_COLLECTIONS = new Set([
@@ -67,6 +70,41 @@ function hasValidAdminCookie(req) {
   }
 }
 
+function kzClientHash(s) {
+  if (!s) return "";
+  let h1 = 0x811c9dc5;
+  let h2 = 5381;
+  let h3 = 0x12345678;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193);
+    h2 = Math.imul((h2 << 5) + h2, 33) ^ c;
+    h3 = (h3 ^ Math.imul(c, 0x9e3779b9)) >>> 0;
+  }
+  return "kzh_" + (h1 >>> 0).toString(16) + (h2 >>> 0).toString(16) + (h3 >>> 0).toString(16);
+}
+
+async function findAccountDocs(identifier, role = "") {
+  const raw = String(identifier || "").trim();
+  if (!raw) return [];
+  await connectMongo();
+  const cleanLower = raw.toLowerCase();
+  const orClauses = [{ id: cleanLower }, { username: cleanLower }];
+  const emailHash = hashEmailForLookup(raw);
+  if (emailHash) orClauses.push({ emailHash });
+  const phoneDigits = raw.replace(/[^0-9]/g, "");
+  if (phoneDigits.length >= 7) {
+    const phoneHash = hashPhoneForLookup(raw);
+    if (phoneHash) orClauses.push({ phoneHash });
+  }
+  const docs = await MODELS.accounts.find({ $or: orClauses }).limit(20).lean();
+  const decrypted = docs.map(decryptDocumentFields);
+  if (role === "worker" || role === "customer") {
+    return decrypted.filter((acc) => acc && acc.role === role);
+  }
+  return decrypted;
+}
+
 function sanitizePublicDoc(collectionName, doc) {
   if (!doc || typeof doc !== "object") return doc;
   const copy = { ...doc };
@@ -78,6 +116,7 @@ function sanitizePublicDoc(collectionName, doc) {
   delete copy.identifierHash;
   if (collectionName === "accounts") {
     delete copy.passwordHash;
+    delete copy.password;
   }
   return copy;
 }
@@ -204,6 +243,79 @@ module.exports = async function handler(req, res, io = null) {
         io.emit("db:change", { action: "purgeAll", timestamp: Date.now() });
       }
       return sendJson(200, { success: true, ...result });
+    }
+
+    // 3b. Account Existence Lookup (by ID, Username, Phone Hash, or Email Hash)
+    if (action === "lookupAccount") {
+      const identifier = String(
+        parsedUrl.searchParams.get("identifier") || body.identifier || body.email || ""
+      ).trim();
+      const role = String(parsedUrl.searchParams.get("role") || body.role || "").trim().toLowerCase();
+      if (!identifier) {
+        return sendJson(400, { success: false, error: "Identifier or email is required." });
+      }
+      const candidates = await findAccountDocs(identifier, role);
+      const matched = candidates[0] || null;
+      return sendJson(200, {
+        success: true,
+        exists: !!matched,
+        account: matched ? sanitizePublicDoc("accounts", matched) : null
+      });
+    }
+
+    // 3c. Server-Side Password & Verified Firebase Google SSO Login (never ships passwordHash to browser)
+    if (action === "loginAccount" && req.method === "POST") {
+      const identifier = String(body.identifier || "").trim();
+      const rawPassword = String(body.password || "").trim();
+      const givenHash = String(body.passwordHash || "").trim();
+      const role = String(body.role || "").trim().toLowerCase();
+      if (!identifier) {
+        return sendJson(400, { success: false, error: "User ID, Mobile number, or Email is required." });
+      }
+      const candidates = await findAccountDocs(identifier, role);
+      if (candidates.length === 0) {
+        return sendJson(404, {
+          success: false,
+          notFound: true,
+          error: `Account "${identifier}" not found. Please register & verify to create your account.`
+        });
+      }
+
+      const pwdHashFromRaw = rawPassword ? kzClientHash(rawPassword) : "";
+      const firebaseEmail = authResult.verified && authResult.email ? authResult.email.toLowerCase().trim() : "";
+
+      const matched = candidates.find((acc) => {
+        const storedHash = String(acc.passwordHash || "").trim();
+        const storedPlain = String(acc.password || "").trim();
+        const accEmail = String((acc.extraData && acc.extraData.email) || acc.email || "").toLowerCase().trim();
+        if (firebaseEmail && (accEmail === firebaseEmail || String(acc.id || "").toLowerCase() === firebaseEmail)) {
+          return true;
+        }
+        if (storedHash) {
+          if (pwdHashFromRaw && storedHash === pwdHashFromRaw) return true;
+          if (givenHash && (storedHash === givenHash || storedHash === kzClientHash(givenHash))) return true;
+          if (rawPassword && storedHash === kzClientHash(kzClientHash(rawPassword))) return true;
+        }
+        if (storedPlain) {
+          if (rawPassword && storedPlain === rawPassword) return true;
+          if (pwdHashFromRaw && storedPlain === pwdHashFromRaw) return true;
+          if (givenHash && storedPlain === givenHash) return true;
+        }
+        return false;
+      });
+
+      if (!matched) {
+        return sendJson(401, {
+          success: false,
+          error: `Incorrect password for ${candidates[0].name || identifier}. Please check your password.`
+        });
+      }
+
+      return sendJson(200, {
+        success: true,
+        authenticated: true,
+        account: sanitizePublicDoc("accounts", matched)
+      });
     }
 
     // Block direct read/write of OTP vault (`securityVerifications`) from `/api/db`
