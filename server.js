@@ -6,6 +6,9 @@ const crypto = require("crypto");
 const dbHandler = require("./api/db");
 const translateHandler = require("./api/translate");
 const estimateJobHandler = require("./api/estimate-job");
+const sendOtpHandler = require("./api/send-otp");
+const verifyOtpHandler = require("./api/verify-otp");
+const adminSecurity = require("./admin-security");
 const { connectMongo, MODELS } = require("./lib/models");
 const { decryptDocumentFields } = require("./lib/encryption");
 
@@ -210,127 +213,20 @@ const server = http.createServer(async (req, res) => {
     return translateHandler(req, res);
   }
 
-  // 1. Admin Step 1 Login (/api/admin/login)
-  if (pathname === "/api/admin/login" && req.method === "POST") {
-    const data = await parseBody(req);
-    const email = (data.email || "").trim().toLowerCase();
-    const password = String(data.password || "");
-    const rl = checkRateLimit(`admin_login_${clientIp}`, 5, 60 * 1000);
-    if (!rl.allowed) {
-      res.writeHead(429, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ success: false, error: `Locked out for ${rl.retryAfterSec}s due to failed attempts.` }));
-    }
-    if (!ADMIN_WHITELIST.has(email)) {
-      res.writeHead(403, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ success: false, error: "Access Denied: Email not in Admin Whitelist." }));
-    }
-    if (password !== adminMasterPassword && password !== "Kaamzo@Admin#2026" && password !== "admin123") {
-      res.writeHead(401, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ success: false, error: "Invalid administrator password." }));
-    }
-    currentAdminOtp = String(crypto.randomInt(100000, 999999));
-    otpStore.set(email, { code: currentAdminOtp, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Set-Cookie": `kaamzo_admin_email=${encodeURIComponent(email)}; Path=/; HttpOnly; SameSite=Lax`
-    });
-    return res.end(JSON.stringify({
-      success: true,
-      email,
-      otpDispatched: true,
-      demoOtpHint: currentAdminOtp,
-      message: "Primary credentials verified. Complete 6-digit 2FA OTP & 4-digit PIN."
-    }));
+  // 1-6. Hardened Admin Security Routes (/api/admin/login, sso, verify-mfa, session, logout, step-up, wipe-database)
+  // Uses scrypt password/PIN verification & HMAC-SHA256 HttpOnly cookies from admin-security.js (zero hardcoded pins/OTPs)
+  if (pathname.startsWith("/api/admin/") && pathname !== "/api/admin/audit") {
+    const body = req.method === "POST" ? await parseBody(req) : {};
+    const handled = await adminSecurity.handle(req, res, pathname, body);
+    if (handled) return;
   }
 
-  // 2. Admin Resend 2FA OTP (/api/admin/resend-otp)
-  if (pathname === "/api/admin/resend-otp" && req.method === "POST") {
-    const cookies = parseCookies(req);
-    const email = cookies.kaamzo_admin_email || "bhavnoorsinghkochar@gmail.com";
-    currentAdminOtp = String(crypto.randomInt(100000, 999999));
-    otpStore.set(email, { code: currentAdminOtp, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({
-      success: true,
-      recipient: email,
-      code: currentAdminOtp,
-      message: `6-Digit Admin 2FA OTP dispatched to ${email}`
-    }));
-  }
-
-  // 3. Admin Verify MFA (2FA OTP + 4-Digit PIN) (/api/admin/verify-mfa)
-  if (pathname === "/api/admin/verify-mfa" && req.method === "POST") {
-    const data = await parseBody(req);
-    const otp = String(data.otp || "").trim();
-    const pin = String(data.pin || "").trim();
-    const cookies = parseCookies(req);
-    const email = cookies.kaamzo_admin_email || "bhavnoorsinghkochar@gmail.com";
-    const storedOtp = otpStore.get(email);
-    const otpValid = otp === currentAdminOtp || otp === "123456" || (storedOtp && storedOtp.code === otp);
-    const pinValid = pin === adminMasterPin || pin === "2026" || pin === "1234";
-
-    if (!otpValid || !pinValid) {
-      res.writeHead(401, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({
-        success: false,
-        error: !otpValid ? "Invalid 6-digit 2FA OTP." : "Invalid 4-digit Admin Master Security PIN."
-      }));
-    }
-    const token = crypto.randomBytes(24).toString("hex");
-    adminSessions.set(token, { email, unlockedAt: Date.now(), expiresAt: Date.now() + 15 * 60 * 1000 });
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Set-Cookie": `kaamzo_admin_session=${token}; Path=/; HttpOnly; SameSite=Lax`
-    });
-    return res.end(JSON.stringify({ success: true, authenticated: true }));
-  }
-
-  // 4. Admin Session Status (/api/admin/session)
-  if (pathname === "/api/admin/session" && req.method === "GET") {
-    const cookies = parseCookies(req);
-    const token = cookies.kaamzo_admin_session;
-    const sess = token ? adminSessions.get(token) : null;
-    if (sess && Date.now() < sess.expiresAt) {
-      sess.expiresAt = Date.now() + 15 * 60 * 1000;
-      res.writeHead(200, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ authenticated: true, email: sess.email }));
-    }
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ authenticated: false }));
-  }
-
-  // 5. Admin Step-Up PIN Verification (/api/admin/step-up)
-  if (pathname === "/api/admin/step-up" && req.method === "POST") {
-    const data = await parseBody(req);
-    const pin = String(data.pin || "").trim();
-    if (pin === adminMasterPin || pin === "2026" || pin === "1234") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ success: true }));
-    }
-    res.writeHead(403, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ success: false, error: "Invalid Admin Master Security PIN." }));
-  }
-
-  // 6. Admin Logout (/api/admin/logout)
-  if (pathname === "/api/admin/logout" && req.method === "POST") {
-    const cookies = parseCookies(req);
-    if (cookies.kaamzo_admin_session) {
-      adminSessions.delete(cookies.kaamzo_admin_session);
-    }
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Set-Cookie": "kaamzo_admin_session=; Path=/; Max-Age=0; HttpOnly"
-    });
-    return res.end(JSON.stringify({ success: true }));
-  }
-
-  // 7. Recommended Setup: One-Way Firestore -> Notion Sync API (/api/notion/sync & /api/notion/status)
+  // 7. Recommended Setup: One-Way MongoDB -> Notion Sync API (/api/notion/sync & /api/notion/status)
   if (pathname === "/api/notion/status" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
       success: true,
-      architecture: "Shared Firestore (Web + Android) -> One-Way Notion Ops Layer",
-      sharedFirebase: SHARED_FIREBASE_CONFIG,
+      architecture: "MongoDB Atlas (AES-256-GCM) -> One-Way Notion Ops Layer",
       notionHub: NOTION_OPS_HUB,
       syncedEventsCount: notionSyncLedger.length,
       recentSyncs: notionSyncLedger.slice(0, 15)
@@ -356,73 +252,22 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
       success: true,
-      message: "Synced non-sensitive operational summary from Shared Firestore to Notion Ops Hub.",
+      message: "Synced non-sensitive operational summary to Notion Ops Hub.",
       notionHubUrl: NOTION_OPS_HUB.hubUrl,
       syncRecord
     }));
   }
 
-  // 8. API: /api/send-otp (with rate limiting)
-  if (pathname === "/api/send-otp" && req.method === "POST") {
-    const data = await parseBody(req);
-    const recipient = (data.recipient || "").trim().toLowerCase();
-    const rl = checkRateLimit(`send_otp_${clientIp}_${recipient}`, 8, 60 * 1000);
-    if (!rl.allowed) {
-      res.writeHead(429, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({
-        success: false,
-        error: `Too many OTP requests. Please wait ${rl.retryAfterSec}s before trying again.`
-      }));
-    }
-    const code = String(data.code || crypto.randomInt(100000, 999999)).trim();
-    if (recipient && code) {
-      otpStore.set(recipient, { code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
-    }
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({
-      success: true,
-      method: "server_smtp",
-      messageId: "kaamzo-otp-" + Date.now(),
-      recipient: data.recipient,
-      message: `Verification passcode ${code} dispatched to ${data.recipient}`
-    }));
+  // 8. Hardened Server-Only OTP Dispatch (/api/send-otp)
+  if (pathname === "/api/send-otp") {
+    if (req.method === "POST") req.body = await parseBody(req);
+    return sendOtpHandler(req, res);
   }
 
-  // 9. API: /api/verify-otp (with brute-force attempt protection)
-  if (pathname === "/api/verify-otp" && req.method === "POST") {
-    const data = await parseBody(req);
-    const recipient = (data.recipient || data.email || "").trim().toLowerCase();
-    const code = String(data.code || data.otp || "").trim();
-    const rl = checkRateLimit(`verify_otp_${clientIp}_${recipient}`, 5, 60 * 1000);
-    if (!rl.allowed) {
-      res.writeHead(429, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({
-        success: false,
-        locked: true,
-        error: `Brute-force protection triggered. Locked for ${rl.retryAfterSec}s.`
-      }));
-    }
-    const record = otpStore.get(recipient);
-    if (record) {
-      if (Date.now() > record.expiresAt) {
-        otpStore.delete(recipient);
-        res.writeHead(400, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ success: false, expired: true, error: "OTP expired. Please request a new code." }));
-      }
-      record.attempts = (record.attempts || 0) + 1;
-      if (record.attempts > 3 && record.code !== code) {
-        otpStore.delete(recipient);
-        res.writeHead(403, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ success: false, error: "Maximum OTP verification attempts exceeded. Code invalidated for security." }));
-      }
-      if (record.code === code) {
-        otpStore.delete(recipient);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ success: true, verified: true, message: "OTP verified successfully!" }));
-      }
-    }
-    res.writeHead(400, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ success: false, error: "Invalid OTP. Please check the code and try again." }));
+  // 9. Hardened Server-Only OTP Verification (/api/verify-otp)
+  if (pathname === "/api/verify-otp") {
+    if (req.method === "POST") req.body = await parseBody(req);
+    return verifyOtpHandler(req, res);
   }
 
   // 10. API: /api/admin/audit

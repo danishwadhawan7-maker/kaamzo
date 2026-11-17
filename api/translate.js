@@ -40,9 +40,16 @@ async function translateSingle(text, tl) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers && req.headers.origin;
+  const allowed =
+    origin && (origin.includes("kaamzo.site") || /^http:\/\/localhost(:\d+)?$/.test(origin))
+      ? origin
+      : "https://www.kaamzo.site";
+  res.setHeader("Access-Control-Allow-Origin", allowed);
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("X-Content-Type-Options", "nosniff");
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
