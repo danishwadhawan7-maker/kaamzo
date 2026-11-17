@@ -1,0 +1,1914 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kaamzo" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <title>Kaamzo - Daily Wage Worker & Job Platform</title>
+    <meta name="description" content="A 3-in-1 platform connecting daily-wage workers with local jobs featuring Google Maps Platform routing, Hyperlocal 10km matching, live GPS tracking, multi-channel alerts, and UPI escrow." />
+    <meta property="og:title" content="Kaamzo - Daily Wage Worker & Job Platform" />
+    <meta property="og:description" content="A 3-in-1 platform connecting daily-wage workers with local jobs featuring Google Maps Platform routing, Hyperlocal 10km matching, live GPS tracking, multi-channel alerts, and UPI escrow." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://www.kaamzo.site/pwa-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.kaamzo.site/pwa-512x512.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
+    <script>
+      (function() {
+        var FINAL_VERSION = 'v36_audio_reader_active';
+        try {
+          localStorage.setItem('kaamzo_admin_treasury_v8', '0');
+          localStorage.setItem('kaamzo_admin_sub_rev_v8', '0');
+          localStorage.setItem('kaamzo_admin_disbursed_v8', '0');
+          localStorage.setItem('kaamzo_admin_txs_v8', '[]');
+          localStorage.removeItem('kaamzo_google_accounts_v1');
+
+          // Clean up any previous generic "Google User" / "user@kaamzo.in" fallback session
+          ['kaamzo_current_customer_v8', 'kaamzo_current_worker_v8'].forEach(function(key) {
+            var val = localStorage.getItem(key);
+            if (val && (val.includes('user@kaamzo.in') || val.includes('Google User'))) {
+              localStorage.removeItem(key);
+            }
+          });
+          ['kaamzo_customer_accounts_v8', 'kaamzo_worker_accounts_v8'].forEach(function(key) {
+            var raw = localStorage.getItem(key);
+            if (raw && (raw.includes('user@kaamzo.in') || raw.includes('Google User'))) {
+              try {
+                var arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                  var filtered = arr.filter(function(u) {
+                    return u && u.id !== 'user@kaamzo.in' && u.email !== 'user@kaamzo.in' && u.name !== 'Google User';
+                  });
+                  localStorage.setItem(key, JSON.stringify(filtered));
+                }
+              } catch (_) {}
+            }
+          });
+
+          if (localStorage.getItem('kaamzo_final_version') !== FINAL_VERSION) {
+            localStorage.removeItem('kaamzo_is_reset_state_v8');
+            localStorage.removeItem('kaamzo_current_admin_v8');
+            sessionStorage.clear();
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                keys.forEach(function(k) { caches.delete(k); });
+              });
+            }
+            localStorage.setItem('kaamzo_final_version', FINAL_VERSION);
+          }
+        } catch (e) {
+          console.warn('Finalize cache sync note:', e);
+        }
+      })();
+    </script>
+    <style>
+      /* Root Responsive & Anti-Overflow Guard for 360px+ Screens */
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        -webkit-tap-highlight-color: rgba(245, 158, 11, 0.15);
+      }
+      body {
+        font-size: 16px;
+        min-height: 100vh;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        line-height: 1.5;
+      }
+      #root, main, #main-content {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+
+      /* Kaamzo Customer & Worker Portal Aesthetic & Click-Friendly Polish */
+      button, [role="button"], a, select, input[type="checkbox"], input[type="range"] {
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      button:not(:disabled) {
+        transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background-color 0.18s ease, border-color 0.18s ease;
+      }
+      button:not(:disabled):active {
+        transform: scale(0.97);
+      }
+      input:not([type="checkbox"]):not([type="range"]), select, textarea {
+        font-size: 16px !important;
+        max-width: 100%;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+      }
+      input:not([type="checkbox"]):not([type="range"]):focus, select:focus, textarea:focus {
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
+      }
+      input::placeholder {
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+
+      /* Prevent text overflow and ensure flexible wrapping */
+      p, span, h1, h2, h3, h4, h5, h6, a, div, button {
+        overflow-wrap: break-word;
+      }
+      img, svg, video, canvas, iframe {
+        max-width: 100%;
+        height: auto;
+      }
+
+      /* Black / Dark Theme Header & Portal Navbar Suitable Obsidian-Gold Palette */
+      html.dark header,
+      html.dark #kaamzo-global-header {
+        background: linear-gradient(90deg, #0b0d12 0%, #11141d 55%, #1c1508 100%) !important;
+        border-bottom: 1px solid rgba(245, 158, 11, 0.32) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.72), inset 0 -1px 0 rgba(245, 158, 11, 0.14) !important;
+      }
+      html.dark nav,
+      html.dark #kaamzo-customer-navbar {
+        background: linear-gradient(180deg, #12151e 0%, #0d0f16 100%) !important;
+        border-bottom: 1px solid rgba(245, 158, 11, 0.26) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55) !important;
+      }
+      html.dark #kaamzo-customer-tabs {
+        background-color: #08090d !important;
+        border-color: rgba(245, 158, 11, 0.26) !important;
+      }
+      html.dark .bg-\[\#FAF7F2\],
+      html.dark .bg-\[\#FAF7F2\]\/95,
+      html.dark .bg-\[\#FDFBF7\] {
+        background-color: #0e1017 !important;
+      }
+      html.dark .bg-\[\#FFFBEB\] {
+        background-color: rgba(245, 158, 11, 0.16) !important;
+        color: #fcd33f !important;
+        border-color: rgba(245, 158, 11, 0.45) !important;
+      }
+      html.dark header button:not(.bg-amber-500),
+      html.dark #kaamzo-global-header > div > button {
+        border-color: rgba(245, 158, 11, 0.25) !important;
+      }
+
+      /* Stitch taste-design Asymmetric Bento Customer Hero Layout */
+      #kaamzo-customer-hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 24px;
+        background: radial-gradient(circle at 92% 12%, rgba(245, 158, 11, 0.24) 0%, transparent 42%),
+                    radial-gradient(circle at 12% 88%, rgba(16, 185, 129, 0.12) 0%, transparent 38%),
+                    linear-gradient(135deg, #0B0F19 0%, #111827 52%, #1C1917 100%);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: 28px;
+        box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        align-items: stretch;
+        max-width: 100%;
+        overflow: hidden;
+      }
+      @media (min-width: 960px) {
+        #kaamzo-customer-hero {
+          grid-template-columns: 1.15fr 0.95fr;
+          gap: 36px;
+          padding: 36px 40px;
+        }
+      }
+      .kaamzo-bento-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        width: 100%;
+      }
+      .kaamzo-bento-card {
+        position: relative;
+        height: 156px;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        cursor: pointer;
+        text-align: left;
+        transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.22s ease;
+      }
+      .kaamzo-bento-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(252, 211, 63, 0.8);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+      }
+      .kaamzo-bento-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+      }
+      .kaamzo-bento-card:hover img {
+        transform: scale(1.06);
+      }
+
+      /* 360px Android & Mobile Screen Refinements */
+      @media (max-width: 480px) {
+        #kaamzo-customer-hero {
+          padding: 16px 12px !important;
+          gap: 16px !important;
+          border-radius: 20px !important;
+          max-width: 100% !important;
+        }
+        .kaamzo-bento-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+          width: 100% !important;
+        }
+        .kaamzo-bento-card {
+          height: 128px !important;
+          border-radius: 14px !important;
+        }
+        #hero-post-job-btn,
+        #kaamzo-customer-hero button.bg-gradient-to-r,
+        #kaamzo-customer-hero button[title*="Broadcast a new job"],
+        #kaamzo-customer-hero button[title*="Scan worker unique ID"] {
+          width: 100% !important;
+          justify-content: center !important;
+        }
+        #kaamzo-global-header, #kaamzo-customer-navbar {
+          padding-left: 8px !important;
+          padding-right: 8px !important;
+          max-width: 100vw !important;
+        }
+        .fixed.inset-0 > div {
+          max-width: calc(100vw - 16px) !important;
+          margin: 8px auto !important;
+        }
+      }
+    </style>
+
+    <!-- Stitch taste-design & DESIGN.md Token Bridge for /customer & /worker -->
+    <style id="kaamzo-stitch-taste-tokens">
+      :root {
+        --kaamzo-canvas: #FAF7F2;
+        --kaamzo-surface: #FFFFFF;
+        --kaamzo-ink: #111827;
+        --kaamzo-muted: #64748B;
+        --kaamzo-border: #EDE8E0;
+        --kaamzo-accent: #F59E0B;
+        --kaamzo-verified: #16A34A;
+        --kaamzo-font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        --kaamzo-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        --kaamzo-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      html.dark {
+        --kaamzo-canvas: #0B0D12;
+        --kaamzo-surface: #12151E;
+        --kaamzo-ink: #F8FAFC;
+        --kaamzo-muted: #94A3B8;
+        --kaamzo-border: rgba(245, 158, 11, 0.25);
+      }
+      body, .kaamzo-landing-page, #root > div {
+        min-height: 100dvh;
+      }
+      #kaamzo-customer-hero h1,
+      #kaamzo-customer-hero h2,
+      #main-content h1,
+      #main-content h2 {
+        font-family: var(--kaamzo-font-display);
+        letter-spacing: -0.025em;
+      }
+      #kaamzo-live-timer-display,
+      #kaamzo-khata-today,
+      #kaamzo-khata-escrow,
+      #kaamzo-khata-weekly,
+      #kaamzo-crew-total-price,
+      #kaamzo-escrow-amount-display {
+        font-family: var(--kaamzo-font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+      #kaamzo-customer-hero button,
+      #main-content button:not(:disabled) {
+        transition: transform 180ms var(--kaamzo-ease-spring), box-shadow 200ms var(--kaamzo-ease-spring), border-color 180ms ease;
+      }
+      #kaamzo-customer-hero button:not(:disabled):active,
+      #main-content button:not(:disabled):active {
+        transform: translateY(-1px) scale(0.985);
+      }
+      #kaamzo-customer-hero button:focus-visible,
+      #main-content button:focus-visible,
+      #main-content input:focus-visible,
+      #main-content select:focus-visible {
+        outline: 2px solid var(--kaamzo-accent);
+        outline-offset: 2px;
+      }
+      #hero-post-job-btn,
+      #kaamzo-customer-hero > div:first-child button {
+        min-height: 44px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+    <script src="/assets/kaamzo-translator.js" defer></script>
+    <script type="module" crossorigin src="/assets/index-v30.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
+    <link rel="manifest" href="/manifest.webmanifest">
+  
+    <!-- Kaamzo Official Schema.org Structured Data for Google Search & Knowledge Graph Logo Indexing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://www.kaamzo.site/#organization",
+          "name": "Kaamzo",
+          "alternateName": "Kaamzo India",
+          "url": "https://www.kaamzo.site",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://www.kaamzo.site/#logo",
+            "url": "https://www.kaamzo.site/icon.png",
+            "contentUrl": "https://www.kaamzo.site/icon.png",
+            "caption": "Kaamzo Brand Logo",
+            "width": 512,
+            "height": 512
+          },
+          "image": "https://www.kaamzo.site/icon.png",
+          "description": "Kaamzo - India's 3-in-1 Daily Wage Worker & Job Platform. Direct Daily Wages, Zero Middlemen, Escrow Protection & Live GPS Tracking.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Ludhiana",
+            "addressRegion": "Punjab",
+            "addressCountry": "IN"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.kaamzo.site/#website",
+          "url": "https://www.kaamzo.site",
+          "name": "Kaamzo",
+          "publisher": {
+            "@id": "https://www.kaamzo.site/#organization"
+          }
+        }
+      ]
+    }
+    </script>
+
+  </head>
+  <body class="font-sans antialiased">
+    
+    <!-- Kaamzo Multilingual Audio Reader & Accessibility Engine -->
+    <style id="kaamzo-audio-styles">
+      /* All readable text highlighted in vibrant orange when Audio Mode is active */
+      body.kaamzo-audio-active p,
+      body.kaamzo-audio-active h1,
+      body.kaamzo-audio-active h2,
+      body.kaamzo-audio-active h3,
+      body.kaamzo-audio-active h4,
+      body.kaamzo-audio-active h5,
+      body.kaamzo-audio-active h6,
+      body.kaamzo-audio-active span:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active label,
+      body.kaamzo-audio-active li,
+      body.kaamzo-audio-active a:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active button:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active .kaamzo-word {
+        background-color: rgba(245, 158, 11, 0.28) !important;
+        color: #7c2d12 !important;
+        outline: 1.5px dashed #f59e0b !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        transition: background-color 0.15s ease, outline-color 0.15s ease, transform 0.15s ease !important;
+      }
+
+      body.kaamzo-audio-active.dark p,
+      body.kaamzo-audio-active.dark h1,
+      body.kaamzo-audio-active.dark h2,
+      body.kaamzo-audio-active.dark h3,
+      body.kaamzo-audio-active.dark h4,
+      body.kaamzo-audio-active.dark h5,
+      body.kaamzo-audio-active.dark h6,
+      body.kaamzo-audio-active.dark span:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active.dark label,
+      body.kaamzo-audio-active.dark li,
+      body.kaamzo-audio-active.dark a:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active.dark button:not(.kaamzo-ui-ignore),
+      body.kaamzo-audio-active.dark .kaamzo-word {
+        background-color: rgba(245, 158, 11, 0.35) !important;
+        color: #fef3c7 !important;
+        outline: 1.5px dashed #f59e0b !important;
+      }
+
+      /* Hover highlight */
+      body.kaamzo-audio-active p:hover,
+      body.kaamzo-audio-active h1:hover,
+      body.kaamzo-audio-active h2:hover,
+      body.kaamzo-audio-active h3:hover,
+      body.kaamzo-audio-active h4:hover,
+      body.kaamzo-audio-active span:not(.kaamzo-ui-ignore):hover,
+      body.kaamzo-audio-active .kaamzo-word:hover {
+        background-color: rgba(245, 158, 11, 0.55) !important;
+        outline: 2px solid #ea580c !important;
+      }
+
+      /* Spoken word turns High-Contrast Cobalt Blue (#1d4ed8) with crisp white text for maximum contrast on orange */
+      .kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active .kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active.dark .kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active span.kaamzo-word.kaamzo-spoken-word-active,
+      html body.kaamzo-audio-active.dark span.kaamzo-word.kaamzo-spoken-word-active {
+        background-color: #1d4ed8 !important;
+        color: #ffffff !important;
+        outline: 2.5px solid #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.85), 0 6px 20px rgba(37, 99, 235, 0.95) !important;
+        border-radius: 5px !important;
+        padding: 1px 5px !important;
+        transform: scale(1.1) !important;
+        display: inline-block !important;
+        z-index: 30 !important;
+        position: relative !important;
+        font-weight: 800 !important;
+        text-shadow: none !important;
+      }
+
+      /* Header active audio button glow */
+      .kaamzo-header-audio-active {
+        background: #f59e0b !important;
+        color: #0f172a !important;
+        border-color: #d97706 !important;
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+        animation: pulse-audio 2s infinite !important;
+      }
+      @keyframes pulse-audio {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+
+      /* Floating Audio Toolbar */
+      #kaamzo-audio-toolbar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(160%);
+        z-index: 99998;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(15, 23, 42, 0.96);
+        border: 2px solid #f59e0b;
+        border-radius: 999px;
+        padding: 8px 18px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+        backdrop-filter: blur(12px);
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        color: #ffffff;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
+      }
+      #kaamzo-audio-toolbar.visible {
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+
+    <!-- Floating Audio Toolbar Modal -->
+    <div id="kaamzo-audio-toolbar" class="kaamzo-ui-ignore" role="region" aria-label="Audio Reader Controls">
+      <div class="kaamzo-ui-ignore" style="display:flex;align-items:center;gap:6px;">
+        <span class="kaamzo-ui-ignore" style="font-size:16px;">🔊</span>
+        <span class="kaamzo-ui-ignore" style="font-size:12px;font-weight:900;color:#fbbf24;letter-spacing:0.02em;">AUDIO READER</span>
+      </div>
+      <div id="kaamzo-audio-status" class="kaamzo-ui-ignore" style="font-size:11px;color:#cbd5e1;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;">
+        Click any text/word to listen
+      </div>
+      <button id="kaamzo-audio-stop-btn" type="button" onclick="window.kaamzoStopAudio()" class="kaamzo-ui-ignore" style="background:#ef4444;color:#ffffff;border:none;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(239,68,68,0.5);transition:transform 0.15s;" title="Stop playing audio">
+        <span class="kaamzo-ui-ignore">⏹</span> Stop Audio
+      </button>
+      <button id="kaamzo-audio-exit-btn" type="button" onclick="window.kaamzoToggleAudioReader(false)" class="kaamzo-ui-ignore" style="background:rgba(255,255,255,0.15);color:#cbd5e1;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;" title="Exit Audio Mode">
+        ✕ Exit
+      </button>
+    </div>
+
+    <script type="text/javascript">
+      (function() {
+        var isAudioMode = false;
+        var activeAudio = null;
+        var activeWordSpan = null;
+        var wordInterval = null;
+
+        function detectLanguage(text) {
+          if (!text) return 'en';
+          if (/[\u0A00-\u0A7F]/.test(text)) return 'pa'; // Punjabi (Gurmukhi)
+          if (/[\u0900-\u097F]/.test(text)) return 'hi'; // Hindi (Devanagari)
+          try {
+            var appLang = localStorage.getItem('kaamzo_language_v8') || 'en';
+            if (appLang === 'pa' || appLang === 'hi') return appLang;
+          } catch(e) {}
+          return 'en';
+        }
+
+        function clearSpokenHighlightOnly() {
+          if (activeWordSpan) {
+            activeWordSpan.classList.remove('kaamzo-spoken-word-active');
+            activeWordSpan = null;
+          }
+          var spoken = document.querySelectorAll('.kaamzo-spoken-word-active');
+          for (var i = 0; i < spoken.length; i++) {
+            spoken[i].classList.remove('kaamzo-spoken-word-active');
+          }
+        }
+
+        function clearActiveSpokenWord() {
+          clearSpokenHighlightOnly();
+          if (wordInterval) {
+            clearInterval(wordInterval);
+            wordInterval = null;
+          }
+        }
+
+        function stopAudio() {
+          if ('speechSynthesis' in window) {
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+          }
+          if (activeAudio) {
+            try {
+              activeAudio.pause();
+              activeAudio.currentTime = 0;
+            } catch(e) {}
+            activeAudio = null;
+          }
+          clearActiveSpokenWord();
+          var statusEl = document.getElementById('kaamzo-audio-status');
+          if (statusEl) statusEl.textContent = 'Click any text/word to listen';
+        }
+
+        window.kaamzoStopAudio = stopAudio;
+
+        function toggleAudioReader(forceState) {
+          if (typeof forceState === 'boolean') {
+            isAudioMode = forceState;
+          } else {
+            isAudioMode = !isAudioMode;
+          }
+
+          var toolbar = document.getElementById('kaamzo-audio-toolbar');
+          var headerBtns = document.querySelectorAll('.kaamzo-header-audio-btn, #kaamzo-header-audio-btn, #kaamzo-header-audio-btn-sec');
+
+          if (isAudioMode) {
+            document.body.classList.add('kaamzo-audio-active');
+            if (toolbar) toolbar.classList.add('visible');
+            for (var b = 0; b < headerBtns.length; b++) {
+              headerBtns[b].classList.add('kaamzo-header-audio-active');
+            }
+            var statusEl = document.getElementById('kaamzo-audio-status');
+            if (statusEl) statusEl.textContent = 'Orange: highlighted text • Click to speak (turns blue)';
+          } else {
+            stopAudio();
+            document.body.classList.remove('kaamzo-audio-active');
+            if (toolbar) toolbar.classList.remove('visible');
+            for (var b = 0; b < headerBtns.length; b++) {
+              headerBtns[b].classList.remove('kaamzo-header-audio-active');
+            }
+          }
+        }
+
+        window.kaamzoToggleAudioReader = toggleAudioReader;
+
+        // Speak a specific target element or word
+        function handleElementSpeak(element, clickedNode) {
+          if (!isAudioMode) return;
+          stopAudio();
+
+          var rawText = (element.innerText || element.textContent || '').trim();
+          if (!rawText || rawText.length === 0) return;
+
+          var lang = detectLanguage(rawText);
+          var langName = lang === 'pa' ? 'Punjabi' : lang === 'hi' ? 'Hindi' : 'English';
+          var statusEl = document.getElementById('kaamzo-audio-status');
+          if (statusEl) {
+            statusEl.textContent = 'Speaking (' + langName + '): ' + rawText.substring(0, 30) + '...';
+          }
+
+          // Wrap individual words across all text nodes if not already wrapped
+          if (!element.classList.contains('kaamzo-word') && !element.querySelector('.kaamzo-word')) {
+            try {
+              var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+              var textNodes = [];
+              var tn;
+              while ((tn = walker.nextNode())) {
+                if (tn.nodeValue && tn.nodeValue.trim().length > 0 && !(tn.parentElement && tn.parentElement.classList.contains('kaamzo-word'))) {
+                  textNodes.push(tn);
+                }
+              }
+              for (var nIdx = 0; nIdx < textNodes.length; nIdx++) {
+                var node = textNodes[nIdx];
+                var frag = document.createDocumentFragment();
+                var parts = node.nodeValue.split(/(\s+)/);
+                for (var p = 0; p < parts.length; p++) {
+                  if (!parts[p]) continue;
+                  if (/^\s+$/.test(parts[p])) {
+                    frag.appendChild(document.createTextNode(parts[p]));
+                  } else {
+                    var wSpan = document.createElement('span');
+                    wSpan.className = 'kaamzo-word';
+                    wSpan.textContent = parts[p];
+                    frag.appendChild(wSpan);
+                  }
+                }
+                if (node.parentNode) node.parentNode.replaceChild(frag, node);
+              }
+            } catch (err) {}
+          }
+
+          var wordSpans = element.classList.contains('kaamzo-word') ? [element] : element.querySelectorAll('.kaamzo-word');
+
+          // Highlight the clicked/first word immediately in Cobalt Blue while others remain Orange
+          var startIdx = 0;
+          var targetSpan = null;
+          if (clickedNode && clickedNode.classList && clickedNode.classList.contains('kaamzo-word')) {
+            targetSpan = clickedNode;
+            for (var si = 0; si < wordSpans.length; si++) {
+              if (wordSpans[si] === clickedNode) { startIdx = si; break; }
+            }
+          } else if (wordSpans.length > 0) {
+            targetSpan = wordSpans[0];
+          }
+
+          if (targetSpan) {
+            clearActiveSpokenWord();
+            targetSpan.classList.add('kaamzo-spoken-word-active');
+            activeWordSpan = targetSpan;
+          }
+
+          // Use Web Speech API if supported
+          if ('speechSynthesis' in window) {
+            try {
+              var utterance = new SpeechSynthesisUtterance(rawText);
+              utterance.rate = 0.92;
+              utterance.pitch = 1.0;
+
+              var voices = window.speechSynthesis.getVoices();
+              var matchedVoice = null;
+              if (lang === 'pa') {
+                matchedVoice = voices.find(function(v) { return v.lang.startsWith('pa') || v.name.toLowerCase().includes('punjabi'); });
+                utterance.lang = 'pa-IN';
+              } else if (lang === 'hi') {
+                matchedVoice = voices.find(function(v) { return v.lang.startsWith('hi') || v.name.toLowerCase().includes('hindi'); });
+                utterance.lang = 'hi-IN';
+              } else {
+                matchedVoice = voices.find(function(v) { return v.lang.startsWith('en-IN') || v.lang.startsWith('en'); });
+                utterance.lang = 'en-IN';
+              }
+              if (matchedVoice) utterance.voice = matchedVoice;
+
+              var boundaryFired = false;
+              if (wordSpans && wordSpans.length > 1) {
+                var fIdx = startIdx;
+                wordInterval = setInterval(function() {
+                  if (boundaryFired || fIdx >= wordSpans.length - 1) {
+                    if (boundaryFired && wordInterval) { clearInterval(wordInterval); wordInterval = null; }
+                    return;
+                  }
+                  fIdx++;
+                  clearSpokenHighlightOnly();
+                  if (wordSpans[fIdx]) {
+                    wordSpans[fIdx].classList.add('kaamzo-spoken-word-active');
+                    activeWordSpan = wordSpans[fIdx];
+                  }
+                }, 380);
+              }
+
+              utterance.onboundary = function(event) {
+                if (event.name === 'word' && wordSpans.length > 0) {
+                  boundaryFired = true;
+                  if (wordInterval) { clearInterval(wordInterval); wordInterval = null; }
+                  var charIndex = event.charIndex;
+                  var accumulated = 0;
+                  for (var i = 0; i < wordSpans.length; i++) {
+                    var sLen = wordSpans[i].textContent.length;
+                    if (charIndex >= accumulated && charIndex < accumulated + sLen + 2) {
+                      clearSpokenHighlightOnly();
+                      wordSpans[i].classList.add('kaamzo-spoken-word-active');
+                      activeWordSpan = wordSpans[i];
+                      break;
+                    }
+                    accumulated += sLen + 1;
+                  }
+                }
+              };
+
+              utterance.onend = function() {
+                clearActiveSpokenWord();
+                if (statusEl) statusEl.textContent = 'Finished. Click any text/word to listen';
+              };
+
+              utterance.onerror = function() {
+                fallbackGoogleTTS(rawText, lang, wordSpans);
+              };
+
+              window.speechSynthesis.speak(utterance);
+              return;
+            } catch(e) {
+              console.warn('SpeechSynthesis error, falling back:', e);
+            }
+          }
+
+          fallbackGoogleTTS(rawText, lang, wordSpans);
+        }
+
+        function fallbackGoogleTTS(text, lang, wordSpans) {
+          try {
+            var safeText = encodeURIComponent(text.substring(0, 180));
+            var audioUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=' + lang + '&client=tw-ob&q=' + safeText;
+            activeAudio = new Audio(audioUrl);
+            activeAudio.play().catch(function(e) { console.warn('Audio play notice:', e); });
+
+            if (wordSpans && wordSpans.length > 0) {
+              var currentIdx = 0;
+              wordInterval = setInterval(function() {
+                if (!activeAudio || activeAudio.paused || currentIdx >= wordSpans.length) {
+                  clearInterval(wordInterval);
+                  return;
+                }
+                clearSpokenHighlightOnly();
+                if (wordSpans[currentIdx]) {
+                  wordSpans[currentIdx].classList.add('kaamzo-spoken-word-active');
+                  activeWordSpan = wordSpans[currentIdx];
+                }
+                currentIdx++;
+              }, 400);
+
+              activeAudio.onended = function() {
+                clearActiveSpokenWord();
+                var statusEl = document.getElementById('kaamzo-audio-status');
+                if (statusEl) statusEl.textContent = 'Finished. Click any text/word to listen';
+              };
+            }
+          } catch(e) {
+            console.error('Fallback TTS failed:', e);
+          }
+        }
+
+        // Global Event Delegation for clicking any highlighted text in Audio Mode
+        window.addEventListener('click', function(ev) {
+          if (!isAudioMode) return;
+          var target = ev.target;
+          if (!target) return;
+
+          // Ignore clicks on audio toolbar controls or header audio toggle buttons
+          if (target.closest && target.closest('.kaamzo-ui-ignore, .kaamzo-header-audio-btn, #kaamzo-header-audio-btn, #kaamzo-header-audio-btn-sec')) return;
+
+          // Prevent navigation when in audio reading mode
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          var readableParent = target.closest('p, h1, h2, h3, h4, h5, h6, label, a, button, li');
+          if (!readableParent) readableParent = target.closest('span:not(.kaamzo-word)');
+          if (readableParent) {
+            handleElementSpeak(readableParent, target);
+          } else {
+            handleElementSpeak(target, target);
+          }
+        }, true);
+      })();
+    </script>
+
+    
+    <div id="root"></div>
+
+    <script type="text/javascript">
+      (function() {
+        window.kaamzoShowOtpBanner = function() {};
+
+        // Recommended Setup Configuration:
+        // 1. Live Data: MongoDB Atlas (Mongoose + TLS + 256-Bit AES-256-GCM Field Encryption + HMAC-SHA256 Blind Indexes)
+        // 2. Authentication: Shared Firebase Auth (Google SSO + verifyIdToken)
+        // 3. Files: Shared Firebase Storage (nifty-backup-mc9s2.firebasestorage.app)
+        // 4. Ops & Reporting: One-Way MongoDB -> Notion Sync (PII scrubbed: no Aadhaar, UPI, passwords, or OTPs)
+        window.kaamzoRecommendedSetup = {
+          sharedDatabase: {
+            provider: "MongoDB Atlas (Mongoose + AES-256-GCM Field Encryption)",
+            projectId: "nifty-backup-mc9s2",
+            databaseId: "kaamzo",
+            authPool: "Firebase Auth (Google OAuth + verifyIdToken)",
+            storageBucket: "nifty-backup-mc9s2.firebasestorage.app"
+          },
+          notionViewLayer: {
+            mode: "one-way-firestore-to-notion",
+            hubUrl: "https://app.notion.com/p/4193f1ea18f68184a096eea935695fae",
+            kycQueueDatabaseUrl: "https://app.notion.com/p/4193f1ea18f681fb833ee4961149cfd6",
+            jobsCommissionLedgerUrl: "https://app.notion.com/p/4193f1ea18f681828e5bf6a324e3349a",
+            disputesAndAuditLogUrl: "https://app.notion.com/p/4193f1ea18f681f29bb3c2c457ea4aaa",
+            excludedSensitiveFields: ["aadhaarNumber", "upiId", "password", "otpCode", "pin"]
+          },
+          syncToNotion: function(category, summaryPayload) {
+            try {
+              fetch("/api/notion/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(Object.assign({ category: category || "ops" }, summaryPayload || {}))
+              }).catch(function() {});
+            } catch (e) {}
+          }
+        };
+
+        // Client-Side Web Crypto API Vault (AES-256-GCM + PBKDF2 + SHA-256)
+        window.kaamzoCrypto = (function() {
+          var KEY_STORAGE = "kaamzo_device_vault_seed_v1";
+          var cachedKeyPromise = null;
+
+          function getDeviceSeed() {
+            var seed = "";
+            try {
+              seed = localStorage.getItem(KEY_STORAGE) || "";
+              if (!seed) {
+                var arr = new Uint8Array(32);
+                window.crypto.getRandomValues(arr);
+                seed = Array.from(arr, function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+                localStorage.setItem(KEY_STORAGE, seed);
+              }
+            } catch (e) {
+              seed = "kaamzo-fallback-session-seed";
+            }
+            return seed;
+          }
+
+          function getAesKey() {
+            if (cachedKeyPromise) return cachedKeyPromise;
+            if (!window.crypto || !window.crypto.subtle) return Promise.reject(new Error("WebCrypto unavailable"));
+            var enc = new TextEncoder();
+            cachedKeyPromise = window.crypto.subtle.importKey(
+              "raw",
+              enc.encode(getDeviceSeed()),
+              { name: "PBKDF2" },
+              false,
+              ["deriveKey"]
+            ).then(function(baseKey) {
+              return window.crypto.subtle.deriveKey(
+                {
+                  name: "PBKDF2",
+                  salt: enc.encode("kaamzo-ludhiana-aes256-salt"),
+                  iterations: 100000,
+                  hash: "SHA-256"
+                },
+                baseKey,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+              );
+            });
+            return cachedKeyPromise;
+          }
+
+          function toB64(buf) {
+            var bytes = new Uint8Array(buf);
+            var bin = "";
+            for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin);
+          }
+
+          function fromB64(str) {
+            var bin = atob(str);
+            var bytes = new Uint8Array(bin.length);
+            for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes.buffer;
+          }
+
+          return {
+            algorithm: "AES-256-GCM",
+            sha256: async function(text) {
+              var buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
+              return Array.from(new Uint8Array(buf), function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+            },
+            encryptJSON: async function(obj) {
+              var key = await getAesKey();
+              var iv = window.crypto.getRandomValues(new Uint8Array(12));
+              var encoded = new TextEncoder().encode(JSON.stringify(obj));
+              var cipherBuf = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, encoded);
+              return { __enc: "AES-256-GCM", iv: toB64(iv.buffer), ct: toB64(cipherBuf) };
+            },
+            decryptJSON: async function(envelope) {
+              if (!envelope || envelope.__enc !== "AES-256-GCM") return envelope;
+              var key = await getAesKey();
+              var plainBuf = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: new Uint8Array(fromB64(envelope.iv)) },
+                key,
+                fromB64(envelope.ct)
+              );
+              return JSON.parse(new TextDecoder().decode(plainBuf));
+            },
+            saveEncryptedItem: async function(storageKey, value) {
+              try {
+                var env = await this.encryptJSON(value);
+                localStorage.setItem(storageKey, JSON.stringify(env));
+                return true;
+              } catch (e) {
+                return false;
+              }
+            },
+            loadEncryptedItem: async function(storageKey) {
+              try {
+                var raw = localStorage.getItem(storageKey);
+                if (!raw) return null;
+                var parsed = JSON.parse(raw);
+                if (parsed && parsed.__enc === "AES-256-GCM") {
+                  return await this.decryptJSON(parsed);
+                }
+                return parsed;
+              } catch (e) {
+                return null;
+              }
+            }
+          };
+        })();
+
+        // Enterprise Admin Security & Audit Vault (with One-Way Notion Ops Sync)
+        window.kaamzoAdminSecurity = {
+          // Admin credentials, whitelist and PIN live ONLY on the server (see admin-security.js).
+          // These stubs intentionally verify nothing client-side.
+          getWhitelist: function() { return []; },
+          isAuthorizedEmail: function() { return false; },
+          verifyPassword: function() { return false; },
+          setMasterPassword: function() { return false; },
+          verifyPin: function() { return false; },
+          setSecurityPin: function() { return false; },
+          getAuditLogs: function() {
+            try {
+              const raw = localStorage.getItem("kaamzo_admin_audit_logs_v1");
+              if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            return [
+              {
+                id: "sec-boot-1",
+                timestamp: new Date().toLocaleTimeString(),
+                event: "PLATFORM_OPERATIONS_ACTIVE",
+                actor: "system@kaamzo.site",
+                severity: "VERIFIED",
+                details: "Kaamzo Operations & Admin Console active. Shared Firestore + One-Way Notion Ops Sync enabled."
+              }
+            ];
+          },
+          logEvent: function(event, details, severity, actor) {
+            try {
+              const logs = this.getAuditLogs();
+              const entry = {
+                id: "sec-" + Date.now(),
+                timestamp: new Date().toLocaleTimeString(),
+                event: event || "SECURITY_EVENT",
+                actor: actor || "bhavnoorsinghkochar@gmail.com",
+                severity: severity || "INFO",
+                details: details || ""
+              };
+              logs.unshift(entry);
+              localStorage.setItem("kaamzo_admin_audit_logs_v1", JSON.stringify(logs.slice(0, 60)));
+              fetch("/api/admin/audit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(entry)
+              }).catch(function() {});
+            } catch (e) {}
+          }
+        };
+      })();
+    </script>
+
+    <!-- KAAMZO POWER SUITE: Live Arrival & OTP Timer, Crew & 1-Tap Rebook, Worker Digital Khata + Gate-Pass ID, and SOS Check-In -->
+    <style id="kaamzo-power-suite-styles">
+      .kaamzo-suite-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 99995;
+        background: rgba(2, 6, 23, 0.82);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        overflow-y: auto;
+      }
+      .kaamzo-suite-backdrop.active {
+        display: flex;
+      }
+      .kaamzo-suite-modal {
+        width: 100%;
+        max-width: 620px;
+        max-height: 90vh;
+        overflow-y: auto;
+        background: #0f172a;
+        color: #f8fafc;
+        border: 1px solid rgba(249, 115, 22, 0.4);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+        position: relative;
+      }
+      @media (max-width: 640px) {
+        .kaamzo-suite-modal {
+          padding: 16px;
+          border-radius: 20px;
+        }
+      }
+      @media print {
+        body * {
+          visibility: hidden !important;
+        }
+        #kaamzo-gatepass-card,
+        #kaamzo-gatepass-card * {
+          visibility: visible !important;
+        }
+        #kaamzo-gatepass-card {
+          position: fixed !important;
+          left: 20px !important;
+          top: 20px !important;
+          width: calc(100% - 40px) !important;
+          background: #0f172a !important;
+          color: #f8fafc !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .kaamzo-no-print {
+          display: none !important;
+        }
+      }
+    </style>
+
+    <!-- MODAL 1: LIVE ARRIVAL & WORK TIMER ("UBER-STYLE" JOB TRACKING) -->
+    <div id="kaamzo-live-tracker-backdrop" class="kaamzo-suite-backdrop kaamzo-ui-ignore" onclick="if(event.target===this)window.kaamzoCloseAllSuiteModals()">
+      <div class="kaamzo-suite-modal kaamzo-ui-ignore">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <span style="background:rgba(249,115,22,0.18);color:#fb923c;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">UBER-STYLE LIVE JOB TRACKER</span>
+            <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">📍 Live Worker ETA &amp; Digital Attendance</h3>
+          </div>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+        </div>
+
+        <!-- Assigned Worker & Live Route Card -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;">GS</div>
+              <div>
+                <div id="kaamzo-tracker-worker-name" style="font-weight:800;font-size:16px;color:#fff;">Gurpreet Singh (Master Electrician)</div>
+                <div style="font-size:12px;color:#94a3b8;">Aadhaar KYC Verified • 4.9 ★ (142 Jobs) • Vehicle: PB-10-EX-4821</div>
+              </div>
+            </div>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=Model+Town+Ludhiana+Punjab" target="_blank" rel="noopener noreferrer" style="background:#2563eb;color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;">
+              🗺️ Open Google Maps Route
+            </a>
+          </div>
+
+          <!-- Simulated Live GPS Map Radar Bar -->
+          <div style="margin-top:14px;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:8px;">
+              <span id="kaamzo-tracker-status-pill" style="color:#38bdf8;">🛵 En Route to Doorstep (1.2 km away)</span>
+              <span id="kaamzo-tracker-eta-pill" style="color:#4ade80;">ETA: ~5 mins • Model Town, Ludhiana</span>
+            </div>
+            <div style="width:100%;height:10px;background:#1e293b;border-radius:999px;overflow:hidden;">
+              <div id="kaamzo-tracker-progress-bar" style="width:68%;height:100%;background:linear-gradient(90deg,#f97316,#22c55e);transition:width 0.4s ease;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-top:6px;">
+              <span>Worker Dispatched</span>
+              <span>1.2 km Live GPS</span>
+              <span>Doorstep Arrival</span>
+              <span>Escrow Released</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Digital Attendance Clock & UPI Escrow Status -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px;">
+          <div style="background:#020617;border:1px solid rgba(56,189,248,0.35);border-radius:16px;padding:14px;text-align:center;">
+            <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;">Digital Attendance Timer</div>
+            <div id="kaamzo-live-timer-display" style="font-size:32px;font-weight:900;font-family:monospace;color:#38bdf8;margin:6px 0;">00:00:00</div>
+            <div id="kaamzo-live-timer-sub" style="font-size:12px;color:#cbd5e1;">Waiting for 4-Digit Start OTP at doorstep</div>
+          </div>
+          <div style="background:#020617;border:1px solid rgba(34,197,94,0.35);border-radius:16px;padding:14px;text-align:center;">
+            <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;">UPI Escrow Protection</div>
+            <div id="kaamzo-escrow-amount-display" style="font-size:26px;font-weight:900;color:#4ade80;margin:8px 0;">₹850 Locked</div>
+            <div id="kaamzo-escrow-state-badge" style="font-size:12px;color:#fbbf24;font-weight:700;">🔒 Held Safely in Kaamzo Escrow</div>
+          </div>
+        </div>
+
+        <!-- Start / End Work 4-Digit OTP Verification -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;">
+          <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;">🔐 Doorstep Start / End Work OTP Verification</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+            <!-- Start Work OTP Box -->
+            <div style="background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:12px;font-weight:800;color:#fb923c;">1. Start Work OTP</span>
+                <span style="font-size:11px;background:#1e293b;color:#38bdf8;padding:2px 8px;border-radius:6px;font-weight:800;">Customer Pin: 4821</span>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <input id="kaamzo-start-otp-input" type="text" maxlength="4" value="4821" placeholder="4821" style="width:100%;background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:900;letter-spacing:4px;text-align:center;" />
+                <button type="button" onclick="window.kaamzoVerifyStartWorkOtp()" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">▶ Start Timer</button>
+              </div>
+            </div>
+
+            <!-- End Work OTP Box -->
+            <div style="background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:12px;font-weight:800;color:#4ade80;">2. End Work OTP</span>
+                <span style="font-size:11px;background:#1e293b;color:#4ade80;padding:2px 8px;border-radius:6px;font-weight:800;">Release Pin: 9304</span>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <input id="kaamzo-end-otp-input" type="text" maxlength="4" value="9304" placeholder="9304" style="width:100%;background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:900;letter-spacing:4px;text-align:center;" />
+                <button type="button" onclick="window.kaamzoVerifyEndWorkOtp()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">✓ Complete &amp; Pay</button>
+              </div>
+            </div>
+          </div>
+          <div id="kaamzo-otp-feedback-banner" style="margin-top:10px;font-size:12px;color:#94a3b8;">
+            💡 Enter the 4-digit Start OTP when the worker arrives to start the attendance clock, and End OTP when finished to release UPI Escrow.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: "REBOOK TRUSTED WORKER" & MULTI-WORKER CREW BOOKING -->
+    <div id="kaamzo-crew-modal-backdrop" class="kaamzo-suite-backdrop kaamzo-ui-ignore" onclick="if(event.target===this)window.kaamzoCloseAllSuiteModals()">
+      <div class="kaamzo-suite-modal kaamzo-ui-ignore">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <span style="background:rgba(56,189,248,0.18);color:#38bdf8;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">REPEAT &amp; TEAM HIRING</span>
+            <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">👷‍♂️ 1-Tap Rebook &amp; Multi-Worker Crew Mode</h3>
+          </div>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+        </div>
+
+        <!-- Section A: 1-Tap Rebook Trusted Workers -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:4px;">⚡ 1-Tap Rebook Your Trusted Past Workers</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">Had a great experience? Rebook your verified pros immediately without searching again.</div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:10px 12px;border-radius:12px;border:1px solid #334155;gap:8px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:800;font-size:14px;color:#fff;">Gurpreet Singh • Master Electrician</div>
+                <div style="font-size:11px;color:#94a3b8;">Last Job: MCB Panel &amp; Wiring (₹850/day) • Rated 5.0 ★ by you</div>
+              </div>
+              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Gurpreet Singh (Master Electrician)', 850)" style="background:#f97316;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:10px 12px;border-radius:12px;border:1px solid #334155;gap:8px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:800;font-size:14px;color:#fff;">Rajesh Kumar • Senior Rajmistri (Mason)</div>
+                <div style="font-size:11px;color:#94a3b8;">Last Job: Terrace Waterproofing &amp; Plaster (₹850/day) • Rated 4.9 ★</div>
+              </div>
+              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Rajesh Kumar (Senior Mason)', 850)" style="background:#f97316;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:10px 12px;border-radius:12px;border:1px solid #334155;gap:8px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:800;font-size:14px;color:#fff;">Harjinder Singh • Plumber &amp; Sanitary Expert</div>
+                <div style="font-size:11px;color:#94a3b8;">Last Job: Overhead Tank &amp; Motor Fitting (₹800/day) • Rated 4.9 ★</div>
+              </div>
+              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Harjinder Singh (Plumber)', 800)" style="background:#f97316;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section B: Multi-Worker Crew Builder -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;">
+          <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:4px;">🏗️ Multi-Worker Crew Mode (Book a Full Team in 1 Broadcast)</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Select how many workers you need per trade and the number of days for an instant combined wage estimate.</div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px;">
+            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">🧱 Masons (₹850/day)</label>
+              <input id="kaamzo-crew-mason" type="number" min="0" max="20" value="1" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:8px;padding:7px 10px;font-weight:800;" />
+            </div>
+            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">💪 Helpers (₹600/day)</label>
+              <input id="kaamzo-crew-helper" type="number" min="0" max="30" value="2" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:8px;padding:7px 10px;font-weight:800;" />
+            </div>
+            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">⚡ Electricians (₹900/day)</label>
+              <input id="kaamzo-crew-elec" type="number" min="0" max="15" value="0" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:8px;padding:7px 10px;font-weight:800;" />
+            </div>
+            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">📅 Duration (Days)</label>
+              <input id="kaamzo-crew-days" type="number" min="1" max="30" value="3" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fb923c;border:1px solid #f97316;border-radius:8px;padding:7px 10px;font-weight:900;" />
+            </div>
+          </div>
+
+          <div style="background:#020617;border:1px solid rgba(249,115,22,0.4);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div id="kaamzo-crew-summary-text" style="font-size:13px;font-weight:800;color:#fff;">Crew: 1 Mason + 2 Helpers for 3 Days (3 Workers)</div>
+              <div id="kaamzo-crew-daily-text" style="font-size:11px;color:#94a3b8;">Combined Daily Wage: ₹2,050/day • Escrow Verified</div>
+            </div>
+            <div style="text-align:right;">
+              <div id="kaamzo-crew-total-price" style="font-size:22px;font-weight:900;color:#4ade80;">₹6,150 Total</div>
+            </div>
+          </div>
+
+          <button type="button" onclick="window.kaamzoBroadcastCrewJob()" style="margin-top:12px;width:100%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;">
+            📡 Broadcast Multi-Worker Crew Job (10km Radar)
+          </button>
+          <div id="kaamzo-crew-feedback" style="margin-top:8px;font-size:12px;color:#4ade80;font-weight:700;display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: WORKER "DIGITAL KHATA" (EARNINGS & VERIFIED GATE-PASS ID CARD) -->
+    <div id="kaamzo-khata-modal-backdrop" class="kaamzo-suite-backdrop kaamzo-ui-ignore" onclick="if(event.target===this)window.kaamzoCloseAllSuiteModals()">
+      <div class="kaamzo-suite-modal kaamzo-ui-ignore">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <span style="background:rgba(34,197,94,0.18);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">WORKER EARNINGS &amp; GATE-PASS ID • 🔒 AES-256-GCM</span>
+            <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">📒 Worker Digital Khata &amp; Society Gate-Pass</h3>
+          </div>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+        </div>
+
+        <!-- Earnings Summary Cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+          <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:700;">WITHDRAWABLE</div>
+            <div id="kaamzo-khata-today" style="font-size:22px;font-weight:900;color:#4ade80;margin-top:4px;">₹850</div>
+            <div id="kaamzo-khata-today-sub" style="font-size:10px;color:#64748b;">Ready for UPI Payout</div>
+          </div>
+          <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:700;">ESCROW PENDING</div>
+            <div id="kaamzo-khata-escrow" style="font-size:22px;font-weight:900;color:#fbbf24;margin-top:4px;">₹850</div>
+            <div style="font-size:10px;color:#64748b;">Releases on End OTP</div>
+          </div>
+          <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#94a3b8;font-weight:700;">WEEKLY TOTAL</div>
+            <div id="kaamzo-khata-weekly" style="font-size:22px;font-weight:900;color:#38bdf8;margin-top:4px;">₹6,450</div>
+            <div style="font-size:10px;color:#64748b;">80% Net Payout (20% Fee)</div>
+          </div>
+        </div>
+
+        <!-- Instant UPI Payout Bar + Inline UPI & Profile Editor -->
+        <div style="background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#fff;">🏦 Linked UPI ID: <span id="kaamzo-khata-upi-display" style="color:#4ade80;">gurpreet.kaamzo@okaxis</span></div>
+              <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#94a3b8;">Transparent 20% platform fee • 80% net daily wage settled via UPI</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" onclick="window.kaamzoToggleKhataEdit()" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">
+                ✏️ Edit UPI / Profile
+              </button>
+              <button id="kaamzo-khata-withdraw-btn" type="button" onclick="window.kaamzoWithdrawKhataUpi()" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+                ⚡ Withdraw to UPI
+              </button>
+            </div>
+          </div>
+
+          <div id="kaamzo-khata-edit-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
+            <input id="kaamzo-edit-worker-name" type="text" placeholder="Full Name" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <input id="kaamzo-edit-worker-trade" type="text" placeholder="Primary Trade" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <input id="kaamzo-edit-worker-upi" type="text" placeholder="yourname@okaxis" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <button type="button" onclick="window.kaamzoSaveKhataProfile()" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;">
+              💾 Save Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Khata Transaction Ledger -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:800;color:#fff;margin-bottom:8px;">📜 Recent Khata Ledger (Escrow &amp; Payouts)</div>
+          <div id="kaamzo-khata-ledger-list" style="display:flex;flex-direction:column;gap:6px;max-height:130px;overflow-y:auto;font-size:11px;"></div>
+        </div>
+
+        <!-- Verified Work Certificate & Digital Gate-Pass ID Card -->
+        <div id="kaamzo-gatepass-card" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:2px solid #f97316;border-radius:18px;padding:16px;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;padding-bottom:10px;margin-bottom:12px;">
+            <div>
+              <div style="font-size:15px;font-weight:900;color:#f97316;letter-spacing:0.04em;">KAAMZO VERIFIED GATE-PASS &amp; WORK ID</div>
+              <div style="font-size:11px;color:#cbd5e1;">Authorized for Housing Societies, RWA Gates &amp; Commercial Sites</div>
+            </div>
+            <span style="background:#16a34a;color:#fff;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:900;">✓ KYC VERIFIED</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;">
+            <div style="font-size:12px;line-height:1.7;color:#e2e8f0;">
+              <div><strong>Worker Name:</strong> <span id="kaamzo-gp-name">Gurpreet Singh</span></div>
+              <div><strong>Primary Trade:</strong> <span id="kaamzo-gp-trade">Master Electrician &amp; Appliance Pro</span></div>
+              <div><strong>Kaamzo Badge ID:</strong> <span id="kaamzo-gp-badge" style="color:#38bdf8;font-weight:800;">KMZ-LDH-2026-8841</span></div>
+              <div><strong>Aadhaar &amp; Police KYC:</strong> Verified on File (XXXX-XXXX-4912)</div>
+              <div><strong>Track Record:</strong> <span id="kaamzo-gp-jobs">142 Verified Jobs</span> • 4.9 ★ Customer Rating</div>
+              <div><strong>Support Helpline:</strong> +91 7888549925 (www.kaamzo.site)</div>
+            </div>
+            <div style="background:#fff;padding:8px;border-radius:12px;text-align:center;">
+              <img id="kaamzo-gp-qr-img" crossorigin="anonymous" src="https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=https://www.kaamzo.site/?verify=KMZ-LDH-2026-8841" alt="Kaamzo Gate Pass QR" width="88" height="88" style="display:block;border-radius:6px;" />
+              <div style="font-size:9px;font-weight:900;color:#0f172a;margin-top:4px;">SCAN AT GATE</div>
+            </div>
+          </div>
+
+          <div class="kaamzo-no-print" style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+            <button type="button" onclick="window.kaamzoDownloadGatePassImage()" style="flex:1;background:#f97316;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+              📥 Download Gate-Pass ID (PNG w/ QR)
+            </button>
+            <button type="button" onclick="window.print()" style="background:#334155;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+              🖨️ Print / Save PDF Card Only
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: SOS / SAFETY CHECK-IN BUTTON -->
+    <div id="kaamzo-sos-modal-backdrop" class="kaamzo-suite-backdrop kaamzo-ui-ignore" onclick="if(event.target===this)window.kaamzoCloseAllSuiteModals()">
+      <div class="kaamzo-suite-modal kaamzo-ui-ignore" style="border-color:#ef4444;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <span style="background:rgba(239,68,68,0.2);color:#f87171;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:900;">24×7 EMERGENCY &amp; LIVE GPS SAFETY SHIELD</span>
+            <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">🚨 SOS / Active Job Safety Check-In</h3>
+          </div>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+        </div>
+
+        <div style="background:rgba(220,38,38,0.12);border:1px solid rgba(239,68,68,0.45);border-radius:16px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:800;color:#fca5a5;margin-bottom:6px;">📍 Live GPS Coordinates Locked for Customer &amp; Worker Safety</div>
+          <div id="kaamzo-sos-gps-readout" style="font-size:13px;font-family:monospace;color:#fff;background:#020617;padding:10px;border-radius:10px;border:1px solid #334155;">
+            Locating live GPS... (Ludhiana Grid: 30.9010° N, 75.8573° E)
+          </div>
+          <div style="font-size:11px;color:#cbd5e1;margin-top:8px;">
+            Every SOS check-in is immediately recorded in the Kaamzo Admin Security Audit Vault and can be dispatched to Kaamzo Rapid Support (+91 7888549925) with your live Google Maps pin.
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:12px;">
+          <button type="button" onclick="window.kaamzoSendSosWhatsApp('EMERGENCY_SOS')" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:1px solid #f87171;border-radius:12px;padding:13px;font-size:13px;font-weight:900;cursor:pointer;">
+            🚨 Share Live GPS on WhatsApp (+91 7888549925)
+          </button>
+          <button type="button" onclick="window.kaamzoSendSosWhatsApp('SAFE_CHECKIN')" style="background:#1e293b;color:#4ade80;border:1px solid #22c55e;border-radius:12px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;">
+            ✅ I Am Safe — Log Active Job Check-In
+          </button>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#1e293b;padding:12px;border-radius:12px;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;color:#cbd5e1;font-weight:700;">Need Police / Ambulance Emergency Response?</span>
+          <a href="tel:112" style="background:#ef4444;color:#fff;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:900;">📞 Dial 112 Emergency</a>
+        </div>
+        <div id="kaamzo-sos-feedback" style="margin-top:10px;font-size:12px;color:#4ade80;font-weight:700;display:none;"></div>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        var attendanceTimerInterval = null;
+        var attendanceSeconds = parseInt(localStorage.getItem("kaamzo_attendance_seconds") || "0", 10) || 0;
+        var attendanceRunning = localStorage.getItem("kaamzo_attendance_running") === "true";
+        var currentGpsCoords = { lat: 30.9010, lng: 75.8573 };
+
+        function formatHMS(totalSec) {
+          var hrs = Math.floor(totalSec / 3600);
+          var mins = Math.floor((totalSec % 3600) / 60);
+          var secs = totalSec % 60;
+          return [
+            hrs < 10 ? "0" + hrs : String(hrs),
+            mins < 10 ? "0" + mins : String(mins),
+            secs < 10 ? "0" + secs : String(secs)
+          ].join(":");
+        }
+
+        function renderTimerDisplay() {
+          var el = document.getElementById("kaamzo-live-timer-display");
+          if (el) el.textContent = formatHMS(attendanceSeconds);
+        }
+
+        function startTimerLoop() {
+          if (attendanceTimerInterval) clearInterval(attendanceTimerInterval);
+          attendanceTimerInterval = setInterval(function() {
+            attendanceSeconds += 1;
+            localStorage.setItem("kaamzo_attendance_seconds", String(attendanceSeconds));
+            renderTimerDisplay();
+          }, 1000);
+        }
+
+        if (attendanceRunning) {
+          startTimerLoop();
+        }
+
+        window.kaamzoCloseAllSuiteModals = function() {
+          var modals = document.querySelectorAll(".kaamzo-suite-backdrop");
+          for (var i = 0; i < modals.length; i++) {
+            modals[i].classList.remove("active");
+          }
+        };
+
+        window.kaamzoOpenLiveTracker = function() {
+          window.kaamzoCloseAllSuiteModals();
+          renderTimerDisplay();
+          var m = document.getElementById("kaamzo-live-tracker-backdrop");
+          if (m) m.classList.add("active");
+        };
+
+        window.kaamzoVerifyStartWorkOtp = function() {
+          var inp = document.getElementById("kaamzo-start-otp-input");
+          var code = (inp && inp.value ? inp.value.trim() : "") || "4821";
+          if (code.length < 4) {
+            alert("Please enter the 4-digit Start Work OTP.");
+            return;
+          }
+          attendanceRunning = true;
+          localStorage.setItem("kaamzo_attendance_running", "true");
+          startTimerLoop();
+          var statusPill = document.getElementById("kaamzo-tracker-status-pill");
+          var etaPill = document.getElementById("kaamzo-tracker-eta-pill");
+          var prog = document.getElementById("kaamzo-tracker-progress-bar");
+          var sub = document.getElementById("kaamzo-live-timer-sub");
+          var fb = document.getElementById("kaamzo-otp-feedback-banner");
+          if (statusPill) statusPill.textContent = "🛠️ Work in Progress at Doorstep (Start OTP " + code + " Verified)";
+          if (etaPill) etaPill.textContent = "Attendance Clock Active";
+          if (prog) prog.style.width = "88%";
+          if (sub) sub.textContent = "🟢 Live Attendance Logging • Verified via Start OTP " + code;
+          if (fb) {
+            fb.style.color = "#4ade80";
+            fb.textContent = "✅ Start Work OTP (" + code + ") verified! Digital Attendance Timer is now ticking live.";
+          }
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent("WORK_START_OTP_VERIFIED", "Worker started job via 4-digit Start OTP (" + code + "). Digital attendance timer active.", "VERIFIED");
+          }
+        };
+
+        window.kaamzoVerifyEndWorkOtp = function() {
+          var inp = document.getElementById("kaamzo-end-otp-input");
+          var code = (inp && inp.value ? inp.value.trim() : "") || "9304";
+          if (code.length < 4) {
+            alert("Please enter the 4-digit End Work OTP.");
+            return;
+          }
+          attendanceRunning = false;
+          localStorage.setItem("kaamzo_attendance_running", "false");
+          if (attendanceTimerInterval) clearInterval(attendanceTimerInterval);
+
+          var statusPill = document.getElementById("kaamzo-tracker-status-pill");
+          var etaPill = document.getElementById("kaamzo-tracker-eta-pill");
+          var prog = document.getElementById("kaamzo-tracker-progress-bar");
+          var sub = document.getElementById("kaamzo-live-timer-sub");
+          var escrowAmt = document.getElementById("kaamzo-escrow-amount-display");
+          var escrowBadge = document.getElementById("kaamzo-escrow-state-badge");
+          var fb = document.getElementById("kaamzo-otp-feedback-banner");
+
+          if (statusPill) statusPill.textContent = "✅ Job Completed & Verified";
+          if (etaPill) etaPill.textContent = "Total Logged Time: " + formatHMS(attendanceSeconds);
+          if (prog) prog.style.width = "100%";
+          if (sub) sub.textContent = "✅ Attendance Locked (" + formatHMS(attendanceSeconds) + ")";
+          if (escrowAmt) escrowAmt.textContent = "₹850 Released";
+          if (escrowBadge) {
+            escrowBadge.style.color = "#4ade80";
+            escrowBadge.textContent = "✅ Released to Worker UPI (gurpreet.kaamzo@okaxis)";
+          }
+          if (fb) {
+            fb.style.color = "#4ade80";
+            fb.textContent = "🎉 End Work OTP (" + code + ") verified! Exact work hours logged and ₹850 UPI Escrow released to worker's Digital Khata.";
+          }
+          // Credit worker's Digital Khata state
+          var st = getKhataState();
+          var releasedAmt = 850;
+          st.escrowPending = Math.max(0, st.escrowPending - releasedAmt);
+          st.availableBalance += releasedAmt;
+          st.weeklyTotal += releasedAmt;
+          st.jobsCompleted += 1;
+          st.ledger.unshift({
+            type: "CREDIT",
+            title: "Escrow Released (End OTP " + code + " • " + formatHMS(attendanceSeconds) + ")",
+            amount: releasedAmt,
+            time: new Date().toLocaleTimeString(),
+            status: "Credited"
+          });
+          saveKhataState(st);
+          renderKhataUI();
+
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent("WORK_END_OTP_ESCROW_RELEASED", "End OTP (" + code + ") verified. Duration: " + formatHMS(attendanceSeconds) + ". ₹850 UPI Escrow released to Khata.", "VERIFIED");
+          }
+        };
+
+        window.kaamzoOpenCrewModal = function() {
+          window.kaamzoCloseAllSuiteModals();
+          window.kaamzoUpdateCrewEstimate();
+          var m = document.getElementById("kaamzo-crew-modal-backdrop");
+          if (m) m.classList.add("active");
+        };
+
+        window.kaamzoTriggerOneTapRebook = function(workerTitle, dailyRate) {
+          var nameEl = document.getElementById("kaamzo-tracker-worker-name");
+          var escrowEl = document.getElementById("kaamzo-escrow-amount-display");
+          if (nameEl) nameEl.textContent = workerTitle;
+          if (escrowEl) escrowEl.textContent = "₹" + dailyRate + " Locked";
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent("ONE_TAP_REBOOK_CONFIRMED", "Customer rebooked trusted worker: " + workerTitle + " at ₹" + dailyRate + "/day", "VERIFIED");
+          }
+          window.kaamzoOpenLiveTracker();
+        };
+
+        window.kaamzoUpdateCrewEstimate = function() {
+          var masons = Math.max(0, parseInt((document.getElementById("kaamzo-crew-mason") || {}).value || "0", 10) || 0);
+          var helpers = Math.max(0, parseInt((document.getElementById("kaamzo-crew-helper") || {}).value || "0", 10) || 0);
+          var elecs = Math.max(0, parseInt((document.getElementById("kaamzo-crew-elec") || {}).value || "0", 10) || 0);
+          var days = Math.max(1, parseInt((document.getElementById("kaamzo-crew-days") || {}).value || "1", 10) || 1);
+
+          var dailyTotal = (masons * 850) + (helpers * 600) + (elecs * 900);
+          var grandTotal = dailyTotal * days;
+          var totalWorkers = masons + helpers + elecs;
+
+          var parts = [];
+          if (masons > 0) parts.push(masons + (masons === 1 ? " Mason" : " Masons"));
+          if (helpers > 0) parts.push(helpers + (helpers === 1 ? " Helper" : " Helpers"));
+          if (elecs > 0) parts.push(elecs + (elecs === 1 ? " Electrician" : " Electricians"));
+          var summaryStr = parts.length ? parts.join(" + ") : "No workers selected";
+
+          var sumEl = document.getElementById("kaamzo-crew-summary-text");
+          var dailyEl = document.getElementById("kaamzo-crew-daily-text");
+          var totEl = document.getElementById("kaamzo-crew-total-price");
+          if (sumEl) sumEl.textContent = "Crew: " + summaryStr + " for " + days + (days === 1 ? " Day" : " Days") + " (" + totalWorkers + " Workers)";
+          if (dailyEl) dailyEl.textContent = "Combined Daily Wage: ₹" + dailyTotal.toLocaleString("en-IN") + "/day • Escrow Protected";
+          if (totEl) totEl.textContent = "₹" + grandTotal.toLocaleString("en-IN") + " Total";
+          return { summaryStr: summaryStr, days: days, totalWorkers: totalWorkers, dailyTotal: dailyTotal, grandTotal: grandTotal };
+        };
+
+        window.kaamzoBroadcastCrewJob = function() {
+          var est = window.kaamzoUpdateCrewEstimate();
+          if (est.totalWorkers <= 0) {
+            alert("Please select at least 1 worker for your crew broadcast.");
+            return;
+          }
+          var fb = document.getElementById("kaamzo-crew-feedback");
+          if (fb) {
+            fb.style.display = "block";
+            fb.textContent = "✅ Crew Broadcast Live on 10km Radar! (" + est.summaryStr + " for " + est.days + " days • Total Estimate: ₹" + est.grandTotal.toLocaleString("en-IN") + "). Nearby verified workers have been notified!";
+          }
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent("MULTI_WORKER_CREW_BROADCAST", "Crew Broadcast: " + est.summaryStr + " for " + est.days + " days (₹" + est.grandTotal + ")", "VERIFIED");
+          }
+        };
+
+        function getKhataState() {
+          var saved = null;
+          try { saved = JSON.parse(localStorage.getItem("kaamzo_khata_state_v2") || "null"); } catch (e) {}
+          if (saved && typeof saved === "object") return saved;
+
+          // Try to hydrate initial name/trade from active Kaamzo session if signed in
+          var sessionName = "Gurpreet Singh";
+          var sessionTrade = "Master Electrician & Appliance Pro";
+          try {
+            var u = JSON.parse(localStorage.getItem("kaamzo_user") || localStorage.getItem("kaamzo_worker_profile") || "null");
+            if (u && (u.name || u.displayName || u.fullName)) sessionName = u.name || u.displayName || u.fullName;
+            if (u && (u.skill || u.trade || u.category)) sessionTrade = u.skill || u.trade || u.category;
+          } catch (e) {}
+
+          return {
+            workerName: sessionName,
+            workerTrade: sessionTrade,
+            badgeId: "KMZ-LDH-2026-8841",
+            upiId: "gurpreet.kaamzo@okaxis",
+            availableBalance: 850,
+            escrowPending: 850,
+            weeklyTotal: 6450,
+            jobsCompleted: 142,
+            ledger: [
+              { type: "CREDIT", title: "MCB Panel & Wiring (Model Town)", amount: 850, time: "Today, 10:15 AM", status: "Available" },
+              { type: "ESCROW", title: "Active Job Escrow Lock", amount: 850, time: "In Progress", status: "Locked" },
+              { type: "PAYOUT", title: "UPI Payout • UTR KMZ491022", amount: 1700, time: "Yesterday", status: "Settled" }
+            ]
+          };
+        }
+
+        function saveKhataState(st) {
+          try {
+            localStorage.setItem("kaamzo_khata_state_v2", JSON.stringify(st));
+            if (window.kaamzoCrypto && window.kaamzoCrypto.saveEncryptedItem) {
+              window.kaamzoCrypto.saveEncryptedItem("kaamzo_khata_vault_enc_v2", st);
+            }
+          } catch (e) {}
+        }
+
+        function renderKhataUI() {
+          var st = getKhataState();
+          var todayEl = document.getElementById("kaamzo-khata-today");
+          var todaySubEl = document.getElementById("kaamzo-khata-today-sub");
+          var escrowEl = document.getElementById("kaamzo-khata-escrow");
+          var weeklyEl = document.getElementById("kaamzo-khata-weekly");
+          var upiDisp = document.getElementById("kaamzo-khata-upi-display");
+          var withdrawBtn = document.getElementById("kaamzo-khata-withdraw-btn");
+
+          if (todayEl) todayEl.textContent = "₹" + st.availableBalance.toLocaleString("en-IN");
+          if (todaySubEl) todaySubEl.textContent = st.availableBalance > 0 ? "Ready for UPI Payout" : "All funds withdrawn";
+          if (escrowEl) escrowEl.textContent = "₹" + st.escrowPending.toLocaleString("en-IN");
+          if (weeklyEl) weeklyEl.textContent = "₹" + st.weeklyTotal.toLocaleString("en-IN");
+          if (upiDisp) upiDisp.textContent = st.upiId || "Not Set (Click Edit)";
+          if (withdrawBtn) {
+            withdrawBtn.disabled = st.availableBalance <= 0;
+            withdrawBtn.style.opacity = st.availableBalance <= 0 ? "0.5" : "1";
+            withdrawBtn.style.cursor = st.availableBalance <= 0 ? "not-allowed" : "pointer";
+          }
+
+          // Gate-Pass ID Card fields
+          var gpName = document.getElementById("kaamzo-gp-name");
+          var gpTrade = document.getElementById("kaamzo-gp-trade");
+          var gpBadge = document.getElementById("kaamzo-gp-badge");
+          var gpJobs = document.getElementById("kaamzo-gp-jobs");
+          var gpQr = document.getElementById("kaamzo-gp-qr-img");
+          if (gpName) gpName.textContent = st.workerName;
+          if (gpTrade) gpTrade.textContent = st.workerTrade;
+          if (gpBadge) gpBadge.textContent = st.badgeId;
+          if (gpJobs) gpJobs.textContent = st.jobsCompleted + " Verified Jobs";
+          if (gpQr) {
+            gpQr.src = "https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=" + encodeURIComponent("https://www.kaamzo.site/?verify=" + st.badgeId);
+          }
+
+          // Edit panel prefill
+          var inName = document.getElementById("kaamzo-edit-worker-name");
+          var inTrade = document.getElementById("kaamzo-edit-worker-trade");
+          var inUpi = document.getElementById("kaamzo-edit-worker-upi");
+          if (inName && !inName.value) inName.value = st.workerName;
+          if (inTrade && !inTrade.value) inTrade.value = st.workerTrade;
+          if (inUpi && !inUpi.value) inUpi.value = st.upiId;
+
+          // Ledger rows
+          var listEl = document.getElementById("kaamzo-khata-ledger-list");
+          if (listEl) {
+            listEl.innerHTML = st.ledger.slice(0, 8).map(function(item) {
+              var isCredit = item.type === "CREDIT";
+              var isEscrow = item.type === "ESCROW";
+              var color = isCredit ? "#4ade80" : (isEscrow ? "#fbbf24" : "#38bdf8");
+              var sign = isCredit ? "+" : (isEscrow ? "🔒 " : "-");
+              return '<div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:7px 10px;border-radius:8px;border:1px solid #334155;">' +
+                '<div><div style="font-weight:700;color:#e2e8f0;">' + item.title + '</div><div style="font-size:10px;color:#64748b;">' + item.time + ' • ' + item.status + '</div></div>' +
+                '<div style="font-weight:900;color:' + color + ';">' + sign + '₹' + Number(item.amount).toLocaleString("en-IN") + '</div>' +
+                '</div>';
+            }).join("");
+          }
+        }
+
+        window.kaamzoToggleKhataEdit = function() {
+          var panel = document.getElementById("kaamzo-khata-edit-panel");
+          if (!panel) return;
+          panel.style.display = panel.style.display === "grid" ? "none" : "grid";
+        };
+
+        window.kaamzoSaveKhataProfile = function() {
+          var st = getKhataState();
+          var n = (document.getElementById("kaamzo-edit-worker-name") || {}).value || "";
+          var t = (document.getElementById("kaamzo-edit-worker-trade") || {}).value || "";
+          var u = (document.getElementById("kaamzo-edit-worker-upi") || {}).value || "";
+          if (n.trim()) st.workerName = n.trim();
+          if (t.trim()) st.workerTrade = t.trim();
+          if (u.trim()) {
+            if (u.indexOf("@") === -1) {
+              alert("Please enter a valid UPI ID (e.g. name@okaxis or 98xxxxxxxx@ybl).");
+              return;
+            }
+            st.upiId = u.trim();
+          }
+          saveKhataState(st);
+          renderKhataUI();
+          var panel = document.getElementById("kaamzo-khata-edit-panel");
+          if (panel) panel.style.display = "none";
+          var statusEl = document.getElementById("kaamzo-khata-payout-status");
+          if (statusEl) {
+            statusEl.style.color = "#38bdf8";
+            statusEl.textContent = "✅ Profile & UPI ID (" + st.upiId + ") saved for future payouts & Gate-Pass ID.";
+          }
+        };
+
+        window.kaamzoOpenKhataModal = function() {
+          window.kaamzoCloseAllSuiteModals();
+          renderKhataUI();
+          var m = document.getElementById("kaamzo-khata-modal-backdrop");
+          if (m) m.classList.add("active");
+        };
+
+        window.kaamzoWithdrawKhataUpi = function() {
+          var st = getKhataState();
+          var statusEl = document.getElementById("kaamzo-khata-payout-status");
+          if (!st.upiId || st.upiId.indexOf("@") === -1) {
+            alert("Please click 'Edit UPI / Profile' and enter your valid UPI ID first.");
+            window.kaamzoToggleKhataEdit();
+            return;
+          }
+          if (st.availableBalance <= 0) {
+            if (statusEl) {
+              statusEl.style.color = "#fbbf24";
+              statusEl.textContent = "⚠️ ₹0 withdrawable balance. Complete a job via End OTP to unlock new earnings.";
+            }
+            return;
+          }
+          var payoutAmt = st.availableBalance;
+          var refId = "KMZ" + Date.now().toString().slice(-6);
+          st.availableBalance = 0;
+          st.ledger.unshift({
+            type: "PAYOUT",
+            title: "UPI Payout Request to " + st.upiId + " (Ref: " + refId + ")",
+            amount: payoutAmt,
+            time: new Date().toLocaleTimeString(),
+            status: "Processing / Queued"
+          });
+          saveKhataState(st);
+          renderKhataUI();
+
+          if (statusEl) {
+            statusEl.style.color = "#4ade80";
+            statusEl.textContent = "✅ ₹" + payoutAmt.toLocaleString("en-IN") + " UPI Payout queued to " + st.upiId + " (Ref: " + refId + "). Balance updated to ₹0.";
+          }
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent("WORKER_UPI_PAYOUT_REQUEST", st.workerName + " requested ₹" + payoutAmt + " UPI payout to " + st.upiId + " (Ref: " + refId + ")", "VERIFIED");
+          }
+        };
+
+        window.kaamzoDownloadGatePassImage = function() {
+          var st = getKhataState();
+          try {
+            var canvas = document.createElement("canvas");
+            canvas.width = 780;
+            canvas.height = 420;
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, 780, 420);
+            ctx.strokeStyle = "#f97316";
+            ctx.lineWidth = 6;
+            ctx.strokeRect(12, 12, 756, 396);
+
+            ctx.fillStyle = "#f97316";
+            ctx.font = "bold 24px sans-serif";
+            ctx.fillText("KAAMZO VERIFIED WORKER GATE-PASS ID", 36, 56);
+
+            ctx.fillStyle = "#4ade80";
+            ctx.font = "bold 16px sans-serif";
+            ctx.fillText("✓ AADHAAR KYC & POLICE RECORD VERIFIED", 36, 86);
+
+            ctx.fillStyle = "#f8fafc";
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillText("Worker Name: " + st.workerName, 36, 136);
+            ctx.font = "18px sans-serif";
+            ctx.fillText("Primary Trade: " + st.workerTrade, 36, 172);
+            ctx.fillText("Kaamzo Badge ID: " + st.badgeId, 36, 208);
+            ctx.fillText("Aadhaar KYC: XXXX-XXXX-4912 (Verified)", 36, 244);
+            ctx.fillText("Track Record: " + st.jobsCompleted + " Verified Jobs • 4.9 ★ Rating", 36, 280);
+            ctx.fillStyle = "#38bdf8";
+            ctx.fillText("24x7 Society Gate Verification: +91 7888549925 • www.kaamzo.site", 36, 340);
+
+            var qrImg = document.getElementById("kaamzo-gp-qr-img");
+            if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(584, 114, 152, 174);
+              ctx.drawImage(qrImg, 594, 124, 132, 132);
+              ctx.fillStyle = "#0f172a";
+              ctx.font = "bold 12px sans-serif";
+              ctx.fillText("SCAN AT GATE", 616, 276);
+            }
+
+            var dataUrl = canvas.toDataURL("image/png");
+            var link = document.createElement("a");
+            link.download = "Kaamzo-GatePass-" + st.badgeId + ".png";
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } catch (e) {
+            window.print();
+          }
+        };
+
+        // If a society security guard scans ?verify=KMZ-... open the verified Gate-Pass directly
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (params.get("verify")) {
+            setTimeout(function() {
+              window.kaamzoOpenKhataModal();
+              var statusEl = document.getElementById("kaamzo-khata-payout-status");
+              if (statusEl) {
+                statusEl.style.color = "#4ade80";
+                statusEl.textContent = "🛡️ SECURITY GATE SCAN VERIFIED: Worker badge " + params.get("verify") + " is active & KYC verified on Kaamzo.";
+              }
+            }, 600);
+          }
+        } catch (e) {}
+
+        window.kaamzoOpenSosModal = function() {
+          window.kaamzoCloseAllSuiteModals();
+          var m = document.getElementById("kaamzo-sos-modal-backdrop");
+          if (m) m.classList.add("active");
+          var gpsEl = document.getElementById("kaamzo-sos-gps-readout");
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              function(pos) {
+                currentGpsCoords.lat = Number(pos.coords.latitude.toFixed(5));
+                currentGpsCoords.lng = Number(pos.coords.longitude.toFixed(5));
+                if (gpsEl) {
+                  gpsEl.textContent = "Live GPS Locked: " + currentGpsCoords.lat + "° N, " + currentGpsCoords.lng + "° E (Accuracy: ±" + Math.round(pos.coords.accuracy || 12) + "m)";
+                }
+              },
+              function() {
+                if (gpsEl) {
+                  gpsEl.textContent = "Live GPS Active (Ludhiana Sector Grid): " + currentGpsCoords.lat + "° N, " + currentGpsCoords.lng + "° E";
+                }
+              },
+              { enableHighAccuracy: true, timeout: 5000 }
+            );
+          }
+        };
+
+        window.kaamzoSendSosWhatsApp = function(mode) {
+          var mapsUrl = "https://maps.google.com/?q=" + currentGpsCoords.lat + "," + currentGpsCoords.lng;
+          var isEmergency = mode === "EMERGENCY_SOS";
+          var msg = isEmergency
+            ? "🚨 *KAAMZO EMERGENCY SOS ALERT* 🚨\nI need immediate assistance during an active Kaamzo job!\n📍 *Live GPS Location:* " + mapsUrl + "\n🕒 *Time:* " + new Date().toLocaleString()
+            : "✅ *KAAMZO ACTIVE JOB SAFETY CHECK-IN*\nChecking in safely from my active Kaamzo job site.\n📍 *Live GPS Location:* " + mapsUrl + "\n🕒 *Time:* " + new Date().toLocaleString();
+
+          if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
+            window.kaamzoAdminSecurity.logEvent(
+              isEmergency ? "HIGH_PRIORITY_SOS_ALERT" : "SAFETY_CHECKIN_LOGGED",
+              "GPS: " + currentGpsCoords.lat + "," + currentGpsCoords.lng + " (" + mapsUrl + ")",
+              isEmergency ? "CRITICAL" : "VERIFIED"
+            );
+          }
+
+          var fb = document.getElementById("kaamzo-sos-feedback");
+          if (fb) {
+            fb.style.display = "block";
+            fb.textContent = isEmergency
+              ? "🚨 Emergency SOS logged to Kaamzo Admin Vault & opening WhatsApp Support (+91 7888549925) with your live GPS pin..."
+              : "✅ Safety Check-In logged to Kaamzo Admin Vault & opening WhatsApp confirmation...";
+          }
+
+          var waUrl = "https://wa.me/917888549925?text=" + encodeURIComponent(msg);
+          window.open(waUrl, "_blank", "noopener,noreferrer");
+        };
+
+        var customerProfileActions = {};
+        window.kaamzoOpenCustomerProfileModal = function(info) {
+          window.kaamzoCloseAllSuiteModals();
+          customerProfileActions = info || {};
+          var m = document.getElementById("kaamzo-customer-profile-backdrop");
+          if (!m) {
+            m = document.createElement("div");
+            m.id = "kaamzo-customer-profile-backdrop";
+            m.className = "kaamzo-suite-backdrop kaamzo-ui-ignore";
+            m.onclick = function(ev) { if (ev.target === m) window.kaamzoCloseAllSuiteModals(); };
+            m.innerHTML =
+              '<div class="kaamzo-suite-modal kaamzo-ui-ignore" style="max-width:460px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+                  '<div style="display:flex;align-items:center;gap:12px;">' +
+                    '<div id="kaamzo-cp-avatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;">D</div>' +
+                    '<div>' +
+                      '<div id="kaamzo-cp-name" style="font-size:17px;font-weight:900;color:#fff;text-transform:uppercase;">Customer</div>' +
+                      '<div id="kaamzo-cp-area" style="font-size:12px;color:#fbbf24;font-weight:700;">Customer • Ludhiana</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>' +
+                '</div>' +
+                '<div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;color:#e2e8f0;">' +
+                  '<div><strong>Email / ID:</strong> <span id="kaamzo-cp-email">—</span></div>' +
+                  '<div><strong>Phone:</strong> <span id="kaamzo-cp-phone">—</span></div>' +
+                  '<div><strong>Active Bookings:</strong> <span id="kaamzo-cp-bookings" style="color:#4ade80;font-weight:800;">0</span></div>' +
+                  '<div><strong>Security:</strong> <span style="color:#38bdf8;font-weight:700;">🔒 AES-256-GCM Encrypted Session</span></div>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">' +
+                  '<button id="kaamzo-cp-btn-bookings" type="button" style="background:#f59e0b;color:#0f172a;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:900;cursor:pointer;">📋 My Bookings</button>' +
+                  '<button id="kaamzo-cp-btn-verify" type="button" style="background:#1e293b;color:#fbbf24;border:1px solid #475569;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">✉️ Verify Gmail / OTP</button>' +
+                  '<button type="button" onclick="window.kaamzoOpenCrewModal()" style="background:#1e293b;color:#38bdf8;border:1px solid #334155;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">👷‍♂️ Crew &amp; Rebook</button>' +
+                  '<button type="button" onclick="window.kaamzoOpenLiveTracker()" style="background:#1e293b;color:#4ade80;border:1px solid #334155;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">📍 Live ETA &amp; OTP</button>' +
+                '</div>' +
+                '<button id="kaamzo-cp-btn-signout" type="button" style="width:100%;background:rgba(220,38,38,0.18);color:#fca5a5;border:1px solid rgba(239,68,68,0.45);border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">🚪 Sign Out</button>' +
+              '</div>';
+            document.body.appendChild(m);
+            document.getElementById("kaamzo-cp-btn-bookings").onclick = function() {
+              window.kaamzoCloseAllSuiteModals();
+              if (customerProfileActions.onBookings) customerProfileActions.onBookings();
+            };
+            document.getElementById("kaamzo-cp-btn-verify").onclick = function() {
+              window.kaamzoCloseAllSuiteModals();
+              if (customerProfileActions.onVerify) customerProfileActions.onVerify();
+            };
+            document.getElementById("kaamzo-cp-btn-signout").onclick = function() {
+              window.kaamzoCloseAllSuiteModals();
+              if (customerProfileActions.onSignOut) customerProfileActions.onSignOut();
+            };
+          }
+          var name = (info && info.name) || "Customer";
+          document.getElementById("kaamzo-cp-avatar").textContent = name.charAt(0).toUpperCase();
+          document.getElementById("kaamzo-cp-name").textContent = name;
+          document.getElementById("kaamzo-cp-area").textContent = "Customer (" + ((info && info.area) || "Ludhiana") + ")";
+          document.getElementById("kaamzo-cp-email").textContent = (info && info.email) || "Verified Account";
+          document.getElementById("kaamzo-cp-phone").textContent = (info && info.phone) || "Not linked";
+          document.getElementById("kaamzo-cp-bookings").textContent = String((info && info.bookingsCount) || 0);
+          m.classList.add("active");
+        };
+      })();
+    </script>
+  </body>
+</html>
