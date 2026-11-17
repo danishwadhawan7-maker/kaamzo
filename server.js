@@ -5,6 +5,7 @@ const path = require("path");
 const crypto = require("crypto");
 const dbHandler = require("./api/db");
 const translateHandler = require("./api/translate");
+const estimateJobHandler = require("./api/estimate-job");
 const { connectMongo, MODELS } = require("./lib/models");
 const { decryptDocumentFields } = require("./lib/encryption");
 
@@ -179,12 +180,18 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = parsedUrl.pathname;
 
-  // 0. Unified MongoDB Atlas + AES-256-GCM API (/api/db) & Translation API (/api/translate)
+  // 0. Unified MongoDB Atlas + AES-256-GCM API (/api/db), Translation API (/api/translate), & Job Estimator (/api/estimate-job)
   if (pathname === "/api/db") {
     if (req.method === "POST" || req.method === "PUT" || req.method === "DELETE") {
       req.body = await parseBody(req);
     }
     return dbHandler(req, res, io);
+  }
+  if (pathname === "/api/estimate-job") {
+    if (req.method === "POST") {
+      req.body = await parseBody(req);
+    }
+    return estimateJobHandler(req, res);
   }
   if (pathname === "/api/translate") {
     if (req.method === "POST") {
