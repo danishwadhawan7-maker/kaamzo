@@ -56,7 +56,15 @@
       "destination": "/index.html"
     },
     {
-      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "source": "/__/auth/(.*)",
+      "destination": "https://nifty-backup-mc9s2.firebaseapp.com/__/auth/$1"
+    },
+    {
+      "source": "/__/firebase/(.*)",
+      "destination": "https://nifty-backup-mc9s2.firebaseapp.com/__/firebase/$1"
+    },
+    {
+      "source": "/((?!api/|assets/|__auth/|__/|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
