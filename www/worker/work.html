@@ -1591,33 +1591,57 @@
         };
 
         function getKhataState() {
+          // Always sync live from active Kaamzo worker session first so walletBalance & withdrawals match 100%
+          try {
+            var cw = JSON.parse(localStorage.getItem("kaamzo_current_worker_v8") || "null");
+            if (cw && cw.id) {
+              var wdList = Array.isArray(cw.withdrawalHistory) ? cw.withdrawalHistory : [];
+              var liveLedger = wdList.map(function(tx) {
+                return {
+                  type: "PAYOUT",
+                  title: "UPI Payout to " + (tx.upiId || cw.upiId || "UPI") + (tx.refId ? " (Ref: " + tx.refId + ")" : ""),
+                  amount: Number(tx.amount) || 0,
+                  time: tx.timestamp || "Recently",
+                  status: tx.status || "Credited via UPI"
+                };
+              });
+              if ((cw.walletBalance || 0) > 0) {
+                liveLedger.unshift({
+                  type: "CREDIT",
+                  title: "Available Wallet Earnings (" + (cw.primaryTrade || "Worker") + ")",
+                  amount: Number(cw.walletBalance) || 0,
+                  time: "Ready to Withdraw",
+                  status: "Available"
+                });
+              }
+              return {
+                workerName: cw.name || "Kaamzo Worker",
+                workerTrade: cw.primaryTrade || "Verified Worker",
+                badgeId: String(cw.id || "KMZ").toUpperCase(),
+                upiId: cw.upiId || ((cw.username || cw.id || "worker") + "@upi"),
+                availableBalance: Number(cw.walletBalance) || 0,
+                escrowPending: 0,
+                weeklyTotal: Number(cw.totalEarnings || cw.totalWithdrawn || 0),
+                jobsCompleted: Number(cw.completedJobsCount) || 0,
+                ledger: liveLedger
+              };
+            }
+          } catch (e) {}
+
           var saved = null;
           try { saved = JSON.parse(localStorage.getItem("kaamzo_khata_state_v2") || "null"); } catch (e) {}
           if (saved && typeof saved === "object") return saved;
 
-          // Try to hydrate initial name/trade from active Kaamzo session if signed in
-          var sessionName = "Gurpreet Singh";
-          var sessionTrade = "Master Electrician & Appliance Pro";
-          try {
-            var u = JSON.parse(localStorage.getItem("kaamzo_user") || localStorage.getItem("kaamzo_worker_profile") || "null");
-            if (u && (u.name || u.displayName || u.fullName)) sessionName = u.name || u.displayName || u.fullName;
-            if (u && (u.skill || u.trade || u.category)) sessionTrade = u.skill || u.trade || u.category;
-          } catch (e) {}
-
           return {
-            workerName: sessionName,
-            workerTrade: sessionTrade,
-            badgeId: "KMZ-LDH-2026-8841",
-            upiId: "gurpreet.kaamzo@okaxis",
-            availableBalance: 850,
-            escrowPending: 850,
-            weeklyTotal: 6450,
-            jobsCompleted: 142,
-            ledger: [
-              { type: "CREDIT", title: "MCB Panel & Wiring (Model Town)", amount: 850, time: "Today, 10:15 AM", status: "Available" },
-              { type: "ESCROW", title: "Active Job Escrow Lock", amount: 850, time: "In Progress", status: "Locked" },
-              { type: "PAYOUT", title: "UPI Payout • UTR KMZ491022", amount: 1700, time: "Yesterday", status: "Settled" }
-            ]
+            workerName: "Kaamzo Worker",
+            workerTrade: "Sign in to view live trade",
+            badgeId: "KMZ-PORTAL",
+            upiId: "worker@upi",
+            availableBalance: 0,
+            escrowPending: 0,
+            weeklyTotal: 0,
+            jobsCompleted: 0,
+            ledger: []
           };
         }
 
