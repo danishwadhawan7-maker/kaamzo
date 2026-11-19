@@ -1,0 +1,275 @@
+/**
+ * Kaamzo Central Colour Palette & Theme Stylesheet (Customer & Worker Apps)
+ * Defines all colour tokens once as CSS variables and applies them consistently across both apps.
+ */
+:root,
+:host,
+html,
+html.dark {
+  /* Central Semantic Theme Variables */
+  --kz-primary: #F57C00;
+  --kz-primary-dark: #C94B00;
+  --kz-surface-dark: #3B2A20;
+  --kz-success: #2E9E5B;
+  --kz-background: #FFF8F0;
+  --kz-card: #F1E6D8;
+  --kz-text-primary: #222222;
+  --kz-error: #C62828;
+  --kz-white: #FFFFFF;
+  --kz-nav-inactive: rgba(255, 248, 240, 0.6);
+
+  /* Remap all Tailwind v4 colour tokens to the central Kaamzo palette (zero navy or blue) */
+  --color-amber-50: var(--kz-background) !important;
+  --color-amber-100: var(--kz-card) !important;
+  --color-amber-200: var(--kz-card) !important;
+  --color-amber-300: var(--kz-primary) !important;
+  --color-amber-400: var(--kz-primary) !important;
+  --color-amber-500: var(--kz-primary) !important;
+  --color-amber-600: var(--kz-primary-dark) !important;
+  --color-amber-700: var(--kz-primary-dark) !important;
+  --color-amber-800: var(--kz-primary-dark) !important;
+  --color-amber-900: var(--kz-surface-dark) !important;
+  --color-amber-950: var(--kz-surface-dark) !important;
+
+  --color-orange-50: var(--kz-background) !important;
+  --color-orange-100: var(--kz-card) !important;
+  --color-orange-300: var(--kz-primary) !important;
+  --color-orange-800: var(--kz-primary-dark) !important;
+  --color-orange-950: var(--kz-surface-dark) !important;
+
+  --color-yellow-100: var(--kz-card) !important;
+  --color-yellow-300: var(--kz-primary) !important;
+  --color-yellow-800: var(--kz-primary-dark) !important;
+  --color-yellow-950: var(--kz-surface-dark) !important;
+
+  /* Verified Green (#2E9E5B) — verified badges, success states, Paid & Completed only */
+  --color-emerald-50: var(--kz-background) !important;
+  --color-emerald-100: var(--kz-card) !important;
+  --color-emerald-200: var(--kz-card) !important;
+  --color-emerald-300: var(--kz-success) !important;
+  --color-emerald-400: var(--kz-success) !important;
+  --color-emerald-500: var(--kz-success) !important;
+  --color-emerald-600: var(--kz-success) !important;
+  --color-emerald-700: var(--kz-success) !important;
+  --color-emerald-800: var(--kz-success) !important;
+  --color-emerald-900: var(--kz-surface-dark) !important;
+  --color-emerald-950: var(--kz-surface-dark) !important;
+
+  /* Error Red (#C62828) — errors, cancellations, failed payments only */
+  --color-red-50: var(--kz-background) !important;
+  --color-red-200: var(--kz-card) !important;
+  --color-red-300: var(--kz-error) !important;
+  --color-red-400: var(--kz-error) !important;
+  --color-red-500: var(--kz-error) !important;
+  --color-red-600: var(--kz-error) !important;
+  --color-red-700: var(--kz-error) !important;
+
+  --color-rose-50: var(--kz-background) !important;
+  --color-rose-100: var(--kz-card) !important;
+  --color-rose-200: var(--kz-card) !important;
+  --color-rose-300: var(--kz-error) !important;
+  --color-rose-400: var(--kz-error) !important;
+  --color-rose-500: var(--kz-error) !important;
+  --color-rose-600: var(--kz-error) !important;
+  --color-rose-700: var(--kz-error) !important;
+  --color-rose-800: var(--kz-error) !important;
+  --color-rose-900: var(--kz-surface-dark) !important;
+  --color-rose-950: var(--kz-surface-dark) !important;
+
+  /* Replace ALL Navy, Blue, Sky, Cyan, Slate, Zinc, Stone with Warm Cream, Soft Sand, Charcoal & Espresso Brown */
+  --color-slate-50: var(--kz-background) !important;
+  --color-slate-100: var(--kz-card) !important;
+  --color-slate-200: var(--kz-card) !important;
+  --color-slate-300: var(--kz-card) !important;
+  --color-slate-400: #6E5A4F !important;
+  --color-slate-500: #59463B !important;
+  --color-slate-600: var(--kz-text-primary) !important;
+  --color-slate-700: var(--kz-text-primary) !important;
+  --color-slate-800: var(--kz-surface-dark) !important;
+  --color-slate-900: var(--kz-surface-dark) !important;
+  --color-slate-950: var(--kz-surface-dark) !important;
+
+  --color-blue-100: var(--kz-card) !important;
+  --color-blue-200: var(--kz-card) !important;
+  --color-blue-300: var(--kz-primary) !important;
+  --color-blue-400: var(--kz-primary) !important;
+  --color-blue-500: var(--kz-surface-dark) !important;
+  --color-blue-600: var(--kz-surface-dark) !important;
+  --color-blue-800: var(--kz-surface-dark) !important;
+  --color-blue-900: var(--kz-surface-dark) !important;
+  --color-blue-950: var(--kz-surface-dark) !important;
+
+  --color-sky-300: var(--kz-primary) !important;
+  --color-sky-400: var(--kz-primary) !important;
+  --color-sky-500: var(--kz-surface-dark) !important;
+  --color-sky-600: var(--kz-surface-dark) !important;
+  --color-sky-900: var(--kz-surface-dark) !important;
+  --color-sky-950: var(--kz-surface-dark) !important;
+
+  --color-cyan-50: var(--kz-background) !important;
+  --color-cyan-100: var(--kz-card) !important;
+  --color-cyan-300: var(--kz-primary) !important;
+  --color-cyan-800: var(--kz-surface-dark) !important;
+  --color-cyan-950: var(--kz-surface-dark) !important;
+
+  --color-purple-50: var(--kz-background) !important;
+  --color-purple-100: var(--kz-card) !important;
+  --color-purple-200: var(--kz-card) !important;
+  --color-purple-300: var(--kz-primary) !important;
+  --color-purple-400: var(--kz-primary) !important;
+  --color-purple-500: var(--kz-primary-dark) !important;
+  --color-purple-600: var(--kz-primary-dark) !important;
+  --color-purple-700: var(--kz-primary-dark) !important;
+  --color-purple-800: var(--kz-surface-dark) !important;
+  --color-purple-900: var(--kz-surface-dark) !important;
+  --color-purple-950: var(--kz-surface-dark) !important;
+
+  --color-zinc-200: var(--kz-card) !important;
+  --color-zinc-300: var(--kz-card) !important;
+  --color-zinc-400: #6E5A4F !important;
+  --color-zinc-800: var(--kz-surface-dark) !important;
+
+  --color-stone-100: var(--kz-card) !important;
+  --color-stone-300: var(--kz-card) !important;
+  --color-stone-800: var(--kz-surface-dark) !important;
+  --color-stone-950: var(--kz-surface-dark) !important;
+
+  --color-white: var(--kz-white) !important;
+  --color-black: var(--kz-text-primary) !important;
+}
+
+/* 1. Main Screen Background (Warm Cream #FFF8F0) & Body Text (Charcoal #222222) */
+html,
+body,
+#root,
+main,
+#main-content {
+  background-color: var(--kz-background) !important;
+  color: var(--kz-text-primary) !important;
+}
+
+/* 2. Headings in Espresso Brown (#3B2A20) on Light Surfaces */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--kz-surface-dark);
+}
+
+/* Headings inside Espresso Brown (#3B2A20) dark surfaces stay White (#FFFFFF) */
+[class*="bg-slate-900"] h1, [class*="bg-slate-900"] h2, [class*="bg-slate-900"] h3, [class*="bg-slate-900"] h4,
+[class*="bg-slate-950"] h1, [class*="bg-slate-950"] h2, [class*="bg-slate-950"] h3, [class*="bg-slate-950"] h4,
+[class*="bg-slate-800"] h1, [class*="bg-slate-800"] h2, [class*="bg-slate-800"] h3, [class*="bg-slate-800"] h4,
+header h1, header h2, header h3, nav h1, nav h2, nav h3, footer h1, footer h2, footer h3, footer h4 {
+  color: var(--kz-white) !important;
+}
+
+/* 3. Top App Bar, Navigation Bars, Bottom Nav & Footer: Espresso Brown (#3B2A20) */
+#kaamzo-global-header,
+header,
+nav,
+footer,
+[class*="fixed bottom-0"] {
+  background-color: var(--kz-surface-dark) !important;
+  color: var(--kz-white) !important;
+  border-color: rgba(241, 230, 216, 0.16) !important;
+}
+
+#kaamzo-global-header button,
+header button,
+nav button,
+[class*="fixed bottom-0"] button {
+  color: var(--kz-nav-inactive);
+}
+
+/* Active tab icon & label in Saffron (#F57C00) with Charcoal (#222222) text when filled */
+nav button[class*="bg-amber-"],
+header button[class*="bg-amber-"],
+[class*="fixed bottom-0"] button[class*="text-amber-"] {
+  color: var(--kz-primary) !important;
+}
+nav button[class*="bg-amber-500"],
+nav button[class*="bg-amber-400"] {
+  background-color: var(--kz-primary) !important;
+  color: var(--kz-text-primary) !important;
+}
+nav button[class*="bg-amber-500"] svg,
+nav button[class*="bg-amber-400"] svg {
+  color: var(--kz-text-primary) !important;
+}
+
+/* 4. Text on Saffron (#F57C00) MUST be Charcoal (#222222), NEVER White */
+[class*="bg-amber-400"],
+[class*="bg-amber-500"],
+[class*="bg-[#F57C00]"],
+[class*="bg-[#FCD33F]"],
+[class*="bg-[#F59E0B]"] {
+  background-color: var(--kz-primary) !important;
+  color: var(--kz-text-primary) !important;
+}
+
+/* 5. Primary Action Buttons (Deep Saffron #C94B00 background with White #FFFFFF text) */
+button[type="submit"],
+button[class*="bg-amber-600"],
+button[class*="bg-amber-500"][class*="w-full"],
+button[class*="from-amber-"],
+a[class*="bg-amber-600"] {
+  background: var(--kz-primary-dark) !important;
+  background-color: var(--kz-primary-dark) !important;
+  color: var(--kz-white) !important;
+  border-color: var(--kz-primary-dark) !important;
+}
+button[type="submit"] span,
+button[type="submit"] svg,
+button[class*="from-amber-"] span,
+button[class*="from-amber-"] svg {
+  color: var(--kz-white) !important;
+}
+
+/* 6. Secondary Buttons: Transparent background, 1.5px Deep Saffron (#C94B00) border, Deep Saffron text */
+#root button[class*="bg-white"][class*="border"],
+#root button[class*="bg-slate-100"]:not([aria-label="Language selection"]),
+#root button[class*="bg-amber-50"] {
+  background-color: transparent !important;
+  border: 1.5px solid var(--kz-primary-dark) !important;
+  color: var(--kz-primary-dark) !important;
+}
+#root button[class*="bg-white"][class*="border"] span,
+#root button[class*="bg-amber-50"] span {
+  color: var(--kz-primary-dark) !important;
+}
+
+/* Links in Deep Saffron (#C94B00) */
+a:not([class*="bg-"]) {
+  color: var(--kz-primary-dark);
+}
+
+/* 7. Cards (#F1E6D8 Soft Sand or White #FFFFFF with subtle shadow on Warm Cream #FFF8F0) & Input Fields (#F1E6D8) */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  background-color: var(--kz-card) !important;
+  color: var(--kz-text-primary) !important;
+  border: 1.5px solid rgba(59, 42, 32, 0.2) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--kz-primary) !important;
+  border-color: var(--kz-primary) !important;
+}
+
+/* Range sliders & checkboxes use Saffron / Deep Saffron */
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--kz-primary-dark) !important;
+}
+
+/* 8. Loading Indicators, Toasts & Modals */
+[class*="animate-spin"] {
+  color: var(--kz-primary) !important;
+}
+.kaamzo-suite-modal {
+  background: var(--kz-surface-dark) !important;
+  color: var(--kz-white) !important;
+  border-color: var(--kz-primary) !important;
+}

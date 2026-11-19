@@ -4,7 +4,7 @@
     
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#3B2A20" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -137,28 +137,28 @@
       /* Black / Dark Theme Header & Portal Navbar Suitable Obsidian-Gold Palette */
       html.dark header,
       html.dark #kaamzo-global-header {
-        background: linear-gradient(90deg, #0b0d12 0%, #11141d 55%, #1c1508 100%) !important;
+        background: linear-gradient(90deg, #3B2A20 0%, #3B2A20 55%, #3B2A20 100%) !important;
         border-bottom: 1px solid rgba(245, 158, 11, 0.32) !important;
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.72), inset 0 -1px 0 rgba(245, 158, 11, 0.14) !important;
       }
       html.dark nav,
       html.dark #kaamzo-customer-navbar {
-        background: linear-gradient(180deg, #12151e 0%, #0d0f16 100%) !important;
+        background: linear-gradient(180deg, #3B2A20 0%, #3B2A20 100%) !important;
         border-bottom: 1px solid rgba(245, 158, 11, 0.26) !important;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55) !important;
       }
       html.dark #kaamzo-customer-tabs {
-        background-color: #08090d !important;
+        background-color: #3B2A20 !important;
         border-color: rgba(245, 158, 11, 0.26) !important;
       }
-      html.dark .bg-\[\#FAF7F2\],
-      html.dark .bg-\[\#FAF7F2\]\/95,
-      html.dark .bg-\[\#FDFBF7\] {
-        background-color: #0e1017 !important;
+      html.dark .bg-\[\#FFF8F0\],
+      html.dark .bg-\[\#FFF8F0\]\/95,
+      html.dark .bg-\[\#FFF8F0\] {
+        background-color: #3B2A20 !important;
       }
-      html.dark .bg-\[\#FFFBEB\] {
+      html.dark .bg-\[\#FFF8F0\] {
         background-color: rgba(245, 158, 11, 0.16) !important;
-        color: #fcd33f !important;
+        color: #F57C00 !important;
         border-color: rgba(245, 158, 11, 0.45) !important;
       }
       html.dark header button:not(.bg-amber-500),
@@ -174,10 +174,10 @@
         padding: 24px;
         background: radial-gradient(circle at 92% 12%, rgba(245, 158, 11, 0.24) 0%, transparent 42%),
                     radial-gradient(circle at 12% 88%, rgba(16, 185, 129, 0.12) 0%, transparent 38%),
-                    linear-gradient(135deg, #0B0F19 0%, #111827 52%, #1C1917 100%);
+                    linear-gradient(135deg, #3B2A20 0%, #3B2A20 52%, #3B2A20 100%);
         border: 1px solid rgba(245, 158, 11, 0.35);
         border-radius: 28px;
-        box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        box-shadow: 0 20px 50px -10px rgba(59, 42, 32, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         align-items: stretch;
         max-width: 100%;
         overflow: hidden;
@@ -259,22 +259,22 @@
     <!-- Stitch taste-design & DESIGN.md Token Bridge for /customer & /worker -->
     <style id="kaamzo-stitch-taste-tokens">
       :root {
-        --kaamzo-canvas: #FAF7F2;
+        --kaamzo-canvas: #FFF8F0;
         --kaamzo-surface: #FFFFFF;
-        --kaamzo-ink: #111827;
-        --kaamzo-muted: #64748B;
-        --kaamzo-border: #EDE8E0;
-        --kaamzo-accent: #F59E0B;
-        --kaamzo-verified: #16A34A;
+        --kaamzo-ink: #3B2A20;
+        --kaamzo-muted: #3B2A20;
+        --kaamzo-border: #F1E6D8;
+        --kaamzo-accent: #F57C00;
+        --kaamzo-verified: #2E9E5B;
         --kaamzo-font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         --kaamzo-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
         --kaamzo-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
       }
       html.dark {
-        --kaamzo-canvas: #0B0D12;
-        --kaamzo-surface: #12151E;
-        --kaamzo-ink: #F8FAFC;
-        --kaamzo-muted: #94A3B8;
+        --kaamzo-canvas: #3B2A20;
+        --kaamzo-surface: #3B2A20;
+        --kaamzo-ink: #FFF8F0;
+        --kaamzo-muted: #3B2A20;
         --kaamzo-border: rgba(245, 158, 11, 0.25);
       }
       body, .kaamzo-landing-page, #root > div {
@@ -322,6 +322,8 @@
         }
       }
     </style>
+    <script src="/assets/theme.js"></script>
+    <link rel="stylesheet" href="/assets/theme.css">
     <script src="/assets/kaamzo-translator.js" defer></script>
     <script type="module" crossorigin src="/assets/index-v30.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
@@ -356,7 +358,7 @@
 
       #root div[class*="rounded-3xl"][class*="bg-white"],
       #root div[class*="rounded-2xl"][class*="bg-white"] {
-        box-shadow: 0 6px 24px -6px rgba(15, 23, 42, 0.07), 0 1px 4px rgba(15, 23, 42, 0.03) !important;
+        box-shadow: 0 6px 24px -6px rgba(59, 42, 32, 0.07), 0 1px 4px rgba(59, 42, 32, 0.03) !important;
       }
 
       html.dark #root div[class*="rounded-3xl"][class*="border"],
@@ -484,8 +486,8 @@
       body.kaamzo-audio-active button:not(.kaamzo-ui-ignore),
       body.kaamzo-audio-active .kaamzo-word {
         background-color: rgba(245, 158, 11, 0.28) !important;
-        color: #7c2d12 !important;
-        outline: 1.5px dashed #f59e0b !important;
+        color: #C94B00 !important;
+        outline: 1.5px dashed #F57C00 !important;
         border-radius: 4px !important;
         cursor: pointer !important;
         transition: background-color 0.15s ease, outline-color 0.15s ease, transform 0.15s ease !important;
@@ -505,8 +507,8 @@
       body.kaamzo-audio-active.dark button:not(.kaamzo-ui-ignore),
       body.kaamzo-audio-active.dark .kaamzo-word {
         background-color: rgba(245, 158, 11, 0.35) !important;
-        color: #fef3c7 !important;
-        outline: 1.5px dashed #f59e0b !important;
+        color: #F1E6D8 !important;
+        outline: 1.5px dashed #F57C00 !important;
       }
 
       /* Hover highlight */
@@ -518,19 +520,19 @@
       body.kaamzo-audio-active span:not(.kaamzo-ui-ignore):hover,
       body.kaamzo-audio-active .kaamzo-word:hover {
         background-color: rgba(245, 158, 11, 0.55) !important;
-        outline: 2px solid #ea580c !important;
+        outline: 2px solid #C94B00 !important;
       }
 
-      /* Spoken word turns High-Contrast Cobalt Blue (#1d4ed8) with crisp white text for maximum contrast on orange */
+      /* Spoken word turns High-Contrast Cobalt Blue (#3B2A20) with crisp white text for maximum contrast on orange */
       .kaamzo-spoken-word-active,
       html body.kaamzo-audio-active .kaamzo-spoken-word-active,
       html body.kaamzo-audio-active.dark .kaamzo-spoken-word-active,
       html body.kaamzo-audio-active span.kaamzo-word.kaamzo-spoken-word-active,
       html body.kaamzo-audio-active.dark span.kaamzo-word.kaamzo-spoken-word-active {
-        background-color: #1d4ed8 !important;
+        background-color: #3B2A20 !important;
         color: #ffffff !important;
         outline: 2.5px solid #ffffff !important;
-        box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.85), 0 6px 20px rgba(37, 99, 235, 0.95) !important;
+        box-shadow: 0 0 0 4px rgba(201, 75, 0, 0.85), 0 6px 20px rgba(201, 75, 0, 0.95) !important;
         border-radius: 5px !important;
         padding: 1px 5px !important;
         transform: scale(1.1) !important;
@@ -543,9 +545,9 @@
 
       /* Header active audio button glow */
       .kaamzo-header-audio-active {
-        background: #f59e0b !important;
-        color: #0f172a !important;
-        border-color: #d97706 !important;
+        background: #F57C00 !important;
+        color: #3B2A20 !important;
+        border-color: #C94B00 !important;
         box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
         animation: pulse-audio 2s infinite !important;
       }
@@ -564,8 +566,8 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        background: rgba(15, 23, 42, 0.96);
-        border: 2px solid #f59e0b;
+        background: rgba(59, 42, 32, 0.96);
+        border: 2px solid #F57C00;
         border-radius: 999px;
         padding: 8px 18px;
         box-shadow: 0 16px 40px rgba(0,0,0,0.55);
@@ -584,15 +586,15 @@
     <div id="kaamzo-audio-toolbar" class="kaamzo-ui-ignore" role="region" aria-label="Audio Reader Controls">
       <div class="kaamzo-ui-ignore" style="display:flex;align-items:center;gap:6px;">
         <span class="kaamzo-ui-ignore" style="font-size:16px;">🔊</span>
-        <span class="kaamzo-ui-ignore" style="font-size:12px;font-weight:900;color:#fbbf24;letter-spacing:0.02em;">AUDIO READER</span>
+        <span class="kaamzo-ui-ignore" style="font-size:12px;font-weight:900;color:#F57C00;letter-spacing:0.02em;">AUDIO READER</span>
       </div>
-      <div id="kaamzo-audio-status" class="kaamzo-ui-ignore" style="font-size:11px;color:#cbd5e1;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;">
+      <div id="kaamzo-audio-status" class="kaamzo-ui-ignore" style="font-size:11px;color:#F1E6D8;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;">
         Click any text/word to listen
       </div>
-      <button id="kaamzo-audio-stop-btn" type="button" onclick="window.kaamzoStopAudio()" class="kaamzo-ui-ignore" style="background:#ef4444;color:#ffffff;border:none;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(239,68,68,0.5);transition:transform 0.15s;" title="Stop playing audio">
+      <button id="kaamzo-audio-stop-btn" type="button" onclick="window.kaamzoStopAudio()" class="kaamzo-ui-ignore" style="background:#C62828;color:#ffffff;border:none;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(239,68,68,0.5);transition:transform 0.15s;" title="Stop playing audio">
         <span class="kaamzo-ui-ignore">⏹</span> Stop Audio
       </button>
-      <button id="kaamzo-audio-exit-btn" type="button" onclick="window.kaamzoToggleAudioReader(false)" class="kaamzo-ui-ignore" style="background:rgba(255,255,255,0.15);color:#cbd5e1;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;" title="Exit Audio Mode">
+      <button id="kaamzo-audio-exit-btn" type="button" onclick="window.kaamzoToggleAudioReader(false)" class="kaamzo-ui-ignore" style="background:rgba(255,255,255,0.15);color:#F1E6D8;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;" title="Exit Audio Mode">
         ✕ Exit
       </button>
     </div>
@@ -1086,7 +1088,7 @@
         position: fixed;
         inset: 0;
         z-index: 99995;
-        background: rgba(2, 6, 23, 0.82);
+        background: rgba(59, 42, 32, 0.82);
         backdrop-filter: blur(8px);
         display: none;
         align-items: center;
@@ -1102,8 +1104,8 @@
         max-width: 620px;
         max-height: 90vh;
         overflow-y: auto;
-        background: #0f172a;
-        color: #f8fafc;
+        background: #3B2A20;
+        color: #FFF8F0;
         border: 1px solid rgba(249, 115, 22, 0.4);
         border-radius: 24px;
         padding: 22px;
@@ -1129,8 +1131,8 @@
           left: 20px !important;
           top: 20px !important;
           width: calc(100% - 40px) !important;
-          background: #0f172a !important;
-          color: #f8fafc !important;
+          background: #3B2A20 !important;
+          color: #FFF8F0 !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
@@ -1145,37 +1147,37 @@
       <div class="kaamzo-suite-modal kaamzo-ui-ignore">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
-            <span style="background:rgba(249,115,22,0.18);color:#fb923c;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">UBER-STYLE LIVE JOB TRACKER</span>
+            <span style="background:rgba(249,115,22,0.18);color:#F57C00;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">UBER-STYLE LIVE JOB TRACKER</span>
             <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">📍 Live Worker ETA &amp; Digital Attendance</h3>
           </div>
-          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#3B2A20;color:#F1E6D8;border:1px solid #3B2A20;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
         </div>
 
         <!-- Assigned Worker & Live Route Card -->
-        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;margin-bottom:14px;">
+        <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:16px;padding:14px;margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;">GS</div>
+              <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#F57C00,#C94B00);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;">GS</div>
               <div>
                 <div id="kaamzo-tracker-worker-name" style="font-weight:800;font-size:16px;color:#fff;">Gurpreet Singh (Master Electrician)</div>
-                <div style="font-size:12px;color:#94a3b8;">Aadhaar KYC Verified • 4.9 ★ (142 Jobs) • Vehicle: PB-10-EX-4821</div>
+                <div style="font-size:12px;color:#3B2A20;">Aadhaar KYC Verified • 4.9 ★ (142 Jobs) • Vehicle: PB-10-EX-4821</div>
               </div>
             </div>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=Model+Town+Ludhiana+Punjab" target="_blank" rel="noopener noreferrer" style="background:#2563eb;color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=Model+Town+Ludhiana+Punjab" target="_blank" rel="noopener noreferrer" style="background:#3B2A20;color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;">
               🗺️ Open Google Maps Route
             </a>
           </div>
 
           <!-- Simulated Live GPS Map Radar Bar -->
-          <div style="margin-top:14px;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:12px;">
+          <div style="margin-top:14px;background:#3B2A20;border:1px solid #3B2A20;border-radius:12px;padding:12px;">
             <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:8px;">
-              <span id="kaamzo-tracker-status-pill" style="color:#38bdf8;">🛵 En Route to Doorstep (1.2 km away)</span>
-              <span id="kaamzo-tracker-eta-pill" style="color:#4ade80;">ETA: ~5 mins • Model Town, Ludhiana</span>
+              <span id="kaamzo-tracker-status-pill" style="color:#F57C00;">🛵 En Route to Doorstep (1.2 km away)</span>
+              <span id="kaamzo-tracker-eta-pill" style="color:#2E9E5B;">ETA: ~5 mins • Model Town, Ludhiana</span>
             </div>
-            <div style="width:100%;height:10px;background:#1e293b;border-radius:999px;overflow:hidden;">
-              <div id="kaamzo-tracker-progress-bar" style="width:68%;height:100%;background:linear-gradient(90deg,#f97316,#22c55e);transition:width 0.4s ease;"></div>
+            <div style="width:100%;height:10px;background:#3B2A20;border-radius:999px;overflow:hidden;">
+              <div id="kaamzo-tracker-progress-bar" style="width:68%;height:100%;background:linear-gradient(90deg,#F57C00,#2E9E5B);transition:width 0.4s ease;"></div>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-top:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#3B2A20;margin-top:6px;">
               <span>Worker Dispatched</span>
               <span>1.2 km Live GPS</span>
               <span>Doorstep Arrival</span>
@@ -1186,47 +1188,47 @@
 
         <!-- Digital Attendance Clock & UPI Escrow Status -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px;">
-          <div style="background:#020617;border:1px solid rgba(56,189,248,0.35);border-radius:16px;padding:14px;text-align:center;">
-            <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;">Digital Attendance Timer</div>
-            <div id="kaamzo-live-timer-display" style="font-size:32px;font-weight:900;font-family:monospace;color:#38bdf8;margin:6px 0;">00:00:00</div>
-            <div id="kaamzo-live-timer-sub" style="font-size:12px;color:#cbd5e1;">Waiting for 4-Digit Start OTP at doorstep</div>
+          <div style="background:#3B2A20;border:1px solid rgba(201, 75, 0,0.35);border-radius:16px;padding:14px;text-align:center;">
+            <div style="font-size:11px;font-weight:800;color:#3B2A20;text-transform:uppercase;">Digital Attendance Timer</div>
+            <div id="kaamzo-live-timer-display" style="font-size:32px;font-weight:900;font-family:monospace;color:#F57C00;margin:6px 0;">00:00:00</div>
+            <div id="kaamzo-live-timer-sub" style="font-size:12px;color:#F1E6D8;">Waiting for 4-Digit Start OTP at doorstep</div>
           </div>
-          <div style="background:#020617;border:1px solid rgba(34,197,94,0.35);border-radius:16px;padding:14px;text-align:center;">
-            <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;">UPI Escrow Protection</div>
-            <div id="kaamzo-escrow-amount-display" style="font-size:26px;font-weight:900;color:#4ade80;margin:8px 0;">₹850 Locked</div>
-            <div id="kaamzo-escrow-state-badge" style="font-size:12px;color:#fbbf24;font-weight:700;">🔒 Held Safely in Kaamzo Escrow</div>
+          <div style="background:#3B2A20;border:1px solid rgba(34,197,94,0.35);border-radius:16px;padding:14px;text-align:center;">
+            <div style="font-size:11px;font-weight:800;color:#3B2A20;text-transform:uppercase;">UPI Escrow Protection</div>
+            <div id="kaamzo-escrow-amount-display" style="font-size:26px;font-weight:900;color:#2E9E5B;margin:8px 0;">₹850 Locked</div>
+            <div id="kaamzo-escrow-state-badge" style="font-size:12px;color:#F57C00;font-weight:700;">🔒 Held Safely in Kaamzo Escrow</div>
           </div>
         </div>
 
         <!-- Start / End Work 4-Digit OTP Verification -->
-        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;">
+        <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:16px;padding:14px;">
           <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;">🔐 Doorstep Start / End Work OTP Verification</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
             <!-- Start Work OTP Box -->
-            <div style="background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;">
+            <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:12px;padding:12px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:800;color:#fb923c;">1. Start Work OTP</span>
-                <span style="font-size:11px;background:#1e293b;color:#38bdf8;padding:2px 8px;border-radius:6px;font-weight:800;">Customer Pin: 4821</span>
+                <span style="font-size:12px;font-weight:800;color:#F57C00;">1. Start Work OTP</span>
+                <span style="font-size:11px;background:#3B2A20;color:#F57C00;padding:2px 8px;border-radius:6px;font-weight:800;">Customer Pin: 4821</span>
               </div>
               <div style="display:flex;gap:8px;">
-                <input id="kaamzo-start-otp-input" type="text" maxlength="4" value="4821" placeholder="4821" style="width:100%;background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:900;letter-spacing:4px;text-align:center;" />
-                <button type="button" onclick="window.kaamzoVerifyStartWorkOtp()" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">▶ Start Timer</button>
+                <input id="kaamzo-start-otp-input" type="text" maxlength="4" value="4821" placeholder="4821" style="width:100%;background:#3B2A20;border:1px solid #222222;color:#fff;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:900;letter-spacing:4px;text-align:center;" />
+                <button type="button" onclick="window.kaamzoVerifyStartWorkOtp()" style="background:#F57C00;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">▶ Start Timer</button>
               </div>
             </div>
 
             <!-- End Work OTP Box -->
-            <div style="background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;">
+            <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:12px;padding:12px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:800;color:#4ade80;">2. End Work OTP</span>
-                <span style="font-size:11px;background:#1e293b;color:#4ade80;padding:2px 8px;border-radius:6px;font-weight:800;">Release Pin: 9304</span>
+                <span style="font-size:12px;font-weight:800;color:#2E9E5B;">2. End Work OTP</span>
+                <span style="font-size:11px;background:#3B2A20;color:#2E9E5B;padding:2px 8px;border-radius:6px;font-weight:800;">Release Pin: 9304</span>
               </div>
               <div style="display:flex;gap:8px;">
-                <input id="kaamzo-end-otp-input" type="text" maxlength="4" value="9304" placeholder="9304" style="width:100%;background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:900;letter-spacing:4px;text-align:center;" />
-                <button type="button" onclick="window.kaamzoVerifyEndWorkOtp()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">✓ Complete &amp; Pay</button>
+                <input id="kaamzo-end-otp-input" type="text" maxlength="4" value="9304" placeholder="9304" style="width:100%;background:#3B2A20;border:1px solid #222222;color:#fff;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:900;letter-spacing:4px;text-align:center;" />
+                <button type="button" onclick="window.kaamzoVerifyEndWorkOtp()" style="background:#2E9E5B;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">✓ Complete &amp; Pay</button>
               </div>
             </div>
           </div>
-          <div id="kaamzo-otp-feedback-banner" style="margin-top:10px;font-size:12px;color:#94a3b8;">
+          <div id="kaamzo-otp-feedback-banner" style="margin-top:10px;font-size:12px;color:#3B2A20;">
             💡 Enter the 4-digit Start OTP when the worker arrives to start the attendance clock, and End OTP when finished to release UPI Escrow.
           </div>
         </div>
@@ -1238,82 +1240,82 @@
       <div class="kaamzo-suite-modal kaamzo-ui-ignore">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
-            <span style="background:rgba(56,189,248,0.18);color:#38bdf8;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">REPEAT &amp; TEAM HIRING</span>
+            <span style="background:rgba(201, 75, 0,0.18);color:#F57C00;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">REPEAT &amp; TEAM HIRING</span>
             <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">👷‍♂️ 1-Tap Rebook &amp; Multi-Worker Crew Mode</h3>
           </div>
-          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#3B2A20;color:#F1E6D8;border:1px solid #3B2A20;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
         </div>
 
         <!-- Section A: 1-Tap Rebook Trusted Workers -->
-        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;margin-bottom:16px;">
+        <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:16px;padding:14px;margin-bottom:16px;">
           <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:4px;">⚡ 1-Tap Rebook Your Trusted Past Workers</div>
-          <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">Had a great experience? Rebook your verified pros immediately without searching again.</div>
+          <div style="font-size:12px;color:#3B2A20;margin-bottom:10px;">Had a great experience? Rebook your verified pros immediately without searching again.</div>
 
           <div style="display:flex;flex-direction:column;gap:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:10px 12px;border-radius:12px;border:1px solid #334155;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#3B2A20;padding:10px 12px;border-radius:12px;border:1px solid #3B2A20;gap:8px;flex-wrap:wrap;">
               <div>
                 <div style="font-weight:800;font-size:14px;color:#fff;">Gurpreet Singh • Master Electrician</div>
-                <div style="font-size:11px;color:#94a3b8;">Last Job: MCB Panel &amp; Wiring (₹850/day) • Rated 5.0 ★ by you</div>
+                <div style="font-size:11px;color:#3B2A20;">Last Job: MCB Panel &amp; Wiring (₹850/day) • Rated 5.0 ★ by you</div>
               </div>
-              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Gurpreet Singh (Master Electrician)', 850)" style="background:#f97316;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
+              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Gurpreet Singh (Master Electrician)', 850)" style="background:#F57C00;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:10px 12px;border-radius:12px;border:1px solid #334155;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#3B2A20;padding:10px 12px;border-radius:12px;border:1px solid #3B2A20;gap:8px;flex-wrap:wrap;">
               <div>
                 <div style="font-weight:800;font-size:14px;color:#fff;">Rajesh Kumar • Senior Rajmistri (Mason)</div>
-                <div style="font-size:11px;color:#94a3b8;">Last Job: Terrace Waterproofing &amp; Plaster (₹850/day) • Rated 4.9 ★</div>
+                <div style="font-size:11px;color:#3B2A20;">Last Job: Terrace Waterproofing &amp; Plaster (₹850/day) • Rated 4.9 ★</div>
               </div>
-              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Rajesh Kumar (Senior Mason)', 850)" style="background:#f97316;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
+              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Rajesh Kumar (Senior Mason)', 850)" style="background:#F57C00;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:10px 12px;border-radius:12px;border:1px solid #334155;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#3B2A20;padding:10px 12px;border-radius:12px;border:1px solid #3B2A20;gap:8px;flex-wrap:wrap;">
               <div>
                 <div style="font-weight:800;font-size:14px;color:#fff;">Harjinder Singh • Plumber &amp; Sanitary Expert</div>
-                <div style="font-size:11px;color:#94a3b8;">Last Job: Overhead Tank &amp; Motor Fitting (₹800/day) • Rated 4.9 ★</div>
+                <div style="font-size:11px;color:#3B2A20;">Last Job: Overhead Tank &amp; Motor Fitting (₹800/day) • Rated 4.9 ★</div>
               </div>
-              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Harjinder Singh (Plumber)', 800)" style="background:#f97316;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
+              <button type="button" onclick="window.kaamzoTriggerOneTapRebook('Harjinder Singh (Plumber)', 800)" style="background:#F57C00;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">⚡ Book Again</button>
             </div>
           </div>
         </div>
 
         <!-- Section B: Multi-Worker Crew Builder -->
-        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;">
+        <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:16px;padding:14px;">
           <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:4px;">🏗️ Multi-Worker Crew Mode (Book a Full Team in 1 Broadcast)</div>
-          <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Select how many workers you need per trade and the number of days for an instant combined wage estimate.</div>
+          <div style="font-size:12px;color:#3B2A20;margin-bottom:12px;">Select how many workers you need per trade and the number of days for an instant combined wage estimate.</div>
 
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px;">
-            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
-              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">🧱 Masons (₹850/day)</label>
-              <input id="kaamzo-crew-mason" type="number" min="0" max="20" value="1" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:8px;padding:7px 10px;font-weight:800;" />
+            <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#F1E6D8;display:block;margin-bottom:6px;">🧱 Masons (₹850/day)</label>
+              <input id="kaamzo-crew-mason" type="number" min="0" max="20" value="1" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#3B2A20;color:#fff;border:1px solid #222222;border-radius:8px;padding:7px 10px;font-weight:800;" />
             </div>
-            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
-              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">💪 Helpers (₹600/day)</label>
-              <input id="kaamzo-crew-helper" type="number" min="0" max="30" value="2" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:8px;padding:7px 10px;font-weight:800;" />
+            <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#F1E6D8;display:block;margin-bottom:6px;">💪 Helpers (₹600/day)</label>
+              <input id="kaamzo-crew-helper" type="number" min="0" max="30" value="2" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#3B2A20;color:#fff;border:1px solid #222222;border-radius:8px;padding:7px 10px;font-weight:800;" />
             </div>
-            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
-              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">⚡ Electricians (₹900/day)</label>
-              <input id="kaamzo-crew-elec" type="number" min="0" max="15" value="0" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:8px;padding:7px 10px;font-weight:800;" />
+            <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#F1E6D8;display:block;margin-bottom:6px;">⚡ Electricians (₹900/day)</label>
+              <input id="kaamzo-crew-elec" type="number" min="0" max="15" value="0" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#3B2A20;color:#fff;border:1px solid #222222;border-radius:8px;padding:7px 10px;font-weight:800;" />
             </div>
-            <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;">
-              <label style="font-size:12px;font-weight:800;color:#e2e8f0;display:block;margin-bottom:6px;">📅 Duration (Days)</label>
-              <input id="kaamzo-crew-days" type="number" min="1" max="30" value="3" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#1e293b;color:#fb923c;border:1px solid #f97316;border-radius:8px;padding:7px 10px;font-weight:900;" />
+            <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:10px;padding:10px;">
+              <label style="font-size:12px;font-weight:800;color:#F1E6D8;display:block;margin-bottom:6px;">📅 Duration (Days)</label>
+              <input id="kaamzo-crew-days" type="number" min="1" max="30" value="3" onchange="window.kaamzoUpdateCrewEstimate()" oninput="window.kaamzoUpdateCrewEstimate()" style="width:100%;background:#3B2A20;color:#F57C00;border:1px solid #F57C00;border-radius:8px;padding:7px 10px;font-weight:900;" />
             </div>
           </div>
 
-          <div style="background:#020617;border:1px solid rgba(249,115,22,0.4);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="background:#3B2A20;border:1px solid rgba(249,115,22,0.4);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
             <div>
               <div id="kaamzo-crew-summary-text" style="font-size:13px;font-weight:800;color:#fff;">Crew: 1 Mason + 2 Helpers for 3 Days (3 Workers)</div>
-              <div id="kaamzo-crew-daily-text" style="font-size:11px;color:#94a3b8;">Combined Daily Wage: ₹2,050/day • Escrow Verified</div>
+              <div id="kaamzo-crew-daily-text" style="font-size:11px;color:#3B2A20;">Combined Daily Wage: ₹2,050/day • Escrow Verified</div>
             </div>
             <div style="text-align:right;">
-              <div id="kaamzo-crew-total-price" style="font-size:22px;font-weight:900;color:#4ade80;">₹6,150 Total</div>
+              <div id="kaamzo-crew-total-price" style="font-size:22px;font-weight:900;color:#2E9E5B;">₹6,150 Total</div>
             </div>
           </div>
 
-          <button type="button" onclick="window.kaamzoBroadcastCrewJob()" style="margin-top:12px;width:100%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;">
+          <button type="button" onclick="window.kaamzoBroadcastCrewJob()" style="margin-top:12px;width:100%;background:linear-gradient(135deg,#F57C00,#C94B00);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;">
             📡 Broadcast Multi-Worker Crew Job (10km Radar)
           </button>
-          <div id="kaamzo-crew-feedback" style="margin-top:8px;font-size:12px;color:#4ade80;font-weight:700;display:none;"></div>
+          <div id="kaamzo-crew-feedback" style="margin-top:8px;font-size:12px;color:#2E9E5B;font-weight:700;display:none;"></div>
         </div>
       </div>
     </div>
@@ -1323,94 +1325,94 @@
       <div class="kaamzo-suite-modal kaamzo-ui-ignore">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
-            <span style="background:rgba(34,197,94,0.18);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">WORKER EARNINGS &amp; GATE-PASS ID • 🔒 AES-256-GCM</span>
+            <span style="background:rgba(34,197,94,0.18);color:#2E9E5B;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;">WORKER EARNINGS &amp; GATE-PASS ID • 🔒 AES-256-GCM</span>
             <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">📒 Worker Digital Khata &amp; Society Gate-Pass</h3>
           </div>
-          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#3B2A20;color:#F1E6D8;border:1px solid #3B2A20;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
         </div>
 
         <!-- Earnings Summary Cards -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-          <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#94a3b8;font-weight:700;">WITHDRAWABLE</div>
-            <div id="kaamzo-khata-today" style="font-size:22px;font-weight:900;color:#4ade80;margin-top:4px;">₹850</div>
-            <div id="kaamzo-khata-today-sub" style="font-size:10px;color:#64748b;">Ready for UPI Payout</div>
+          <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:14px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#3B2A20;font-weight:700;">WITHDRAWABLE</div>
+            <div id="kaamzo-khata-today" style="font-size:22px;font-weight:900;color:#2E9E5B;margin-top:4px;">₹850</div>
+            <div id="kaamzo-khata-today-sub" style="font-size:10px;color:#3B2A20;">Ready for UPI Payout</div>
           </div>
-          <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#94a3b8;font-weight:700;">ESCROW PENDING</div>
-            <div id="kaamzo-khata-escrow" style="font-size:22px;font-weight:900;color:#fbbf24;margin-top:4px;">₹850</div>
-            <div style="font-size:10px;color:#64748b;">Releases on End OTP</div>
+          <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:14px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#3B2A20;font-weight:700;">ESCROW PENDING</div>
+            <div id="kaamzo-khata-escrow" style="font-size:22px;font-weight:900;color:#F57C00;margin-top:4px;">₹850</div>
+            <div style="font-size:10px;color:#3B2A20;">Releases on End OTP</div>
           </div>
-          <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#94a3b8;font-weight:700;">WEEKLY TOTAL</div>
-            <div id="kaamzo-khata-weekly" style="font-size:22px;font-weight:900;color:#38bdf8;margin-top:4px;">₹6,450</div>
-            <div style="font-size:10px;color:#64748b;">80% Net Payout (20% Fee)</div>
+          <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:14px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#3B2A20;font-weight:700;">WEEKLY TOTAL</div>
+            <div id="kaamzo-khata-weekly" style="font-size:22px;font-weight:900;color:#F57C00;margin-top:4px;">₹6,450</div>
+            <div style="font-size:10px;color:#3B2A20;">80% Net Payout (20% Fee)</div>
           </div>
         </div>
 
         <!-- Instant UPI Payout Bar + Inline UPI & Profile Editor -->
-        <div style="background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;">
+        <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:14px;padding:12px;margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
             <div>
-              <div style="font-size:13px;font-weight:800;color:#fff;">🏦 Linked UPI ID: <span id="kaamzo-khata-upi-display" style="color:#4ade80;">gurpreet.kaamzo@okaxis</span></div>
-              <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#94a3b8;">Transparent 20% platform fee • 80% net daily wage settled via UPI</div>
+              <div style="font-size:13px;font-weight:800;color:#fff;">🏦 Linked UPI ID: <span id="kaamzo-khata-upi-display" style="color:#2E9E5B;">gurpreet.kaamzo@okaxis</span></div>
+              <div id="kaamzo-khata-payout-status" style="font-size:11px;color:#3B2A20;">Transparent 20% platform fee • 80% net daily wage settled via UPI</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button type="button" onclick="window.kaamzoToggleKhataEdit()" style="background:#1e293b;color:#cbd5e1;border:1px solid #475569;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">
+              <button type="button" onclick="window.kaamzoToggleKhataEdit()" style="background:#3B2A20;color:#F1E6D8;border:1px solid #222222;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">
                 ✏️ Edit UPI / Profile
               </button>
-              <button id="kaamzo-khata-withdraw-btn" type="button" onclick="window.kaamzoWithdrawKhataUpi()" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+              <button id="kaamzo-khata-withdraw-btn" type="button" onclick="window.kaamzoWithdrawKhataUpi()" style="background:#2E9E5B;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">
                 ⚡ Withdraw to UPI
               </button>
             </div>
           </div>
 
-          <div id="kaamzo-khata-edit-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
-            <input id="kaamzo-edit-worker-name" type="text" placeholder="Full Name" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
-            <input id="kaamzo-edit-worker-trade" type="text" placeholder="Primary Trade" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
-            <input id="kaamzo-edit-worker-upi" type="text" placeholder="yourname@okaxis" style="background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
-            <button type="button" onclick="window.kaamzoSaveKhataProfile()" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;">
+          <div id="kaamzo-khata-edit-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #3B2A20;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
+            <input id="kaamzo-edit-worker-name" type="text" placeholder="Full Name" style="background:#3B2A20;border:1px solid #222222;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <input id="kaamzo-edit-worker-trade" type="text" placeholder="Primary Trade" style="background:#3B2A20;border:1px solid #222222;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <input id="kaamzo-edit-worker-upi" type="text" placeholder="yourname@okaxis" style="background:#3B2A20;border:1px solid #222222;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;" />
+            <button type="button" onclick="window.kaamzoSaveKhataProfile()" style="background:#F57C00;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;">
               💾 Save Details
             </button>
           </div>
         </div>
 
         <!-- Recent Khata Transaction Ledger -->
-        <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;">
+        <div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:14px;padding:12px;margin-bottom:14px;">
           <div style="font-size:12px;font-weight:800;color:#fff;margin-bottom:8px;">📜 Recent Khata Ledger (Escrow &amp; Payouts)</div>
           <div id="kaamzo-khata-ledger-list" style="display:flex;flex-direction:column;gap:6px;max-height:130px;overflow-y:auto;font-size:11px;"></div>
         </div>
 
         <!-- Verified Work Certificate & Digital Gate-Pass ID Card -->
-        <div id="kaamzo-gatepass-card" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:2px solid #f97316;border-radius:18px;padding:16px;position:relative;">
-          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;padding-bottom:10px;margin-bottom:12px;">
+        <div id="kaamzo-gatepass-card" style="background:linear-gradient(135deg,#3B2A20 0%,#3B2A20 100%);border:2px solid #F57C00;border-radius:18px;padding:16px;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3B2A20;padding-bottom:10px;margin-bottom:12px;">
             <div>
-              <div style="font-size:15px;font-weight:900;color:#f97316;letter-spacing:0.04em;">KAAMZO VERIFIED GATE-PASS &amp; WORK ID</div>
-              <div style="font-size:11px;color:#cbd5e1;">Authorized for Housing Societies, RWA Gates &amp; Commercial Sites</div>
+              <div style="font-size:15px;font-weight:900;color:#F57C00;letter-spacing:0.04em;">KAAMZO VERIFIED GATE-PASS &amp; WORK ID</div>
+              <div style="font-size:11px;color:#F1E6D8;">Authorized for Housing Societies, RWA Gates &amp; Commercial Sites</div>
             </div>
-            <span style="background:#16a34a;color:#fff;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:900;">✓ KYC VERIFIED</span>
+            <span style="background:#2E9E5B;color:#fff;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:900;">✓ KYC VERIFIED</span>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;">
-            <div style="font-size:12px;line-height:1.7;color:#e2e8f0;">
+            <div style="font-size:12px;line-height:1.7;color:#F1E6D8;">
               <div><strong>Worker Name:</strong> <span id="kaamzo-gp-name">Gurpreet Singh</span></div>
               <div><strong>Primary Trade:</strong> <span id="kaamzo-gp-trade">Master Electrician &amp; Appliance Pro</span></div>
-              <div><strong>Kaamzo Badge ID:</strong> <span id="kaamzo-gp-badge" style="color:#38bdf8;font-weight:800;">KMZ-LDH-2026-8841</span></div>
+              <div><strong>Kaamzo Badge ID:</strong> <span id="kaamzo-gp-badge" style="color:#F57C00;font-weight:800;">KMZ-LDH-2026-8841</span></div>
               <div><strong>Aadhaar &amp; Police KYC:</strong> Verified on File (XXXX-XXXX-4912)</div>
               <div><strong>Track Record:</strong> <span id="kaamzo-gp-jobs">142 Verified Jobs</span> • 4.9 ★ Customer Rating</div>
               <div><strong>Support Helpline:</strong> +91 7888549925 (www.kaamzo.site)</div>
             </div>
             <div style="background:#fff;padding:8px;border-radius:12px;text-align:center;">
               <img id="kaamzo-gp-qr-img" crossorigin="anonymous" src="https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=https://www.kaamzo.site/?verify=KMZ-LDH-2026-8841" alt="Kaamzo Gate Pass QR" width="88" height="88" style="display:block;border-radius:6px;" />
-              <div style="font-size:9px;font-weight:900;color:#0f172a;margin-top:4px;">SCAN AT GATE</div>
+              <div style="font-size:9px;font-weight:900;color:#3B2A20;margin-top:4px;">SCAN AT GATE</div>
             </div>
           </div>
 
           <div class="kaamzo-no-print" style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-            <button type="button" onclick="window.kaamzoDownloadGatePassImage()" style="flex:1;background:#f97316;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+            <button type="button" onclick="window.kaamzoDownloadGatePassImage()" style="flex:1;background:#F57C00;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
               📥 Download Gate-Pass ID (PNG w/ QR)
             </button>
-            <button type="button" onclick="window.print()" style="background:#334155;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
+            <button type="button" onclick="window.print()" style="background:#3B2A20;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;">
               🖨️ Print / Save PDF Card Only
             </button>
           </div>
@@ -1420,39 +1422,39 @@
 
     <!-- MODAL 4: SOS / SAFETY CHECK-IN BUTTON -->
     <div id="kaamzo-sos-modal-backdrop" class="kaamzo-suite-backdrop kaamzo-ui-ignore" onclick="if(event.target===this)window.kaamzoCloseAllSuiteModals()">
-      <div class="kaamzo-suite-modal kaamzo-ui-ignore" style="border-color:#ef4444;">
+      <div class="kaamzo-suite-modal kaamzo-ui-ignore" style="border-color:#C62828;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
-            <span style="background:rgba(239,68,68,0.2);color:#f87171;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:900;">24×7 EMERGENCY &amp; LIVE GPS SAFETY SHIELD</span>
+            <span style="background:rgba(239,68,68,0.2);color:#C62828;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:900;">24×7 EMERGENCY &amp; LIVE GPS SAFETY SHIELD</span>
             <h3 style="margin:6px 0 0;font-size:20px;font-weight:900;color:#fff;">🚨 SOS / Active Job Safety Check-In</h3>
           </div>
-          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
+          <button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#3B2A20;color:#F1E6D8;border:1px solid #3B2A20;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>
         </div>
 
         <div style="background:rgba(220,38,38,0.12);border:1px solid rgba(239,68,68,0.45);border-radius:16px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:800;color:#fca5a5;margin-bottom:6px;">📍 Live GPS Coordinates Locked for Customer &amp; Worker Safety</div>
-          <div id="kaamzo-sos-gps-readout" style="font-size:13px;font-family:monospace;color:#fff;background:#020617;padding:10px;border-radius:10px;border:1px solid #334155;">
+          <div style="font-size:13px;font-weight:800;color:#C62828;margin-bottom:6px;">📍 Live GPS Coordinates Locked for Customer &amp; Worker Safety</div>
+          <div id="kaamzo-sos-gps-readout" style="font-size:13px;font-family:monospace;color:#fff;background:#3B2A20;padding:10px;border-radius:10px;border:1px solid #3B2A20;">
             Locating live GPS... (Ludhiana Grid: 30.9010° N, 75.8573° E)
           </div>
-          <div style="font-size:11px;color:#cbd5e1;margin-top:8px;">
+          <div style="font-size:11px;color:#F1E6D8;margin-top:8px;">
             Every SOS check-in is immediately recorded in the Kaamzo Admin Security Audit Vault and can be dispatched to Kaamzo Rapid Support (+91 7888549925) with your live Google Maps pin.
           </div>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:12px;">
-          <button type="button" onclick="window.kaamzoSendSosWhatsApp('EMERGENCY_SOS')" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:1px solid #f87171;border-radius:12px;padding:13px;font-size:13px;font-weight:900;cursor:pointer;">
+          <button type="button" onclick="window.kaamzoSendSosWhatsApp('EMERGENCY_SOS')" style="background:linear-gradient(135deg,#C62828,#C62828);color:#fff;border:1px solid #C62828;border-radius:12px;padding:13px;font-size:13px;font-weight:900;cursor:pointer;">
             🚨 Share Live GPS on WhatsApp (+91 7888549925)
           </button>
-          <button type="button" onclick="window.kaamzoSendSosWhatsApp('SAFE_CHECKIN')" style="background:#1e293b;color:#4ade80;border:1px solid #22c55e;border-radius:12px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;">
+          <button type="button" onclick="window.kaamzoSendSosWhatsApp('SAFE_CHECKIN')" style="background:#3B2A20;color:#2E9E5B;border:1px solid #2E9E5B;border-radius:12px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;">
             ✅ I Am Safe — Log Active Job Check-In
           </button>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;background:#1e293b;padding:12px;border-radius:12px;flex-wrap:wrap;gap:8px;">
-          <span style="font-size:12px;color:#cbd5e1;font-weight:700;">Need Police / Ambulance Emergency Response?</span>
-          <a href="tel:112" style="background:#ef4444;color:#fff;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:900;">📞 Dial 112 Emergency</a>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#3B2A20;padding:12px;border-radius:12px;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;color:#F1E6D8;font-weight:700;">Need Police / Ambulance Emergency Response?</span>
+          <a href="tel:112" style="background:#C62828;color:#fff;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:900;">📞 Dial 112 Emergency</a>
         </div>
-        <div id="kaamzo-sos-feedback" style="margin-top:10px;font-size:12px;color:#4ade80;font-weight:700;display:none;"></div>
+        <div id="kaamzo-sos-feedback" style="margin-top:10px;font-size:12px;color:#2E9E5B;font-weight:700;display:none;"></div>
       </div>
     </div>
 
@@ -1526,7 +1528,7 @@
           if (prog) prog.style.width = "88%";
           if (sub) sub.textContent = "🟢 Live Attendance Logging • Verified via Start OTP " + code;
           if (fb) {
-            fb.style.color = "#4ade80";
+            fb.style.color = "#2E9E5B";
             fb.textContent = "✅ Start Work OTP (" + code + ") verified! Digital Attendance Timer is now ticking live.";
           }
           if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
@@ -1559,11 +1561,11 @@
           if (sub) sub.textContent = "✅ Attendance Locked (" + formatHMS(attendanceSeconds) + ")";
           if (escrowAmt) escrowAmt.textContent = "₹850 Released";
           if (escrowBadge) {
-            escrowBadge.style.color = "#4ade80";
+            escrowBadge.style.color = "#2E9E5B";
             escrowBadge.textContent = "✅ Released to Worker UPI (gurpreet.kaamzo@okaxis)";
           }
           if (fb) {
-            fb.style.color = "#4ade80";
+            fb.style.color = "#2E9E5B";
             fb.textContent = "🎉 End Work OTP (" + code + ") verified! Exact work hours logged and ₹850 UPI Escrow released to worker's Digital Khata.";
           }
           // Credit worker's Digital Khata state
@@ -1759,10 +1761,10 @@
             listEl.innerHTML = st.ledger.slice(0, 8).map(function(item) {
               var isCredit = item.type === "CREDIT";
               var isEscrow = item.type === "ESCROW";
-              var color = isCredit ? "#4ade80" : (isEscrow ? "#fbbf24" : "#38bdf8");
+              var color = isCredit ? "#2E9E5B" : (isEscrow ? "#F57C00" : "#F57C00");
               var sign = isCredit ? "+" : (isEscrow ? "🔒 " : "-");
-              return '<div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;padding:7px 10px;border-radius:8px;border:1px solid #334155;">' +
-                '<div><div style="font-weight:700;color:#e2e8f0;">' + item.title + '</div><div style="font-size:10px;color:#64748b;">' + item.time + ' • ' + item.status + '</div></div>' +
+              return '<div style="display:flex;justify-content:space-between;align-items:center;background:#3B2A20;padding:7px 10px;border-radius:8px;border:1px solid #3B2A20;">' +
+                '<div><div style="font-weight:700;color:#F1E6D8;">' + item.title + '</div><div style="font-size:10px;color:#3B2A20;">' + item.time + ' • ' + item.status + '</div></div>' +
                 '<div style="font-weight:900;color:' + color + ';">' + sign + '₹' + Number(item.amount).toLocaleString("en-IN") + '</div>' +
                 '</div>';
             }).join("");
@@ -1795,7 +1797,7 @@
           if (panel) panel.style.display = "none";
           var statusEl = document.getElementById("kaamzo-khata-payout-status");
           if (statusEl) {
-            statusEl.style.color = "#38bdf8";
+            statusEl.style.color = "#F57C00";
             statusEl.textContent = "✅ Profile & UPI ID (" + st.upiId + ") saved for future payouts & Gate-Pass ID.";
           }
         };
@@ -1817,7 +1819,7 @@
           }
           if (st.availableBalance <= 0) {
             if (statusEl) {
-              statusEl.style.color = "#fbbf24";
+              statusEl.style.color = "#F57C00";
               statusEl.textContent = "⚠️ ₹0 withdrawable balance. Complete a job via End OTP to unlock new earnings.";
             }
             return;
@@ -1836,7 +1838,7 @@
           renderKhataUI();
 
           if (statusEl) {
-            statusEl.style.color = "#4ade80";
+            statusEl.style.color = "#2E9E5B";
             statusEl.textContent = "✅ ₹" + payoutAmt.toLocaleString("en-IN") + " UPI Payout queued to " + st.upiId + " (Ref: " + refId + "). Balance updated to ₹0.";
           }
           if (window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent) {
@@ -1851,21 +1853,21 @@
             canvas.width = 780;
             canvas.height = 420;
             var ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#0f172a";
+            ctx.fillStyle = "#3B2A20";
             ctx.fillRect(0, 0, 780, 420);
-            ctx.strokeStyle = "#f97316";
+            ctx.strokeStyle = "#F57C00";
             ctx.lineWidth = 6;
             ctx.strokeRect(12, 12, 756, 396);
 
-            ctx.fillStyle = "#f97316";
+            ctx.fillStyle = "#F57C00";
             ctx.font = "bold 24px sans-serif";
             ctx.fillText("KAAMZO VERIFIED WORKER GATE-PASS ID", 36, 56);
 
-            ctx.fillStyle = "#4ade80";
+            ctx.fillStyle = "#2E9E5B";
             ctx.font = "bold 16px sans-serif";
             ctx.fillText("✓ AADHAAR KYC & POLICE RECORD VERIFIED", 36, 86);
 
-            ctx.fillStyle = "#f8fafc";
+            ctx.fillStyle = "#FFF8F0";
             ctx.font = "bold 20px sans-serif";
             ctx.fillText("Worker Name: " + st.workerName, 36, 136);
             ctx.font = "18px sans-serif";
@@ -1873,7 +1875,7 @@
             ctx.fillText("Kaamzo Badge ID: " + st.badgeId, 36, 208);
             ctx.fillText("Aadhaar KYC: XXXX-XXXX-4912 (Verified)", 36, 244);
             ctx.fillText("Track Record: " + st.jobsCompleted + " Verified Jobs • 4.9 ★ Rating", 36, 280);
-            ctx.fillStyle = "#38bdf8";
+            ctx.fillStyle = "#F57C00";
             ctx.fillText("24x7 Society Gate Verification: +91 7888549925 • www.kaamzo.site", 36, 340);
 
             var qrImg = document.getElementById("kaamzo-gp-qr-img");
@@ -1881,7 +1883,7 @@
               ctx.fillStyle = "#ffffff";
               ctx.fillRect(584, 114, 152, 174);
               ctx.drawImage(qrImg, 594, 124, 132, 132);
-              ctx.fillStyle = "#0f172a";
+              ctx.fillStyle = "#3B2A20";
               ctx.font = "bold 12px sans-serif";
               ctx.fillText("SCAN AT GATE", 616, 276);
             }
@@ -1906,7 +1908,7 @@
               window.kaamzoOpenKhataModal();
               var statusEl = document.getElementById("kaamzo-khata-payout-status");
               if (statusEl) {
-                statusEl.style.color = "#4ade80";
+                statusEl.style.color = "#2E9E5B";
                 statusEl.textContent = "🛡️ SECURITY GATE SCAN VERIFIED: Worker badge " + params.get("verify") + " is active & KYC verified on Kaamzo.";
               }
             }, 600);
@@ -2006,27 +2008,27 @@
               '<div class="kaamzo-suite-modal kaamzo-ui-ignore" style="max-width:460px;">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
                   '<div style="display:flex;align-items:center;gap:12px;">' +
-                    '<div id="kaamzo-cp-avatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;">D</div>' +
+                    '<div id="kaamzo-cp-avatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#F57C00,#C94B00);color:#3B2A20;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;">D</div>' +
                     '<div>' +
                       '<div id="kaamzo-cp-name" style="font-size:17px;font-weight:900;color:#fff;text-transform:uppercase;">Customer</div>' +
-                      '<div id="kaamzo-cp-area" style="font-size:12px;color:#fbbf24;font-weight:700;">Customer • Ludhiana</div>' +
+                      '<div id="kaamzo-cp-area" style="font-size:12px;color:#F57C00;font-weight:700;">Customer • Ludhiana</div>' +
                     '</div>' +
                   '</div>' +
-                  '<button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>' +
+                  '<button type="button" onclick="window.kaamzoCloseAllSuiteModals()" style="background:#3B2A20;color:#F1E6D8;border:1px solid #3B2A20;border-radius:999px;width:34px;height:34px;font-weight:900;cursor:pointer;">✕</button>' +
                 '</div>' +
-                '<div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;color:#e2e8f0;">' +
+                '<div style="background:#3B2A20;border:1px solid #3B2A20;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;color:#F1E6D8;">' +
                   '<div><strong>Email / ID:</strong> <span id="kaamzo-cp-email">—</span></div>' +
                   '<div><strong>Phone:</strong> <span id="kaamzo-cp-phone">—</span></div>' +
-                  '<div><strong>Active Bookings:</strong> <span id="kaamzo-cp-bookings" style="color:#4ade80;font-weight:800;">0</span></div>' +
-                  '<div><strong>Security:</strong> <span style="color:#38bdf8;font-weight:700;">🔒 AES-256-GCM Encrypted Session</span></div>' +
+                  '<div><strong>Active Bookings:</strong> <span id="kaamzo-cp-bookings" style="color:#2E9E5B;font-weight:800;">0</span></div>' +
+                  '<div><strong>Security:</strong> <span style="color:#F57C00;font-weight:700;">🔒 AES-256-GCM Encrypted Session</span></div>' +
                 '</div>' +
                 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">' +
-                  '<button id="kaamzo-cp-btn-bookings" type="button" style="background:#f59e0b;color:#0f172a;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:900;cursor:pointer;">📋 My Bookings</button>' +
-                  '<button id="kaamzo-cp-btn-verify" type="button" style="background:#1e293b;color:#fbbf24;border:1px solid #475569;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">✉️ Verify Gmail / OTP</button>' +
-                  '<button type="button" onclick="window.kaamzoOpenCrewModal()" style="background:#1e293b;color:#38bdf8;border:1px solid #334155;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">👷‍♂️ Crew &amp; Rebook</button>' +
-                  '<button type="button" onclick="window.kaamzoOpenLiveTracker()" style="background:#1e293b;color:#4ade80;border:1px solid #334155;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">📍 Live ETA &amp; OTP</button>' +
+                  '<button id="kaamzo-cp-btn-bookings" type="button" style="background:#F57C00;color:#3B2A20;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:900;cursor:pointer;">📋 My Bookings</button>' +
+                  '<button id="kaamzo-cp-btn-verify" type="button" style="background:#3B2A20;color:#F57C00;border:1px solid #222222;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">✉️ Verify Gmail / OTP</button>' +
+                  '<button type="button" onclick="window.kaamzoOpenCrewModal()" style="background:#3B2A20;color:#F57C00;border:1px solid #3B2A20;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">👷‍♂️ Crew &amp; Rebook</button>' +
+                  '<button type="button" onclick="window.kaamzoOpenLiveTracker()" style="background:#3B2A20;color:#2E9E5B;border:1px solid #3B2A20;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">📍 Live ETA &amp; OTP</button>' +
                 '</div>' +
-                '<button id="kaamzo-cp-btn-signout" type="button" style="width:100%;background:rgba(220,38,38,0.18);color:#fca5a5;border:1px solid rgba(239,68,68,0.45);border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">🚪 Sign Out</button>' +
+                '<button id="kaamzo-cp-btn-signout" type="button" style="width:100%;background:rgba(220,38,38,0.18);color:#C62828;border:1px solid rgba(239,68,68,0.45);border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">🚪 Sign Out</button>' +
               '</div>';
             document.body.appendChild(m);
             document.getElementById("kaamzo-cp-btn-bookings").onclick = function() {
