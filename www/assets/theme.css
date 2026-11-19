@@ -1,12 +1,12 @@
 /**
- * Kaamzo Central Colour Palette & Theme Stylesheet (Scoped Strictly to Customer & Worker Apps)
- * Main Landing Page (data-kaamzo-role="select_role") remains 100% untouched.
+ * Kaamzo Central Colour Palette & High-Contrast Theme Stylesheet
+ * Scoped strictly to Customer (data-kaamzo-role="customer") & Worker (data-kaamzo-role="worker") apps.
+ * Main Landing Page (select_role) remains 100% untouched.
  */
 html[data-kaamzo-role="customer"],
 html[data-kaamzo-role="worker"],
 html.dark[data-kaamzo-role="customer"],
 html.dark[data-kaamzo-role="worker"] {
-  /* Central Semantic Theme Variables */
   --kz-primary: #F57C00;
   --kz-primary-dark: #C94B00;
   --kz-surface-dark: #3B2A20;
@@ -16,9 +16,9 @@ html.dark[data-kaamzo-role="worker"] {
   --kz-text-primary: #222222;
   --kz-error: #C62828;
   --kz-white: #FFFFFF;
-  --kz-nav-inactive: rgba(255, 248, 240, 0.6);
+  --kz-nav-inactive: rgba(255, 248, 240, 0.72);
 
-  /* Remap Tailwind v4 colour tokens inside Customer & Worker Apps ONLY (zero navy or blue) */
+  /* Remap Tailwind v4 tokens inside Customer & Worker Apps ONLY (zero navy or blue) */
   --color-amber-50: var(--kz-background) !important;
   --color-amber-100: var(--kz-card) !important;
   --color-amber-200: var(--kz-card) !important;
@@ -42,7 +42,6 @@ html.dark[data-kaamzo-role="worker"] {
   --color-yellow-800: var(--kz-primary-dark) !important;
   --color-yellow-950: var(--kz-surface-dark) !important;
 
-  /* Verified Green (#2E9E5B) */
   --color-emerald-50: var(--kz-background) !important;
   --color-emerald-100: var(--kz-card) !important;
   --color-emerald-200: var(--kz-card) !important;
@@ -55,7 +54,6 @@ html.dark[data-kaamzo-role="worker"] {
   --color-emerald-900: var(--kz-surface-dark) !important;
   --color-emerald-950: var(--kz-surface-dark) !important;
 
-  /* Error Red (#C62828) */
   --color-red-50: var(--kz-background) !important;
   --color-red-200: var(--kz-card) !important;
   --color-red-300: var(--kz-error) !important;
@@ -138,7 +136,7 @@ html.dark[data-kaamzo-role="worker"] {
   --color-black: var(--kz-text-primary) !important;
 }
 
-/* Main Screen Background (Warm Cream #FFF8F0) & Body Text (Charcoal #222222) */
+/* 1. Main Screen Background (Warm Cream #FFF8F0) & Body Text (Charcoal #222222) */
 html[data-kaamzo-role="customer"],
 html[data-kaamzo-role="worker"],
 html[data-kaamzo-role="customer"] body,
@@ -149,22 +147,13 @@ html[data-kaamzo-role="worker"] #root {
   color: var(--kz-text-primary) !important;
 }
 
-/* Headings in Espresso Brown (#3B2A20) on Light Surfaces */
+/* 2. Headings on light backgrounds */
 html[data-kaamzo-role="customer"] h1, html[data-kaamzo-role="customer"] h2, html[data-kaamzo-role="customer"] h3, html[data-kaamzo-role="customer"] h4,
 html[data-kaamzo-role="worker"] h1, html[data-kaamzo-role="worker"] h2, html[data-kaamzo-role="worker"] h3, html[data-kaamzo-role="worker"] h4 {
   color: var(--kz-surface-dark);
 }
 
-html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h1, html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h2, html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h3, html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h4,
-html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h1, html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h2, html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h3, html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h4,
-html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h1, html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h2, html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h3, html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h4,
-html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h1, html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h2, html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h3, html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h4,
-html[data-kaamzo-role="customer"] nav h1, html[data-kaamzo-role="customer"] nav h2, html[data-kaamzo-role="customer"] nav h3,
-html[data-kaamzo-role="worker"] nav h1, html[data-kaamzo-role="worker"] nav h2, html[data-kaamzo-role="worker"] nav h3 {
-  color: var(--kz-white) !important;
-}
-
-/* Top App Bar, Navigation Bars, Bottom Nav & Footer: Espresso Brown (#3B2A20) */
+/* 3. Top App Bar, Navigation Bars, Bottom Nav & Footer: Espresso Brown (#3B2A20) with crisp White text */
 html[data-kaamzo-role="customer"] #kaamzo-global-header,
 html[data-kaamzo-role="worker"] #kaamzo-global-header,
 html[data-kaamzo-role="customer"] nav,
@@ -175,36 +164,161 @@ html[data-kaamzo-role="customer"] [class*="fixed bottom-0"],
 html[data-kaamzo-role="worker"] [class*="fixed bottom-0"] {
   background-color: var(--kz-surface-dark) !important;
   color: var(--kz-white) !important;
-  border-color: rgba(241, 230, 216, 0.16) !important;
+  border-color: rgba(241, 230, 216, 0.25) !important;
 }
 
-html[data-kaamzo-role="customer"] nav button,
-html[data-kaamzo-role="worker"] nav button,
-html[data-kaamzo-role="customer"] [class*="fixed bottom-0"] button,
-html[data-kaamzo-role="worker"] [class*="fixed bottom-0"] button {
-  color: var(--kz-nav-inactive);
+/* Header & Nav brand text, subtitles, and buttons on Espresso Brown */
+html[data-kaamzo-role="customer"] #kaamzo-global-header p,
+html[data-kaamzo-role="worker"] #kaamzo-global-header p,
+html[data-kaamzo-role="customer"] #kaamzo-global-header span:not([class*="text-amber"]),
+html[data-kaamzo-role="worker"] #kaamzo-global-header span:not([class*="text-amber"]),
+html[data-kaamzo-role="customer"] nav p,
+html[data-kaamzo-role="worker"] nav p,
+html[data-kaamzo-role="customer"] nav span:not([class*="text-amber"]),
+html[data-kaamzo-role="worker"] nav span:not([class*="text-amber"]) {
+  color: var(--kz-white) !important;
 }
 
+/* Keep light pill surfaces inside Header/Nav high-contrast with dark text! */
+html[data-kaamzo-role="customer"] #kaamzo-global-header [class*="bg-white"] span,
+html[data-kaamzo-role="worker"] #kaamzo-global-header [class*="bg-white"] span,
+html[data-kaamzo-role="customer"] #kaamzo-global-header [class*="bg-slate-100"] span,
+html[data-kaamzo-role="worker"] #kaamzo-global-header [class*="bg-slate-100"] span,
+html[data-kaamzo-role="customer"] #kaamzo-global-header [class*="bg-amber-100"] span,
+html[data-kaamzo-role="worker"] #kaamzo-global-header [class*="bg-amber-100"] span,
+html[data-kaamzo-role="customer"] nav [class*="bg-slate-100"] button,
+html[data-kaamzo-role="customer"] nav [class*="bg-slate-100"] button span,
+html[data-kaamzo-role="customer"] nav [class*="bg-white"] button,
+html[data-kaamzo-role="customer"] nav [class*="bg-white"] button span,
+html[data-kaamzo-role="customer"] nav [class*="bg-[#FAF7F2]"] button,
+html[data-kaamzo-role="customer"] nav [class*="bg-[#FAF7F2]"] button span {
+  color: var(--kz-surface-dark) !important;
+}
+
+/* White pill background for Customer top switcher bar stays clean */
+html[data-kaamzo-role="customer"] nav [class*="bg-slate-100"],
+html[data-kaamzo-role="customer"] nav [class*="bg-[#FAF7F2]"] {
+  background-color: var(--kz-white) !important;
+}
+
+/* Header & Nav buttons directly on Espresso Brown get crisp Cream/White text + visible subtle outline */
+html[data-kaamzo-role="customer"] #kaamzo-global-header > div button:not([class*="bg-white"]):not([class*="bg-amber-"]),
+html[data-kaamzo-role="worker"] #kaamzo-global-header > div button:not([class*="bg-white"]):not([class*="bg-amber-"]),
+html[data-kaamzo-role="customer"] nav button:not([class*="bg-white"]):not([class*="bg-amber-"]),
+html[data-kaamzo-role="worker"] nav button:not([class*="bg-white"]):not([class*="bg-amber-"]) {
+  color: rgba(255, 248, 240, 0.85) !important;
+  border: 1.5px solid rgba(241, 230, 216, 0.35) !important;
+}
+
+/* Active tab in nav/header/bottom-nav: Saffron (#F57C00) with Charcoal (#222222) text */
 html[data-kaamzo-role="customer"] nav button[class*="bg-amber-"],
-html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"] {
+html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"],
+html[data-kaamzo-role="customer"] nav button[class*="bg-white"],
+html[data-kaamzo-role="worker"] nav button[class*="bg-white"] {
   background-color: var(--kz-primary) !important;
   color: var(--kz-text-primary) !important;
+  border-color: var(--kz-primary) !important;
 }
+html[data-kaamzo-role="customer"] nav button[class*="bg-amber-"] span,
+html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"] span,
 html[data-kaamzo-role="customer"] nav button[class*="bg-amber-"] svg,
-html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"] svg {
+html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"] svg,
+html[data-kaamzo-role="customer"] nav button[class*="bg-white"] span,
+html[data-kaamzo-role="customer"] nav button[class*="bg-white"] svg {
   color: var(--kz-text-primary) !important;
 }
 
-/* Text on Saffron (#F57C00) MUST be Charcoal (#222222) */
+/* 4. DARK ESPRESSO BROWN CONTAINERS (Hero cards, Worker Radar card, Dark Sub-panels): ALL text inside MUST be White/Cream! */
+html[data-kaamzo-role="customer"] [class*="bg-slate-900"],
+html[data-kaamzo-role="customer"] [class*="bg-slate-950"],
+html[data-kaamzo-role="customer"] [class*="bg-slate-800"],
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"],
+html[data-kaamzo-role="worker"] [class*="bg-slate-900"],
+html[data-kaamzo-role="worker"] [class*="bg-slate-950"],
+html[data-kaamzo-role="worker"] [class*="bg-slate-800"],
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] {
+  background-color: var(--kz-surface-dark) !important;
+  color: var(--kz-white) !important;
+  border: 1px solid rgba(241, 230, 216, 0.25) !important;
+}
+
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] h1,
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] h2,
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] h3,
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] h4,
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] p,
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] span:not([class*="text-amber"]):not([class*="text-emerald"]),
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] h1,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] h2,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] h3,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] h4,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] p,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] span:not([class*="text-amber"]):not([class*="text-emerald"]),
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] h1,
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] h2,
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] h3,
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] h4,
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] p,
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] span:not([class*="text-amber"]):not([class*="text-emerald"]),
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] h1,
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] h2,
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] h3,
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] h4,
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] p,
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] span:not([class*="text-amber"]):not([class*="text-emerald"]) {
+  color: var(--kz-white) !important;
+}
+
+/* Keep White Search Input inside Dark Hero cards dark-text on Soft Sand/White */
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] input,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] input,
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] input,
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] input {
+  background-color: var(--kz-white) !important;
+  color: var(--kz-text-primary) !important;
+}
+
+/* Keep light/white buttons inside Dark Cards readable with dark text */
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] button[class*="bg-white"],
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] button[class*="bg-white"],
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] button[class*="bg-white"],
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] button[class*="bg-white"] {
+  background-color: var(--kz-white) !important;
+  color: var(--kz-primary-dark) !important;
+  border: 1.5px solid var(--kz-primary-dark) !important;
+}
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] button[class*="bg-white"] span,
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] button[class*="bg-white"] span {
+  color: var(--kz-primary-dark) !important;
+}
+
+/* Dark secondary buttons inside Dark Cards get crisp Saffron/Cream outline + White text */
+html[data-kaamzo-role="customer"] [class*="bg-slate-9"] button[class*="bg-slate-800"],
+html[data-kaamzo-role="worker"] [class*="bg-slate-9"] button[class*="bg-slate-800"],
+html[data-kaamzo-role="customer"] [class*="bg-[#3B2A20]"] button[class*="bg-[#3B2A20]"],
+html[data-kaamzo-role="worker"] [class*="bg-[#3B2A20]"] button[class*="bg-[#3B2A20]"] {
+  background-color: rgba(255, 248, 240, 0.08) !important;
+  color: var(--kz-white) !important;
+  border: 1.5px solid rgba(241, 230, 216, 0.45) !important;
+}
+
+/* 5. Saffron (#F57C00) surfaces ALWAYS have Charcoal (#222222) text (NEVER White, NEVER Deep Saffron) */
 html[data-kaamzo-role="customer"] [class*="bg-amber-400"],
 html[data-kaamzo-role="customer"] [class*="bg-amber-500"],
 html[data-kaamzo-role="worker"] [class*="bg-amber-400"],
 html[data-kaamzo-role="worker"] [class*="bg-amber-500"] {
   background-color: var(--kz-primary) !important;
   color: var(--kz-text-primary) !important;
+  border: 1.5px solid rgba(59, 42, 32, 0.22) !important;
+}
+html[data-kaamzo-role="customer"] [class*="bg-amber-400"] *:not([class*="bg-[#3B2A20]"]):not([class*="bg-slate-9"]),
+html[data-kaamzo-role="customer"] [class*="bg-amber-500"] *:not([class*="bg-[#3B2A20]"]):not([class*="bg-slate-9"]),
+html[data-kaamzo-role="worker"] [class*="bg-amber-400"] *:not([class*="bg-[#3B2A20]"]):not([class*="bg-slate-9"]),
+html[data-kaamzo-role="worker"] [class*="bg-amber-500"] *:not([class*="bg-[#3B2A20]"]):not([class*="bg-slate-9"]) {
+  color: var(--kz-text-primary) !important;
 }
 
-/* Primary Action Buttons (Deep Saffron #C94B00 with White #FFFFFF text) */
+/* 6. Primary Action Buttons: Deep Saffron (#C94B00) with White (#FFFFFF) text */
 html[data-kaamzo-role="customer"] button[type="submit"],
 html[data-kaamzo-role="worker"] button[type="submit"],
 html[data-kaamzo-role="customer"] button[class*="bg-amber-600"],
@@ -214,18 +328,20 @@ html[data-kaamzo-role="worker"] button[class*="from-amber-"] {
   background: var(--kz-primary-dark) !important;
   background-color: var(--kz-primary-dark) !important;
   color: var(--kz-white) !important;
-  border-color: var(--kz-primary-dark) !important;
+  border: 1.5px solid var(--kz-primary-dark) !important;
 }
-html[data-kaamzo-role="customer"] button[type="submit"] span,
-html[data-kaamzo-role="worker"] button[type="submit"] span,
-html[data-kaamzo-role="customer"] button[class*="from-amber-"] span,
-html[data-kaamzo-role="worker"] button[class*="from-amber-"] span {
+html[data-kaamzo-role="customer"] button[type="submit"] *,
+html[data-kaamzo-role="worker"] button[type="submit"] *,
+html[data-kaamzo-role="customer"] button[class*="bg-amber-600"] *,
+html[data-kaamzo-role="worker"] button[class*="bg-amber-600"] *,
+html[data-kaamzo-role="customer"] button[class*="from-amber-"] *,
+html[data-kaamzo-role="worker"] button[class*="from-amber-"] * {
   color: var(--kz-white) !important;
 }
 
-/* Secondary Buttons: Transparent background, 1.5px Deep Saffron border, Deep Saffron text */
-html[data-kaamzo-role="customer"] #root button[class*="bg-white"][class*="border"],
-html[data-kaamzo-role="worker"] #root button[class*="bg-white"][class*="border"],
+/* 7. Secondary Buttons on Light Cards: Transparent, 1.5px Deep Saffron border, Deep Saffron text */
+html[data-kaamzo-role="customer"] [class*="bg-white"] button[class*="border"]:not([class*="bg-amber-"]):not([class*="bg-emerald-"]):not([class*="bg-slate-9"]),
+html[data-kaamzo-role="worker"] [class*="bg-white"] button[class*="border"]:not([class*="bg-amber-"]):not([class*="bg-emerald-"]):not([class*="bg-slate-9"]),
 html[data-kaamzo-role="customer"] #root button[class*="bg-amber-50"],
 html[data-kaamzo-role="worker"] #root button[class*="bg-amber-50"] {
   background-color: transparent !important;
@@ -233,7 +349,16 @@ html[data-kaamzo-role="worker"] #root button[class*="bg-amber-50"] {
   color: var(--kz-primary-dark) !important;
 }
 
-/* Inputs & Focus States */
+/* 8. Subtle Espresso-tinted outlines on Light Cards (Warm Cream / White / Soft Sand) */
+html[data-kaamzo-role="customer"] #root div[class*="rounded-3xl"][class*="bg-white"],
+html[data-kaamzo-role="worker"] #root div[class*="rounded-3xl"][class*="bg-white"],
+html[data-kaamzo-role="customer"] #root div[class*="rounded-2xl"][class*="bg-white"],
+html[data-kaamzo-role="worker"] #root div[class*="rounded-2xl"][class*="bg-white"] {
+  border: 1px solid rgba(59, 42, 32, 0.14) !important;
+  box-shadow: 0 6px 24px -6px rgba(59, 42, 32, 0.08) !important;
+}
+
+/* 9. Inputs & Focus States */
 html[data-kaamzo-role="customer"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html[data-kaamzo-role="worker"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html[data-kaamzo-role="customer"] select,
@@ -242,7 +367,7 @@ html[data-kaamzo-role="customer"] textarea,
 html[data-kaamzo-role="worker"] textarea {
   background-color: var(--kz-card) !important;
   color: var(--kz-text-primary) !important;
-  border: 1.5px solid rgba(59, 42, 32, 0.2) !important;
+  border: 1.5px solid rgba(59, 42, 32, 0.25) !important;
 }
 
 html[data-kaamzo-role="customer"] input:focus,
@@ -253,9 +378,4 @@ html[data-kaamzo-role="customer"] textarea:focus,
 html[data-kaamzo-role="worker"] textarea:focus {
   outline: 2px solid var(--kz-primary) !important;
   border-color: var(--kz-primary) !important;
-}
-
-html[data-kaamzo-role="customer"] [class*="animate-spin"],
-html[data-kaamzo-role="worker"] [class*="animate-spin"] {
-  color: var(--kz-primary) !important;
 }
