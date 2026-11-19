@@ -4361,11 +4361,7 @@ Enter this 4-digit code in your Kaamzo app upon arrival to start the work clock!
 
     // Crisp Editorial Headline with Stitch Inline Trust Pill
     r.jsxs("h2",{className:"text-3xl sm:text-4xl lg:text-[44px] font-black tracking-[-0.03em] text-white leading-[1.15]",children:[
-      r.jsxs("span",{className:"inline-flex flex-wrap items-center gap-x-2.5 gap-y-1.5",children:[
-        r.jsx("span",{children:"Find Trusted"}),
-        r.jsx("span",{className:"text-emerald-400",children:"Verified"}),
-        r.jsx("span",{children:"Workers."})
-      ]}),
+      r.jsxs("span",{children:["Find Trusted and ",r.jsx("span",{className:"text-emerald-400",children:"Verified"})," Workers."]}),
       r.jsx("br",{}),
       r.jsx("span",{style:{background:"linear-gradient(90deg, #fde68a 0%, #f59e0b 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"},children:"Hire Local Pros With Dignity."})
     ]}),
