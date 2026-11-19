@@ -326,6 +326,63 @@
     <script type="module" crossorigin src="/assets/index-v30.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">
+    <style id="kaamzo-clean-minimal-theme">
+      /* Kaamzo Clean Minimal Look — remove cluttered pill boxes & heavy borders site-wide */
+      #root span[class*="rounded-"][class*="border"],
+      #root div[class*="rounded-full"][class*="border"]:not([role="button"]),
+      #root div[class*="rounded-md"][class*="border"]:not([role="button"]),
+      #root div[class*="rounded-lg"][class*="border"]:not([role="button"]) {
+        border-color: transparent !important;
+        border-width: 0 !important;
+        box-shadow: none !important;
+      }
+
+      /* Turn loud tinted pill badges into sleek borderless inline accents (keep status dots intact) */
+      #root span[class*="rounded-full"][class*="bg-"]:not(:empty),
+      #root span[class*="rounded-md"][class*="bg-"]:not(:empty),
+      #root span[class*="rounded-lg"][class*="bg-"]:not(:empty) {
+        background-color: transparent !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+      }
+
+      /* Replace hard 1px borders on card/section boxes with clean soft elevation */
+      #root div[class*="rounded-xl"][class*="border"]:not([role="button"]),
+      #root div[class*="rounded-2xl"][class*="border"]:not([role="button"]),
+      #root div[class*="rounded-3xl"][class*="border"]:not([role="button"]),
+      #root section[class*="border"] {
+        border-color: transparent !important;
+      }
+
+      #root div[class*="rounded-3xl"][class*="bg-white"],
+      #root div[class*="rounded-2xl"][class*="bg-white"] {
+        box-shadow: 0 6px 24px -6px rgba(15, 23, 42, 0.07), 0 1px 4px rgba(15, 23, 42, 0.03) !important;
+      }
+
+      html.dark #root div[class*="rounded-3xl"][class*="border"],
+      html.dark #root div[class*="rounded-2xl"][class*="border"] {
+        box-shadow: 0 6px 24px -6px rgba(0, 0, 0, 0.45) !important;
+      }
+
+      /* Soften nested tinted alert/info boxes into clean borderless surfaces */
+      #root div[class*="rounded-2xl"][class*="bg-amber-50"],
+      #root div[class*="rounded-xl"][class*="bg-amber-50"],
+      #root div[class*="rounded-2xl"][class*="bg-emerald-50"],
+      #root div[class*="rounded-xl"][class*="bg-emerald-50"],
+      #root div[class*="rounded-2xl"][class*="bg-rose-50"],
+      #root div[class*="rounded-xl"][class*="bg-slate-50"] {
+        border-color: transparent !important;
+        box-shadow: none !important;
+      }
+
+      /* Clean minimal buttons (remove harsh 1px borders on secondary pill/card buttons) */
+      #root button[class*="border"]:not([class*="border-amber-500"]):not([class*="ring-"]) {
+        border-color: rgba(148, 163, 184, 0.18) !important;
+      }
+      #root input, #root select, #root textarea {
+        border-color: rgba(148, 163, 184, 0.35) !important;
+      }
+    </style>
   
     <!-- Kaamzo Official Schema.org Structured Data for Google Search & Knowledge Graph Logo Indexing -->
     <script type="application/ld+json">
