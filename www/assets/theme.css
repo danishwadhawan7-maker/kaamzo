@@ -1,11 +1,11 @@
 /**
- * Kaamzo Central Colour Palette & Theme Stylesheet (Customer & Worker Apps)
- * Defines all colour tokens once as CSS variables and applies them consistently across both apps.
+ * Kaamzo Central Colour Palette & Theme Stylesheet (Scoped Strictly to Customer & Worker Apps)
+ * Main Landing Page (data-kaamzo-role="select_role") remains 100% untouched.
  */
-:root,
-:host,
-html,
-html.dark {
+html[data-kaamzo-role="customer"],
+html[data-kaamzo-role="worker"],
+html.dark[data-kaamzo-role="customer"],
+html.dark[data-kaamzo-role="worker"] {
   /* Central Semantic Theme Variables */
   --kz-primary: #F57C00;
   --kz-primary-dark: #C94B00;
@@ -18,7 +18,7 @@ html.dark {
   --kz-white: #FFFFFF;
   --kz-nav-inactive: rgba(255, 248, 240, 0.6);
 
-  /* Remap all Tailwind v4 colour tokens to the central Kaamzo palette (zero navy or blue) */
+  /* Remap Tailwind v4 colour tokens inside Customer & Worker Apps ONLY (zero navy or blue) */
   --color-amber-50: var(--kz-background) !important;
   --color-amber-100: var(--kz-card) !important;
   --color-amber-200: var(--kz-card) !important;
@@ -42,7 +42,7 @@ html.dark {
   --color-yellow-800: var(--kz-primary-dark) !important;
   --color-yellow-950: var(--kz-surface-dark) !important;
 
-  /* Verified Green (#2E9E5B) — verified badges, success states, Paid & Completed only */
+  /* Verified Green (#2E9E5B) */
   --color-emerald-50: var(--kz-background) !important;
   --color-emerald-100: var(--kz-card) !important;
   --color-emerald-200: var(--kz-card) !important;
@@ -55,7 +55,7 @@ html.dark {
   --color-emerald-900: var(--kz-surface-dark) !important;
   --color-emerald-950: var(--kz-surface-dark) !important;
 
-  /* Error Red (#C62828) — errors, cancellations, failed payments only */
+  /* Error Red (#C62828) */
   --color-red-50: var(--kz-background) !important;
   --color-red-200: var(--kz-card) !important;
   --color-red-300: var(--kz-error) !important;
@@ -76,7 +76,7 @@ html.dark {
   --color-rose-900: var(--kz-surface-dark) !important;
   --color-rose-950: var(--kz-surface-dark) !important;
 
-  /* Replace ALL Navy, Blue, Sky, Cyan, Slate, Zinc, Stone with Warm Cream, Soft Sand, Charcoal & Espresso Brown */
+  /* Navy/Blue/Slate/Zinc/Stone -> Warm Cream, Soft Sand, Charcoal & Espresso Brown */
   --color-slate-50: var(--kz-background) !important;
   --color-slate-100: var(--kz-card) !important;
   --color-slate-200: var(--kz-card) !important;
@@ -138,138 +138,124 @@ html.dark {
   --color-black: var(--kz-text-primary) !important;
 }
 
-/* 1. Main Screen Background (Warm Cream #FFF8F0) & Body Text (Charcoal #222222) */
-html,
-body,
-#root,
-main,
-#main-content {
+/* Main Screen Background (Warm Cream #FFF8F0) & Body Text (Charcoal #222222) */
+html[data-kaamzo-role="customer"],
+html[data-kaamzo-role="worker"],
+html[data-kaamzo-role="customer"] body,
+html[data-kaamzo-role="worker"] body,
+html[data-kaamzo-role="customer"] #root,
+html[data-kaamzo-role="worker"] #root {
   background-color: var(--kz-background) !important;
   color: var(--kz-text-primary) !important;
 }
 
-/* 2. Headings in Espresso Brown (#3B2A20) on Light Surfaces */
-h1, h2, h3, h4, h5, h6 {
+/* Headings in Espresso Brown (#3B2A20) on Light Surfaces */
+html[data-kaamzo-role="customer"] h1, html[data-kaamzo-role="customer"] h2, html[data-kaamzo-role="customer"] h3, html[data-kaamzo-role="customer"] h4,
+html[data-kaamzo-role="worker"] h1, html[data-kaamzo-role="worker"] h2, html[data-kaamzo-role="worker"] h3, html[data-kaamzo-role="worker"] h4 {
   color: var(--kz-surface-dark);
 }
 
-/* Headings inside Espresso Brown (#3B2A20) dark surfaces stay White (#FFFFFF) */
-[class*="bg-slate-900"] h1, [class*="bg-slate-900"] h2, [class*="bg-slate-900"] h3, [class*="bg-slate-900"] h4,
-[class*="bg-slate-950"] h1, [class*="bg-slate-950"] h2, [class*="bg-slate-950"] h3, [class*="bg-slate-950"] h4,
-[class*="bg-slate-800"] h1, [class*="bg-slate-800"] h2, [class*="bg-slate-800"] h3, [class*="bg-slate-800"] h4,
-header h1, header h2, header h3, nav h1, nav h2, nav h3, footer h1, footer h2, footer h3, footer h4 {
+html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h1, html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h2, html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h3, html[data-kaamzo-role="customer"] [class*="bg-slate-900"] h4,
+html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h1, html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h2, html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h3, html[data-kaamzo-role="customer"] [class*="bg-slate-950"] h4,
+html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h1, html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h2, html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h3, html[data-kaamzo-role="worker"] [class*="bg-slate-900"] h4,
+html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h1, html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h2, html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h3, html[data-kaamzo-role="worker"] [class*="bg-slate-950"] h4,
+html[data-kaamzo-role="customer"] nav h1, html[data-kaamzo-role="customer"] nav h2, html[data-kaamzo-role="customer"] nav h3,
+html[data-kaamzo-role="worker"] nav h1, html[data-kaamzo-role="worker"] nav h2, html[data-kaamzo-role="worker"] nav h3 {
   color: var(--kz-white) !important;
 }
 
-/* 3. Top App Bar, Navigation Bars, Bottom Nav & Footer: Espresso Brown (#3B2A20) */
-#kaamzo-global-header,
-header,
-nav,
-footer,
-[class*="fixed bottom-0"] {
+/* Top App Bar, Navigation Bars, Bottom Nav & Footer: Espresso Brown (#3B2A20) */
+html[data-kaamzo-role="customer"] #kaamzo-global-header,
+html[data-kaamzo-role="worker"] #kaamzo-global-header,
+html[data-kaamzo-role="customer"] nav,
+html[data-kaamzo-role="worker"] nav,
+html[data-kaamzo-role="customer"] footer,
+html[data-kaamzo-role="worker"] footer,
+html[data-kaamzo-role="customer"] [class*="fixed bottom-0"],
+html[data-kaamzo-role="worker"] [class*="fixed bottom-0"] {
   background-color: var(--kz-surface-dark) !important;
   color: var(--kz-white) !important;
   border-color: rgba(241, 230, 216, 0.16) !important;
 }
 
-#kaamzo-global-header button,
-header button,
-nav button,
-[class*="fixed bottom-0"] button {
+html[data-kaamzo-role="customer"] nav button,
+html[data-kaamzo-role="worker"] nav button,
+html[data-kaamzo-role="customer"] [class*="fixed bottom-0"] button,
+html[data-kaamzo-role="worker"] [class*="fixed bottom-0"] button {
   color: var(--kz-nav-inactive);
 }
 
-/* Active tab icon & label in Saffron (#F57C00) with Charcoal (#222222) text when filled */
-nav button[class*="bg-amber-"],
-header button[class*="bg-amber-"],
-[class*="fixed bottom-0"] button[class*="text-amber-"] {
-  color: var(--kz-primary) !important;
-}
-nav button[class*="bg-amber-500"],
-nav button[class*="bg-amber-400"] {
+html[data-kaamzo-role="customer"] nav button[class*="bg-amber-"],
+html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"] {
   background-color: var(--kz-primary) !important;
   color: var(--kz-text-primary) !important;
 }
-nav button[class*="bg-amber-500"] svg,
-nav button[class*="bg-amber-400"] svg {
+html[data-kaamzo-role="customer"] nav button[class*="bg-amber-"] svg,
+html[data-kaamzo-role="worker"] nav button[class*="bg-amber-"] svg {
   color: var(--kz-text-primary) !important;
 }
 
-/* 4. Text on Saffron (#F57C00) MUST be Charcoal (#222222), NEVER White */
-[class*="bg-amber-400"],
-[class*="bg-amber-500"],
-[class*="bg-[#F57C00]"],
-[class*="bg-[#FCD33F]"],
-[class*="bg-[#F59E0B]"] {
+/* Text on Saffron (#F57C00) MUST be Charcoal (#222222) */
+html[data-kaamzo-role="customer"] [class*="bg-amber-400"],
+html[data-kaamzo-role="customer"] [class*="bg-amber-500"],
+html[data-kaamzo-role="worker"] [class*="bg-amber-400"],
+html[data-kaamzo-role="worker"] [class*="bg-amber-500"] {
   background-color: var(--kz-primary) !important;
   color: var(--kz-text-primary) !important;
 }
 
-/* 5. Primary Action Buttons (Deep Saffron #C94B00 background with White #FFFFFF text) */
-button[type="submit"],
-button[class*="bg-amber-600"],
-button[class*="bg-amber-500"][class*="w-full"],
-button[class*="from-amber-"],
-a[class*="bg-amber-600"] {
+/* Primary Action Buttons (Deep Saffron #C94B00 with White #FFFFFF text) */
+html[data-kaamzo-role="customer"] button[type="submit"],
+html[data-kaamzo-role="worker"] button[type="submit"],
+html[data-kaamzo-role="customer"] button[class*="bg-amber-600"],
+html[data-kaamzo-role="worker"] button[class*="bg-amber-600"],
+html[data-kaamzo-role="customer"] button[class*="from-amber-"],
+html[data-kaamzo-role="worker"] button[class*="from-amber-"] {
   background: var(--kz-primary-dark) !important;
   background-color: var(--kz-primary-dark) !important;
   color: var(--kz-white) !important;
   border-color: var(--kz-primary-dark) !important;
 }
-button[type="submit"] span,
-button[type="submit"] svg,
-button[class*="from-amber-"] span,
-button[class*="from-amber-"] svg {
+html[data-kaamzo-role="customer"] button[type="submit"] span,
+html[data-kaamzo-role="worker"] button[type="submit"] span,
+html[data-kaamzo-role="customer"] button[class*="from-amber-"] span,
+html[data-kaamzo-role="worker"] button[class*="from-amber-"] span {
   color: var(--kz-white) !important;
 }
 
-/* 6. Secondary Buttons: Transparent background, 1.5px Deep Saffron (#C94B00) border, Deep Saffron text */
-#root button[class*="bg-white"][class*="border"],
-#root button[class*="bg-slate-100"]:not([aria-label="Language selection"]),
-#root button[class*="bg-amber-50"] {
+/* Secondary Buttons: Transparent background, 1.5px Deep Saffron border, Deep Saffron text */
+html[data-kaamzo-role="customer"] #root button[class*="bg-white"][class*="border"],
+html[data-kaamzo-role="worker"] #root button[class*="bg-white"][class*="border"],
+html[data-kaamzo-role="customer"] #root button[class*="bg-amber-50"],
+html[data-kaamzo-role="worker"] #root button[class*="bg-amber-50"] {
   background-color: transparent !important;
   border: 1.5px solid var(--kz-primary-dark) !important;
   color: var(--kz-primary-dark) !important;
 }
-#root button[class*="bg-white"][class*="border"] span,
-#root button[class*="bg-amber-50"] span {
-  color: var(--kz-primary-dark) !important;
-}
 
-/* Links in Deep Saffron (#C94B00) */
-a:not([class*="bg-"]) {
-  color: var(--kz-primary-dark);
-}
-
-/* 7. Cards (#F1E6D8 Soft Sand or White #FFFFFF with subtle shadow on Warm Cream #FFF8F0) & Input Fields (#F1E6D8) */
-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-select,
-textarea {
+/* Inputs & Focus States */
+html[data-kaamzo-role="customer"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-kaamzo-role="worker"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-kaamzo-role="customer"] select,
+html[data-kaamzo-role="worker"] select,
+html[data-kaamzo-role="customer"] textarea,
+html[data-kaamzo-role="worker"] textarea {
   background-color: var(--kz-card) !important;
   color: var(--kz-text-primary) !important;
   border: 1.5px solid rgba(59, 42, 32, 0.2) !important;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+html[data-kaamzo-role="customer"] input:focus,
+html[data-kaamzo-role="worker"] input:focus,
+html[data-kaamzo-role="customer"] select:focus,
+html[data-kaamzo-role="worker"] select:focus,
+html[data-kaamzo-role="customer"] textarea:focus,
+html[data-kaamzo-role="worker"] textarea:focus {
   outline: 2px solid var(--kz-primary) !important;
   border-color: var(--kz-primary) !important;
 }
 
-/* Range sliders & checkboxes use Saffron / Deep Saffron */
-input[type="range"],
-input[type="checkbox"],
-input[type="radio"] {
-  accent-color: var(--kz-primary-dark) !important;
-}
-
-/* 8. Loading Indicators, Toasts & Modals */
-[class*="animate-spin"] {
+html[data-kaamzo-role="customer"] [class*="animate-spin"],
+html[data-kaamzo-role="worker"] [class*="animate-spin"] {
   color: var(--kz-primary) !important;
-}
-.kaamzo-suite-modal {
-  background: var(--kz-surface-dark) !important;
-  color: var(--kz-white) !important;
-  border-color: var(--kz-primary) !important;
 }
