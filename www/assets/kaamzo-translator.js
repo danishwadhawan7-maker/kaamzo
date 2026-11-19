@@ -3,7 +3,8 @@
   window.__kaamzoFullTranslatorLoaded = true;
 
   var STORAGE_KEY = 'kaamzo_language';
-  var CACHE_KEY = 'kaamzo_i18n_cache_v3';
+  var CACHE_KEY = 'kaamzo_i18n_cache_v4';
+  try { localStorage.removeItem('kaamzo_i18n_cache_v3'); } catch (e) {}
 
   // Instant built-in dictionary for zero-latency UI switching across Home, Customer, Worker, Admin, & Survey
   var GLOSSARY = {
@@ -347,7 +348,7 @@
             var changed = false;
             Object.keys(data.translations).forEach(function(src) {
               var dst = data.translations[src];
-              if (dst && typeof dst === 'string') {
+              if (dst && typeof dst === 'string' && !/[\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF]/.test(dst)) {
                 persistentCache[lang][src] = dst;
                 changed = true;
               }

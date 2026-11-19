@@ -1,26 +1,20 @@
 const CACHE = new Map();
 
+function isValidTranslation(out) {
+  if (!out || typeof out !== "string") return false;
+  if (out.includes("MYMEMORY WARNING")) return false;
+  // Reject Cyrillic (e.g. Ukrainian/Russian) or CJK/Arabic garbage from crowdsourced TM
+  if (/[\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF]/.test(out)) return false;
+  return true;
+}
+
 async function translateSingle(text, tl) {
   const clean = String(text || "").trim();
   if (!clean) return text;
   const cacheKey = `${tl}:${clean}`;
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey);
 
-  // 1. Try MyMemory API (reliable from serverless functions without CAPTCHA blocks)
-  try {
-    const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|${encodeURIComponent(tl)}`;
-    const r = await fetch(mmUrl, { headers: { "User-Agent": "KaamzoApp/1.0" } });
-    if (r.ok) {
-      const data = await r.json();
-      const out = data && data.responseData && data.responseData.translatedText;
-      if (out && typeof out === "string" && !out.includes("MYMEMORY WARNING")) {
-        CACHE.set(cacheKey, out);
-        return out;
-      }
-    }
-  } catch (_) {}
-
-  // 2. Fallback to Google translate_a/single
+  // 1. Try Google translate_a/single first (accurate for Hindi & Punjabi scripts)
   try {
     const gUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(clean)}`;
     const r = await fetch(gUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
@@ -28,10 +22,24 @@ async function translateSingle(text, tl) {
       const data = await r.json();
       if (Array.isArray(data) && Array.isArray(data[0])) {
         const joined = data[0].map(part => (Array.isArray(part) ? part[0] : "")).join("");
-        if (joined) {
+        if (isValidTranslation(joined)) {
           CACHE.set(cacheKey, joined);
           return joined;
         }
+      }
+    }
+  } catch (_) {}
+
+  // 2. Fallback to MyMemory API (strictly rejecting non-Indic/Cyrillic results)
+  try {
+    const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|${encodeURIComponent(tl)}`;
+    const r = await fetch(mmUrl, { headers: { "User-Agent": "KaamzoApp/1.0" } });
+    if (r.ok) {
+      const data = await r.json();
+      const out = data && data.responseData && data.responseData.translatedText;
+      if (isValidTranslation(out)) {
+        CACHE.set(cacheKey, out);
+        return out;
       }
     }
   } catch (_) {}
