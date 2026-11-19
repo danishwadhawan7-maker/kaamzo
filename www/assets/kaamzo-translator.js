@@ -219,13 +219,16 @@
 
   function isSkippedElement(el) {
     if (!el || el.nodeType !== 1) return false;
-    var tag = el.tagName;
+    var tag = (el.tagName || '').toUpperCase();
     if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SVG' || tag === 'CODE' || tag === 'PRE') return true;
-    if (el.closest && el.closest('.notranslate, [data-no-translate], #kaamzo-gatepass-card')) {
-      // Allow UI controls inside Gatepass buttons, just keep badge IDs/titles clean
-      if (el.closest('.notranslate, [data-no-translate]')) return true;
+    if (el.closest && el.closest('.notranslate, [data-no-translate], [aria-label="Language selection"], #kaamzo-gatepass-card')) {
+      if (el.closest('.notranslate, [data-no-translate], [aria-label="Language selection"]')) return true;
     }
     return false;
+  }
+
+  function hasIndicScript(s) {
+    return /[\u0900-\u097F\u0A00-\u0A7F]/.test(s || '');
   }
 
   function collectAndApply(lang) {
@@ -246,11 +249,14 @@
         if (!curVal.trim()) continue;
 
         if (!origTextMap.has(node)) {
-          origTextMap.set(node, curVal);
+          // Never store Hindi/Punjabi text rendered natively by React as the English source
+          if (!hasIndicScript(curVal)) {
+            origTextMap.set(node, curVal);
+          }
         } else {
           // If React updated the node text to a new English value while in HI/PA mode, update original map
           var prevOrig = origTextMap.get(node);
-          if (lang !== 'en' && /[a-zA-Z]{3,}/.test(curVal)) {
+          if (lang !== 'en' && !hasIndicScript(curVal) && /[a-zA-Z]{3,}/.test(curVal)) {
             var knownHi = lookupTranslation(prevOrig, 'hi');
             var knownPa = lookupTranslation(prevOrig, 'pa');
             if (curVal.trim() !== prevOrig.trim() && (!knownHi || curVal.trim() !== knownHi) && (!knownPa || curVal.trim() !== knownPa)) {
@@ -259,9 +265,12 @@
           }
         }
 
+        if (!origTextMap.has(node)) continue;
         var orig = origTextMap.get(node);
         if (lang === 'en') {
-          if (node.nodeValue !== orig) node.nodeValue = orig;
+          if (!hasIndicScript(orig) && node.nodeValue !== orig && hasIndicScript(node.nodeValue)) {
+            node.nodeValue = orig;
+          }
           continue;
         }
 
@@ -318,9 +327,16 @@
     for (var i = 0; i < items.length; i += 35) {
       chunks.push(items.slice(i, i + 35));
     }
+    var apiBase = '';
+    try {
+      if (window.location.protocol === 'capacitor:' || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
+        apiBase = 'https://www.kaamzo.site';
+      }
+    } catch (e) {}
+
     chunks.forEach(function(chunk) {
       chunk.forEach(function(k) { inFlight[lang].add(k); });
-      fetch('/api/translate', {
+      fetch(apiBase + '/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target: lang, texts: chunk })
@@ -361,10 +377,11 @@
   window.kaamzoApplyFullLanguage = function(lang) {
     var target = (lang === 'hi' || lang === 'pa') ? lang : 'en';
     currentLang = target;
+    try { document.documentElement.lang = target; } catch (e) {}
     collectAndApply(target);
   };
 
-  // Intercept localStorage.setItem so switching EN <-> HI <-> PA in React or Survey applies instantly!
+  // Intercept localStorage.setItem so switching EN <-> HI <-> PA in React applies cleanly AFTER React commits!
   try {
     var origSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key, val) {
@@ -372,7 +389,7 @@
       if (this === window.localStorage && (key === STORAGE_KEY || key === 'kaamzo_language_v8')) {
         setTimeout(function() {
           window.kaamzoApplyFullLanguage(val);
-        }, 40);
+        }, 120);
       }
     };
   } catch (e) {}
