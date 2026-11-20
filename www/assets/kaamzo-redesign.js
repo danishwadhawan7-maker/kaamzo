@@ -2510,7 +2510,7 @@
                 maxWidth: "560px",
               },
             },
-            "Trusted plumbers, electricians and painters from your own neighbourhood. Pay only when the job is done."
+            "Homes that can trust. Workers that can thrive."
           ),
           h(
             "form",
