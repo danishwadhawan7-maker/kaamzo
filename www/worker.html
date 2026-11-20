@@ -4,7 +4,7 @@
     
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#FBF8F2" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -28,7 +28,7 @@
     <meta name="twitter:image" content="https://www.kaamzo.site/pwa-512x512.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Caveat:wght@600&family=Noto+Sans+Devanagari:wght@500;600&display=swap">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
     <script>
@@ -75,262 +75,135 @@
         }
       })();
     </script>
-    <style>
-      /* Root Responsive & Anti-Overflow Guard for 360px+ Screens */
-      *, *::before, *::after {
-        box-sizing: border-box;
-      }
-      html, body, *, *::before, *::after,
-      .font-sans, .font-mono, .font-serif,
-      code, pre, kbd, samp, input, button, select, textarea {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-      }
-      .font-mono {
-        font-variant-numeric: tabular-nums;
-      }
-      html {
-        font-size: 16px;
-        scroll-behavior: smooth;
-        -webkit-text-size-adjust: 100%;
-        text-size-adjust: 100%;
-        -webkit-tap-highlight-color: rgba(245, 158, 11, 0.15);
-      }
-      body {
-        font-size: 16px;
-        min-height: 100vh;
-        width: 100%;
-        max-width: 100vw;
-        overflow-x: hidden;
-        line-height: 1.5;
-      }
-      #root, main, #main-content {
-        width: 100%;
-        max-width: 100vw;
-        overflow-x: hidden;
-      }
-
-      /* Kaamzo Customer & Worker Portal Aesthetic & Click-Friendly Polish */
-      button, [role="button"], a, select, input[type="checkbox"], input[type="range"] {
-        cursor: pointer;
-        touch-action: manipulation;
-      }
-      button:not(:disabled) {
-        transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background-color 0.18s ease, border-color 0.18s ease;
-      }
-      button:not(:disabled):active {
-        transform: scale(0.97);
-      }
-      input:not([type="checkbox"]):not([type="range"]), select, textarea {
-        font-size: 16px !important;
-        max-width: 100%;
-        transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
-      }
-      input:not([type="checkbox"]):not([type="range"]):focus, select:focus, textarea:focus {
-        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
-      }
-      input::placeholder {
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-
-      /* Prevent text overflow and ensure flexible wrapping */
-      p, span, h1, h2, h3, h4, h5, h6, a, div, button {
-        overflow-wrap: break-word;
-      }
-      img, svg, video, canvas, iframe {
-        max-width: 100%;
-        height: auto;
-      }
-
-      /* Black / Dark Theme Header & Portal Navbar Suitable Obsidian-Gold Palette */
-      html.dark header,
-      html.dark #kaamzo-global-header {
-        background: linear-gradient(90deg, #0b0d12 0%, #11141d 55%, #1c1508 100%) !important;
-        border-bottom: 1px solid rgba(245, 158, 11, 0.32) !important;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.72), inset 0 -1px 0 rgba(245, 158, 11, 0.14) !important;
-      }
-      html.dark nav,
-      html.dark #kaamzo-customer-navbar {
-        background: linear-gradient(180deg, #12151e 0%, #0d0f16 100%) !important;
-        border-bottom: 1px solid rgba(245, 158, 11, 0.26) !important;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55) !important;
-      }
-      html.dark #kaamzo-customer-tabs {
-        background-color: #08090d !important;
-        border-color: rgba(245, 158, 11, 0.26) !important;
-      }
-      html.dark .bg-\[\#FAF7F2\],
-      html.dark .bg-\[\#FAF7F2\]\/95,
-      html.dark .bg-\[\#FDFBF7\] {
-        background-color: #0e1017 !important;
-      }
-      html.dark .bg-\[\#FFFBEB\] {
-        background-color: rgba(245, 158, 11, 0.16) !important;
-        color: #fcd33f !important;
-        border-color: rgba(245, 158, 11, 0.45) !important;
-      }
-      html.dark header button:not(.bg-amber-500),
-      html.dark #kaamzo-global-header > div > button {
-        border-color: rgba(245, 158, 11, 0.25) !important;
-      }
-
-      /* Stitch taste-design Asymmetric Bento Customer Hero Layout */
-      #kaamzo-customer-hero {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 24px;
-        padding: 24px;
-        background: radial-gradient(circle at 92% 12%, rgba(245, 158, 11, 0.24) 0%, transparent 42%),
-                    radial-gradient(circle at 12% 88%, rgba(16, 185, 129, 0.12) 0%, transparent 38%),
-                    linear-gradient(135deg, #0B0F19 0%, #111827 52%, #1C1917 100%);
-        border: 1px solid rgba(245, 158, 11, 0.35);
-        border-radius: 28px;
-        box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        align-items: stretch;
-        max-width: 100%;
-        overflow: hidden;
-      }
-      @media (min-width: 960px) {
-        #kaamzo-customer-hero {
-          grid-template-columns: 1.15fr 0.95fr;
-          gap: 36px;
-          padding: 36px 40px;
-        }
-      }
-      .kaamzo-bento-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        width: 100%;
-      }
-      .kaamzo-bento-card {
-        position: relative;
-        height: 156px;
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        cursor: pointer;
-        text-align: left;
-        transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.22s ease;
-      }
-      .kaamzo-bento-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(252, 211, 63, 0.8);
-        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
-      }
-      .kaamzo-bento-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.4s ease;
-      }
-      .kaamzo-bento-card:hover img {
-        transform: scale(1.06);
-      }
-
-      /* 360px Android & Mobile Screen Refinements */
-      @media (max-width: 480px) {
-        #kaamzo-customer-hero {
-          padding: 16px 12px !important;
-          gap: 16px !important;
-          border-radius: 20px !important;
-          max-width: 100% !important;
-        }
-        .kaamzo-bento-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          gap: 8px !important;
-          width: 100% !important;
-        }
-        .kaamzo-bento-card {
-          height: 128px !important;
-          border-radius: 14px !important;
-        }
-        #hero-post-job-btn,
-        #kaamzo-customer-hero button.bg-gradient-to-r,
-        #kaamzo-customer-hero button[title*="Broadcast a new job"],
-        #kaamzo-customer-hero button[title*="Scan worker unique ID"] {
-          width: 100% !important;
-          justify-content: center !important;
-        }
-        #kaamzo-global-header, #kaamzo-customer-navbar {
-          padding-left: 8px !important;
-          padding-right: 8px !important;
-          max-width: 100vw !important;
-        }
-        .fixed.inset-0 > div {
-          max-width: calc(100vw - 16px) !important;
-          margin: 8px auto !important;
-        }
-      }
-    </style>
-
-    <!-- Stitch taste-design & DESIGN.md Token Bridge for /customer & /worker -->
-    <style id="kaamzo-stitch-taste-tokens">
+    <style id="kaamzo-tokens-and-layout">
       :root {
-        --kaamzo-canvas: #FAF7F2;
-        --kaamzo-surface: #FFFFFF;
-        --kaamzo-ink: #111827;
-        --kaamzo-muted: #64748B;
-        --kaamzo-border: #EDE8E0;
-        --kaamzo-accent: #F59E0B;
-        --kaamzo-verified: #16A34A;
-        --kaamzo-font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        --kaamzo-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-        --kaamzo-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+        /* Core */
+        --kz-charcoal: #1C1913;
+        --kz-cream: #FBF8F2;
+        --kz-marigold: #F5A524;
+        --kz-marigold-deep: #E8930C;
+        --kz-amber-text: #7A4E00;
+        --kz-muted: #6F685D;
+        --kz-body: #4A443A;
+        --kz-border: #EFE7DA;
+        --kz-success: #2E9E57;
+        --kz-success-text: #1D6B36;
+        --kz-success-bg: #E3F4E8;
+        --kz-danger: #E5484D;
+        --kz-danger-bg: #FFE1E1;
+        /* Scene */
+        --kz-sky: #B9D3E8;
+        --kz-haze: #F6E2CF;
+        --kz-sunset: #F3B47C;
+        --kz-mustard: #F3D24E;
+        --kz-field: #7F9C48;
+        --kz-dusk: #3B2C4A;
+        /* Trade pastels (fill / ink) */
+        --kz-electrician: #FFF0BF; --kz-electrician-ink: #6B4600;
+        --kz-plumber: #DCEBFF;     --kz-plumber-ink: #123A6B;
+        --kz-carpenter: #F6E2D2;   --kz-carpenter-ink: #6B3612;
+        --kz-painter: #FBE0EE;     --kz-painter-ink: #6B1A45;
+        --kz-mason: #EDE6DA;       --kz-mason-ink: #4A3A24;
+        --kz-tile: #DDF2EC;        --kz-tile-ink: #11524A;
+        --kz-mover: #E3E0FF;       --kz-mover-ink: #2E2470;
+        /* Type */
+        --kz-font-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
+        --kz-font-accent: 'Instrument Serif', Georgia, serif;
+        --kz-font-hand: 'Caveat', cursive;
+        --kz-font-hindi: 'Noto Sans Devanagari', sans-serif;
+        /* Shape */
+        --kz-radius-card: 28px;
+        --kz-radius-pill: 999px;
+        --kz-radius-input: 16px;
+        --kz-shadow-card: 0 14px 34px rgba(90,60,20,0.06);
       }
-      html.dark {
-        --kaamzo-canvas: #0B0D12;
-        --kaamzo-surface: #12151E;
-        --kaamzo-ink: #F8FAFC;
-        --kaamzo-muted: #94A3B8;
-        --kaamzo-border: rgba(245, 158, 11, 0.25);
+
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--kz-cream);
+        color: var(--kz-charcoal);
+        font-family: var(--kz-font-ui);
+        min-height: 100vh;
+        overflow-x: hidden;
       }
-      body, .kaamzo-landing-page, #root > div {
-        min-height: 100dvh;
-      }
-      #kaamzo-customer-hero h1,
-      #kaamzo-customer-hero h2,
-      #main-content h1,
-      #main-content h2 {
-        font-family: var(--kaamzo-font-display);
-        letter-spacing: -0.025em;
-      }
-      #kaamzo-live-timer-display,
-      #kaamzo-khata-today,
-      #kaamzo-khata-escrow,
-      #kaamzo-khata-weekly,
-      #kaamzo-crew-total-price,
-      #kaamzo-escrow-amount-display {
-        font-family: var(--kaamzo-font-mono);
-        font-variant-numeric: tabular-nums;
-      }
-      #kaamzo-customer-hero button,
-      #main-content button:not(:disabled) {
-        transition: transform 180ms var(--kaamzo-ease-spring), box-shadow 200ms var(--kaamzo-ease-spring), border-color 180ms ease;
-      }
-      #kaamzo-customer-hero button:not(:disabled):active,
-      #main-content button:not(:disabled):active {
-        transform: translateY(-1px) scale(0.985);
-      }
-      #kaamzo-customer-hero button:focus-visible,
-      #main-content button:focus-visible,
-      #main-content input:focus-visible,
-      #main-content select:focus-visible {
-        outline: 2px solid var(--kaamzo-accent);
+      button, input, select, textarea { font: inherit; }
+      button { cursor: pointer; touch-action: manipulation; }
+      button:disabled { cursor: not-allowed; opacity: .45; }
+      a { color: var(--kz-amber-text); }
+      a:hover { color: #5A3900; }
+      input::placeholder { color: var(--kz-muted); }
+      button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+        outline: 3px solid rgba(245,165,36,.55);
         outline-offset: 2px;
       }
-      #hero-post-job-btn,
-      #kaamzo-customer-hero > div:first-child button {
-        min-height: 44px;
+
+      /* Design system helper classes & exact breakpoints */
+      .float { position: absolute; }
+      .mbar { display: none !important; }
+      .kz-serif { font-family: var(--kz-font-accent); font-style: italic; font-weight: 400; }
+      .kz-hand { font-family: var(--kz-font-hand); }
+      .kz-hi { font-family: var(--kz-font-hindi); }
+      .kz-jobs-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+      .kz-radar-ring { position: relative; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, #fff 0 22%, #FFF6E3 22% 45%, #FDEBC8 45% 70%, #FBDDA6 70% 100%); border: 1px solid #F1D9A9; flex: none; }
+      .kz-radar-ring .dot { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: var(--kz-charcoal); box-shadow: 0 0 0 6px rgba(28,25,19,.12); }
+      .kz-radar-ring .ping { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--kz-marigold); animation: kz-ping 2.4s ease-out infinite; }
+      .kz-radar-ring .rj { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: var(--kz-marigold-deep); border: 2px solid #fff; }
+      @keyframes kz-ping { 0% { transform: scale(.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+      @media (max-width: 1240px) { .float { display: none !important; } }
+      @media (max-width: 1040px) { .kz-jobs-grid { grid-template-columns: 1fr !important; } }
+      @media (max-width: 900px) { .navlinks { display: none !important; } }
+      @media (max-width: 760px) { .mbar { display: block !important; } }
+      @media (max-width: 640px) {
+        .kz-jobs-price { font-size: 42px !important; }
+        .hide-sm { display: none !important; }
+        .kz-jobs-wrap { padding: 0 16px !important; }
+        .kz-app-header { position: static !important; }
+        .kz-tabs { order: 3; width: 100%; overflow-x: auto; }
+        .kz-tabs button, .kz-tabs a { white-space: nowrap; padding: 9px 12px !important; font-size: 13px !important; }
+        .kz-pricebox { width: 100%; flex-direction: row !important; align-items: baseline !important; justify-content: space-between !important; text-align: left !important; }
+        .kz-actions .kz-btn-flex { flex: 1 1 auto; }
+        .kz-actions .kz-btn-accept { width: 100%; margin-left: 0 !important; }
       }
       @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
-          transition-duration: 0.01ms !important;
-          animation-duration: 0.01ms !important;
-        }
+        .kz-radar-ring .ping { animation: none; }
+      }
+
+      /* Dark Mode (home/global-menus-and-states.html: #14120E / #1F1C17 / #EDE6DA / #F5A524) */
+      html.dark body,
+      html.dark .kz-page-surface {
+        background: #14120E !important;
+        color: #EDE6DA !important;
+      }
+      html.dark .kz-sticky-header {
+        background: rgba(20, 18, 14, 0.92) !important;
+        border-bottom-color: #2E2A22 !important;
+        color: #EDE6DA !important;
+      }
+      html.dark .kz-card-surface {
+        background: #1F1C17 !important;
+        border-color: #2E2A22 !important;
+        color: #EDE6DA !important;
+      }
+      html.dark .kz-muted-surface {
+        background: #27231C !important;
+        border-color: #3A342C !important;
+        color: #EDE6DA !important;
+      }
+      html.dark .kz-tab-track {
+        background: #1F1C17 !important;
+        border-color: #2E2A22 !important;
+      }
+      html.dark .kz-footer-surface {
+        background: #14120E !important;
+        border-top-color: #2E2A22 !important;
+        color: #CFC6B8 !important;
       }
     </style>
     <script src="/assets/kaamzo-translator.js" defer></script>
+    <script src="/assets/kaamzo-redesign.js" defer></script>
     <script type="module" crossorigin src="/assets/index-v30.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEVHIrxg.css">
     <link rel="manifest" href="/manifest.webmanifest">

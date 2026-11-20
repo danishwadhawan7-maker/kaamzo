@@ -13,7 +13,7 @@
       ]
     },
     {
-      "source": "/(.*\\.html|admin.*|worker.*|customer.*|pitch.*|^/$)",
+      "source": "/(.*\\.html|admin.*|worker.*|customer.*|register.*|jobs.*|pitch.*|^/$)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -23,6 +23,22 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/register",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/register/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/jobs",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/jobs/(.*)",
+      "destination": "/index.html"
+    },
     {
       "source": "/admin",
       "destination": "/index.html"

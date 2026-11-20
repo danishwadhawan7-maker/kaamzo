@@ -9,3 +9,4 @@ logs/
 *.jks
 .env
 .env.*
+design-reference/
