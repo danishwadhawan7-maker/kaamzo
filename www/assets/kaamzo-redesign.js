@@ -2772,11 +2772,7 @@
             minHeight: "900px",
             overflow: "hidden",
             color: "#1C1913",
-            backgroundColor: "#DCEAF5",
-            backgroundImage: "url('/assets/kaamzo-hero-bg.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center bottom",
-            backgroundRepeat: "no-repeat",
+            background: "linear-gradient(180deg, #C7E0F4 0%, #DCEAF5 36%, #F6E9DA 72%, #FBF8F2 100%)",
           },
         },
         h("div", {
@@ -2785,27 +2781,41 @@
             position: "absolute",
             left: 0,
             right: 0,
+            top: "120px",
             bottom: 0,
-            height: "280px",
-            zIndex: 2,
             pointerEvents: "none",
-            background: isDark
-              ? "linear-gradient(180deg, rgba(20,18,14,0) 0%, rgba(20,18,14,0.18) 32%, rgba(20,18,14,0.62) 70%, #14120E 100%)"
-              : "linear-gradient(180deg, rgba(251,248,242,0) 0%, rgba(251,248,242,0.12) 32%, rgba(251,248,242,0.58) 70%, #FBF8F2 100%)",
+            backgroundImage: "url('/assets/kaamzo-hero-bg.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center bottom",
+            backgroundRepeat: "no-repeat",
           },
         }),
         h("div", {
           "aria-hidden": "true",
           style: {
             position: "absolute",
-            left: "50%",
-            top: "40px",
-            width: "1200px",
-            height: "560px",
-            marginLeft: "-600px",
+            left: 0,
+            right: 0,
+            top: "120px",
+            height: "160px",
+            zIndex: 1,
             pointerEvents: "none",
-            background:
-              "radial-gradient(ellipse at center, rgba(251,246,238,0.56) 0%, rgba(251,246,238,0.22) 45%, rgba(251,246,238,0) 72%)",
+            background: "linear-gradient(180deg, #DCEAF5 0%, rgba(220,234,245,0.65) 45%, rgba(220,234,245,0) 100%)",
+          },
+        }),
+        h("div", {
+          "aria-hidden": "true",
+          style: {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "240px",
+            zIndex: 2,
+            pointerEvents: "none",
+            background: isDark
+              ? "linear-gradient(180deg, rgba(20,18,14,0) 0%, rgba(20,18,14,0.2) 34%, rgba(20,18,14,0.68) 72%, #14120E 100%)"
+              : "linear-gradient(180deg, rgba(251,248,242,0) 0%, rgba(251,248,242,0.14) 34%, rgba(251,248,242,0.62) 72%, #FBF8F2 100%)",
           },
         }),
 
