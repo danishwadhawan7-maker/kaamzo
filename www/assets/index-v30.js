@@ -5151,10 +5151,10 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
   // ADMIN LOGIN VIEW (Warm Cream Palette)
   if (!e) return r.jsxs("div", {
-    className:`bg-[#FAF7F2] dark:bg-[#121212] text-slate-800 dark:text-slate-100 flex flex-col h-full overflow-y-auto select-none ${s ? "w-full rounded-3xl border border-[#EDE8E0] dark:border-[#2E2E2E]" :"max-w-md mx-auto rounded-3xl border border-[#EDE8E0] dark:border-[#2E2E2E] shadow-2xl"}`,
+    className:`bg-[#FBF8F2] dark:bg-[#14120E] text-[#1C1913] dark:text-slate-100 flex flex-col h-full overflow-y-auto select-none ${s ? "w-full rounded-3xl border border-[#EFE7DA] dark:border-[#2E2A22]" :"max-w-md mx-auto rounded-3xl border border-[#EFE7DA] dark:border-[#2E2A22] shadow-2xl"}`,
     children: [
       r.jsxs("div", {
-        className:"p-5 bg-white dark:bg-[#1C1C1C] border-b border-[#EDE8E0] dark:border-[#2E2E2E] shrink-0 rounded-t-3xl",
+        className:"p-5 bg-white dark:bg-[#1F1C17] border-b border-[#EFE7DA] dark:border-[#2E2A22] shrink-0 rounded-t-3xl",
         children: [
           r.jsxs("div", {
             className:"flex items-center justify-between",
@@ -5164,23 +5164,23 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 children: [
                   r.jsxs("button", {
                     onClick: () => f("select_role"),
-                    className:"p-1.5 bg-[#FAF7F2] dark:bg-[#252525] hover:bg-[#EDE8E0] dark:hover:bg-[#333] text-slate-700 dark:text-slate-200 rounded-xl transition cursor-pointer border border-[#EDE8E0] dark:border-[#333]",
+                    className:"p-1.5 bg-[#FBF8F2] dark:bg-[#27231C] hover:bg-[#EFE7DA] dark:hover:bg-[#3A342C] text-[#4A443A] dark:text-slate-200 rounded-xl transition cursor-pointer border border-[#EFE7DA] dark:border-[#3A342C]",
                     title: ls(p,"back_to_role_selection"),
                     children: [r.jsx(v2, { className:"w-4 h-4" })]
                   }),
                   r.jsxs("div", {
                     children: [
                       r.jsxs("h3", {
-                        className:"text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5",
+                        className:"text-lg font-black text-[#1C1913] dark:text-white flex items-center gap-1.5",
                         children: [r.jsx(D2, { className:"w-5 h-5 text-amber-500" })," Kaamzo Admin Portal"]
                       }),
-                      r.jsx("p", { className:"text-xs text-slate-500 dark:text-slate-400 font-medium", children:"Super Admin Command Center" })
+                      r.jsx("p", { className:"text-xs text-[#6F685D] dark:text-[#6F685D] font-medium", children:"Super Admin Command Center" })
                     ]
                   })
                 ]
               }),
               r.jsx("span", {
-                className:"px-2.5 py-1 bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-[10px] font-black rounded-full",
+                className:"px-2.5 py-1 bg-amber-500/15 border border-amber-500/30 text-[#7A4E00] dark:text-amber-400 text-[10px] font-black rounded-full",
                 children:"Admin Access"
               })
             ]
@@ -5188,10 +5188,10 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
         ]
       }),
       r.jsxs("div", {
-        className:"p-5 space-y-4 flex-1 bg-white dark:bg-[#1C1C1C]",
+        className:"p-5 space-y-4 flex-1 bg-white dark:bg-[#1F1C17]",
         children: [
           r.jsx("p", {
-            className:"text-slate-500 dark:text-slate-400 text-xs text-center font-medium",
+            className:"text-[#6F685D] dark:text-[#6F685D] text-xs text-center font-medium",
             children:"Sign in with authorized administrator credentials to manage platform operations."
           }),
           j && r.jsxs("div", {
@@ -5204,7 +5204,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
             children: [
               r.jsxs("div", {
                 children: [
-                  r.jsx("label", { className:"font-bold text-slate-700 dark:text-slate-300 block mb-1", children: ls(p,"admin_email_label") }),
+                  r.jsx("label", { className:"font-bold text-[#4A443A] dark:text-slate-300 block mb-1", children: ls(p,"admin_email_label") }),
                   r.jsxs("div", {
                     className:"relative",
                     children: [
@@ -5214,17 +5214,17 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                         value: T,
                         onChange: ae => k(ae.target.value),
                         disabled: lockoutSec > 0,
-                        className:"w-full bg-[#FAF7F2] dark:bg-[#252525] border border-[#EDE8E0] dark:border-[#333] text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-amber-500 pl-8 font-mono disabled:opacity-50",
+                        className:"w-full bg-[#FBF8F2] dark:bg-[#27231C] border border-[#EFE7DA] dark:border-[#3A342C] text-[#1C1913] dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-amber-500 pl-8 font-mono disabled:opacity-50",
                         required: !0
                       }),
-                      r.jsx(qh, { className:"w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" })
+                      r.jsx(qh, { className:"w-4 h-4 text-[#6F685D] absolute left-2.5 top-2.5" })
                     ]
                   })
                 ]
               }),
               r.jsxs("div", {
                 children: [
-                  r.jsx("label", { className:"font-bold text-slate-700 dark:text-slate-300 block mb-1", children: ls(p,"auth_password_label") }),
+                  r.jsx("label", { className:"font-bold text-[#4A443A] dark:text-slate-300 block mb-1", children: ls(p,"auth_password_label") }),
                   r.jsxs("div", {
                     className:"relative",
                     children: [
@@ -5234,10 +5234,10 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                         value: G,
                         onChange: ae => S(ae.target.value),
                         disabled: lockoutSec > 0,
-                        className:"w-full bg-[#FAF7F2] dark:bg-[#252525] border border-[#EDE8E0] dark:border-[#333] text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-amber-500 pl-8 font-mono disabled:opacity-50",
+                        className:"w-full bg-[#FBF8F2] dark:bg-[#27231C] border border-[#EFE7DA] dark:border-[#3A342C] text-[#1C1913] dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-amber-500 pl-8 font-mono disabled:opacity-50",
                         required: !0
                       }),
-                      r.jsx(Bu, { className:"w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" })
+                      r.jsx(Bu, { className:"w-4 h-4 text-[#6F685D] absolute left-2.5 top-2.5" })
                     ]
                   })
                 ]
@@ -5245,7 +5245,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
               r.jsxs("button", {
                 type:"submit",
                 disabled: lockoutSec > 0,
-                className:"w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black py-3 rounded-2xl text-xs transition shadow-md flex items-center justify-center gap-2 mt-4 cursor-pointer",
+                className:"w-full bg-[#F5A524] hover:bg-[#E8930C] active:scale-95 text-slate-950 font-black py-3 rounded-2xl text-xs transition shadow-md flex items-center justify-center gap-2 mt-4 cursor-pointer",
                 children: [
                   r.jsx(Bu, { className:"w-4 h-4" }),
                   r.jsx("span", { children: lockoutSec > 0 ? `Locked (${lockoutSec}s)` :"Sign In to Admin Command Center" })
@@ -5264,10 +5264,10 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
   // MFA / 2FA UNLOCK VIEW (Warm Cream Palette)
   if (!mfaUnlocked) return r.jsxs("div", {
-    className:`bg-[#FAF7F2] dark:bg-[#121212] text-slate-800 dark:text-slate-100 flex flex-col h-full overflow-y-auto select-none ${s ? "w-full rounded-3xl border border-amber-500/50" :"max-w-md mx-auto rounded-3xl border border-amber-500/50 shadow-2xl"}`,
+    className:`bg-[#FBF8F2] dark:bg-[#14120E] text-[#1C1913] dark:text-slate-100 flex flex-col h-full overflow-y-auto select-none ${s ? "w-full rounded-3xl border border-amber-500/50" :"max-w-md mx-auto rounded-3xl border border-amber-500/50 shadow-2xl"}`,
     children: [
       r.jsxs("div", {
-        className:"p-5 bg-white dark:bg-[#1C1C1C] border-b border-[#EDE8E0] dark:border-[#2E2E2E] shrink-0 rounded-t-3xl flex items-center justify-between",
+        className:"p-5 bg-white dark:bg-[#1F1C17] border-b border-[#EFE7DA] dark:border-[#2E2A22] shrink-0 rounded-t-3xl flex items-center justify-between",
         children: [
           r.jsxs("div", {
             className:"flex items-center gap-2.5",
@@ -5275,8 +5275,8 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
               r.jsx("div", { className:"w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-500", children: r.jsx(Bu, { className:"w-5 h-5 text-amber-500" }) }),
               r.jsxs("div", {
                 children: [
-                  r.jsx("h3", { className:"text-base font-black text-slate-900 dark:text-white", children:"Step 2: Admin Verification & PIN" }),
-                  r.jsxs("p", { className:"text-[11px] text-amber-600 dark:text-amber-400 font-mono", children: [e.email] })
+                  r.jsx("h3", { className:"text-base font-black text-[#1C1913] dark:text-white", children:"Step 2: Admin Verification & PIN" }),
+                  r.jsxs("p", { className:"text-[11px] text-[#7A4E00] dark:text-amber-400 font-mono", children: [e.email] })
                 ]
               })
             ]
@@ -5284,26 +5284,26 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
           r.jsx("button", {
             type:"button",
             onClick: n,
-            className:"px-2.5 py-1 bg-[#FAF7F2] dark:bg-[#252525] hover:bg-rose-100 dark:hover:bg-rose-950 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold cursor-pointer border border-[#EDE8E0] dark:border-[#333]",
+            className:"px-2.5 py-1 bg-[#FBF8F2] dark:bg-[#27231C] hover:bg-rose-100 dark:hover:bg-rose-950 text-[#4A443A] dark:text-slate-200 rounded-lg text-xs font-bold cursor-pointer border border-[#EFE7DA] dark:border-[#3A342C]",
             children:"Cancel"
           })
         ]
       }),
       r.jsxs("form", {
         onSubmit: handleVerifyMfa,
-        className:"p-5 space-y-4 text-xs bg-white dark:bg-[#1C1C1C]",
+        className:"p-5 space-y-4 text-xs bg-white dark:bg-[#1F1C17]",
         children: [
           r.jsxs("div", {
             className:"bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-amber-900 dark:text-amber-200 space-y-1",
             children: [
-              r.jsx("p", { className:"font-bold text-amber-700 dark:text-amber-400", children:"6-Digit Verification Code Sent" }),
-              r.jsxs("p", { className:"text-[11px] text-slate-600 dark:text-slate-300", children: ["A 6-digit one-time verification code has been sent to ", e.email,". Enter code & Master PIN to unlock."] })
+              r.jsx("p", { className:"font-bold text-[#7A4E00] dark:text-amber-400", children:"6-Digit Verification Code Sent" }),
+              r.jsxs("p", { className:"text-[11px] text-[#4A443A] dark:text-slate-300", children: ["A 6-digit one-time verification code has been sent to ", e.email,". Enter code & Master PIN to unlock."] })
             ]
           }),
           mfaError && r.jsx("div", { className:"bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-200 p-3 rounded-xl font-bold", children: mfaError }),
           r.jsxs("div", {
             children: [
-              r.jsx("label", { className:"font-bold text-slate-700 dark:text-slate-300 block mb-1", children:"1. 6-Digit Admin Verification Code" }),
+              r.jsx("label", { className:"font-bold text-[#4A443A] dark:text-slate-300 block mb-1", children:"1. 6-Digit Admin Verification Code" }),
               r.jsx("input", {
                 id:"admin-2fa-otp-input",
                 type:"text",
@@ -5311,38 +5311,38 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 placeholder:"000000",
                 value: mfaOtpInput,
                 onChange: ae => setMfaOtpInput(ae.target.value.replace(/\D/g,"").slice(0, 6)),
-                className:"w-full bg-[#FAF7F2] dark:bg-[#252525] border border-amber-500/50 text-amber-700 dark:text-amber-400 rounded-xl px-3 py-2.5 text-center text-lg font-black tracking-[6px] font-mono focus:outline-amber-400",
+                className:"w-full bg-[#FBF8F2] dark:bg-[#27231C] border border-amber-500/50 text-[#7A4E00] dark:text-amber-400 rounded-xl px-3 py-2.5 text-center text-lg font-black tracking-[6px] font-mono focus:outline-amber-400",
                 required: !0
               })
             ]
           }),
           r.jsxs("div", {
             children: [
-              r.jsx("label", { className:"font-bold text-slate-700 dark:text-slate-300 block mb-1", children:"2. 4-Digit Admin Master Security PIN" }),
+              r.jsx("label", { className:"font-bold text-[#4A443A] dark:text-slate-300 block mb-1", children:"2. 4-Digit Admin Master Security PIN" }),
               r.jsx("input", {
                 type:"password",
                 maxLength: 6,
                 placeholder:"••••••",
                 value: mfaPinInput,
                 onChange: ae => setMfaPinInput(ae.target.value.replace(/\D/g,"").slice(0, 6)),
-                className:"w-full bg-[#FAF7F2] dark:bg-[#252525] border border-[#EDE8E0] dark:border-[#333] text-slate-900 dark:text-white rounded-xl px-3 py-2.5 text-center text-base font-black tracking-[6px] font-mono focus:outline-amber-400",
+                className:"w-full bg-[#FBF8F2] dark:bg-[#27231C] border border-[#EFE7DA] dark:border-[#3A342C] text-[#1C1913] dark:text-white rounded-xl px-3 py-2.5 text-center text-base font-black tracking-[6px] font-mono focus:outline-amber-400",
                 required: !0
               })
             ]
           }),
           r.jsx("button", {
             type:"submit",
-            className:"w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3 rounded-2xl text-xs transition shadow-lg cursor-pointer",
+            className:"w-full bg-[#2E9E57] hover:bg-[#2E9E57] active:scale-95 text-white font-black py-3 rounded-2xl text-xs transition shadow-lg cursor-pointer",
             children:"Verify Code & PIN to Unlock Admin Command"
           }),
           r.jsxs("div", {
-            className:"flex items-center justify-between pt-1 text-[11px] text-slate-500",
+            className:"flex items-center justify-between pt-1 text-[11px] text-[#6F685D]",
             children: [
               r.jsx("button", {
                 type:"button",
                 disabled: mfaResendTimer > 0,
                 onClick: () => dispatchAdmin2FA(e.email),
-                className:"text-amber-600 dark:text-amber-400 hover:underline font-bold disabled:opacity-50 cursor-pointer",
+                className:"text-[#7A4E00] dark:text-amber-400 hover:underline font-bold disabled:opacity-50 cursor-pointer",
                 children: mfaResendTimer > 0 ? `Resend Code in ${mfaResendTimer}s` :"Resend 6-Digit Verification Code"
               }),
               r.jsx("span", { children:"Kaamzo Admin v2.4" })
@@ -5624,11 +5624,11 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
   // ADMIN DASHBOARD SHELL (Website Warm Cream & Amber Palette)
   return r.jsxs("div", {
-    className:`bg-[#FAF7F2] dark:bg-[#121212] text-slate-800 dark:text-slate-100 flex flex-col h-full overflow-hidden select-none ${s ? "w-full rounded-3xl border border-[#EDE8E0] dark:border-[#2E2E2E]" :"w-full max-w-5xl mx-auto rounded-3xl border border-[#EDE8E0] dark:border-[#2E2E2E] shadow-2xl"}`,
+    className:`bg-[#FBF8F2] dark:bg-[#14120E] text-[#1C1913] dark:text-slate-100 flex flex-col h-full overflow-hidden select-none ${s ? "w-full rounded-3xl border border-[#EFE7DA] dark:border-[#2E2A22]" :"w-full max-w-5xl mx-auto rounded-3xl border border-[#EFE7DA] dark:border-[#2E2A22] shadow-2xl"}`,
     children: [
       // Top Header (Consistent Kaamzo branding)
       r.jsxs("div", {
-        className:"bg-white dark:bg-[#1C1C1C] rounded-t-3xl p-4 sm:p-5 border-b border-[#EDE8E0] dark:border-[#2E2E2E] shrink-0",
+        className:"bg-white dark:bg-[#1F1C17] rounded-t-3xl p-4 sm:p-5 border-b border-[#EFE7DA] dark:border-[#2E2A22] shrink-0",
         children: [
           r.jsxs("div", {
             className:"flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2",
@@ -5637,7 +5637,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 className:"flex items-center gap-2.5",
                 children: [
                   r.jsx("div", {
-                    className:"w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black",
+                    className:"w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-[#7A4E00] dark:text-amber-400 font-black",
                     children: r.jsx(D2, { className:"w-5 h-5 text-amber-500" })
                   }),
                   r.jsxs("div", {
@@ -5645,11 +5645,11 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                       r.jsxs("div", {
                         className:"flex items-center gap-2",
                         children: [
-                          r.jsx("h2", { className:"text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight", children:"Kaamzo Admin Command Center" }),
-                          r.jsx("span", { className:"px-2 py-0.5 bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-[10px] font-black rounded-full uppercase tracking-wider", children:"Super Admin" })
+                          r.jsx("h2", { className:"text-base sm:text-lg font-black text-[#1C1913] dark:text-white leading-tight", children:"Kaamzo Admin Command Center" }),
+                          r.jsx("span", { className:"px-2 py-0.5 bg-amber-500/15 border border-amber-500/30 text-[#7A4E00] dark:text-amber-400 text-[10px] font-black rounded-full uppercase tracking-wider", children:"Super Admin" })
                         ]
                       }),
-                      r.jsxs("p", { className:"text-xs text-slate-500 dark:text-slate-400 font-medium", children: ["Logged in as ", r.jsx("strong", { className:"text-slate-700 dark:text-slate-200", children: e.email })] })
+                      r.jsxs("p", { className:"text-xs text-[#6F685D] dark:text-[#6F685D] font-medium", children: ["Logged in as ", r.jsx("strong", { className:"text-[#4A443A] dark:text-slate-200", children: e.email })] })
                     ]
                   })
                 ]
@@ -5659,7 +5659,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 children: [
                   r.jsxs("button", {
                     onClick: lockAdminVault,
-                    className:"px-3 py-1.5 bg-[#FAF7F2] dark:bg-[#252525] hover:bg-[#EDE8E0] dark:hover:bg-[#333] border border-[#EDE8E0] dark:border-[#333] text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs",
+                    className:"px-3 py-1.5 bg-[#FBF8F2] dark:bg-[#27231C] hover:bg-[#EFE7DA] dark:hover:bg-[#3A342C] border border-[#EFE7DA] dark:border-[#3A342C] text-[#4A443A] dark:text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs",
                     title:"Lock Admin Console",
                     children: [
                       r.jsx(Bu, { className:"w-3.5 h-3.5 text-amber-500" }),
@@ -5696,13 +5696,13 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                   }),
                   r.jsxs("button", {
                     onClick: () => { z("Records synchronized!"); },
-                    className:"px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs",
+                    className:"px-3 py-1.5 bg-[#F5A524] hover:bg-[#E8930C] active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs",
                     title:"Refresh Platform Records",
                     children: [r.jsx(uc, { className:"w-3.5 h-3.5" }), r.jsx("span", { children:"Refresh" })]
                   }),
                   r.jsxs("button", {
                     onClick: n,
-                    className:"px-2.5 py-1.5 bg-[#FAF7F2] dark:bg-[#252525] hover:bg-slate-200 dark:hover:bg-[#333] border border-[#EDE8E0] dark:border-[#333] text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer",
+                    className:"px-2.5 py-1.5 bg-[#FBF8F2] dark:bg-[#27231C] hover:bg-slate-200 dark:hover:bg-[#3A342C] border border-[#EFE7DA] dark:border-[#3A342C] text-[#4A443A] dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer",
                     title:"Logout Admin",
                     children: [r.jsx(s9, { className:"w-3.5 h-3.5" })]
                   })
@@ -5711,10 +5711,10 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
             ]
           }),
           W && r.jsxs("div", {
-            className:"mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300",
+            className:"mt-2 p-2.5 bg-[#FFF7E3] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300",
             children: [
               r.jsxs("div", { className:"flex items-center gap-2", children: [r.jsx(Oc, { className:"w-4 h-4 text-amber-500 shrink-0" }), r.jsx("span", { children:"Database quota notice: running on local failover store." })] }),
-              r.jsx("button", { onClick: () => window.location.reload(), className:"px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg text-[11px] cursor-pointer", children:"Retry" })
+              r.jsx("button", { onClick: () => window.location.reload(), className:"px-2.5 py-1 bg-[#F5A524] text-slate-950 font-bold rounded-lg text-[11px] cursor-pointer", children:"Retry" })
             ]
           })
         ]
@@ -5722,32 +5722,32 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
       // Navigation Bar (Warm Tabs with Badges)
       r.jsxs("div", {
-        className:"flex border-b border-[#EDE8E0] dark:border-[#2E2E2E] bg-white dark:bg-[#1C1C1C] text-xs font-bold shrink-0 px-2 pt-2 gap-1 overflow-x-auto",
+        className:"flex border-b border-[#EFE7DA] dark:border-[#2E2A22] bg-white dark:bg-[#1F1C17] text-xs font-bold shrink-0 px-2 pt-2 gap-1 overflow-x-auto",
         children: [
           // 1. CUSTOMERS DIRECTORY TAB (Requested)
           r.jsxs("button", {
             onClick: () => ve("customers"),
-            className:`flex-1 min-w-[140px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "customers" ? "bg-[#FAF7F2] dark:bg-[#121212] text-amber-600 dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[140px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "customers" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-[#7A4E00] dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx(qh, { className:"w-3.5 h-3.5 text-amber-500" }),
               r.jsx("span", { children:"Customers List" }),
-              r.jsxs("span", { className:"px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[10px] font-black rounded-full", children: [allUnifiedCustomers.length] })
+              r.jsxs("span", { className:"px-1.5 py-0.2 bg-[#F5A524] text-slate-950 text-[10px] font-black rounded-full", children: [allUnifiedCustomers.length] })
             ]
           }),
           // 2. WORKERS DIRECTORY & RATINGS TAB (Requested)
           r.jsxs("button", {
             onClick: () => ve("workers"),
-            className:`flex-1 min-w-[140px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "workers" ? "bg-[#FAF7F2] dark:bg-[#121212] text-amber-600 dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[140px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "workers" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-[#7A4E00] dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx($d, { className:"w-3.5 h-3.5 text-amber-500" }),
               r.jsx("span", { children:"Workers List & Ratings" }),
-              r.jsxs("span", { className:"px-1.5 py-0.2 bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-full", children: [enrichedWorkers.length] })
+              r.jsxs("span", { className:"px-1.5 py-0.2 bg-amber-500/20 text-[#7A4E00] dark:text-amber-300 text-[10px] font-bold rounded-full", children: [enrichedWorkers.length] })
             ]
           }),
           // 3. COMMISSION & TREASURY TAB
           r.jsxs("button", {
             onClick: () => ve("treasury"),
-            className:`flex-1 min-w-[125px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "treasury" ? "bg-[#FAF7F2] dark:bg-[#121212] text-amber-600 dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[125px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "treasury" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-[#7A4E00] dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx(_b, { className:"w-3.5 h-3.5 text-amber-500" }),
               r.jsx("span", { children:"Treasury" })
@@ -5756,27 +5756,27 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
           // 4. KYC VERIFICATIONS TAB
           r.jsxs("button", {
             onClick: () => ve("kyc"),
-            className:`flex-1 min-w-[125px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "kyc" ? "bg-[#FAF7F2] dark:bg-[#121212] text-amber-600 dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[125px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "kyc" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-[#7A4E00] dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx(Tm, { className:"w-3.5 h-3.5" }),
               r.jsx("span", { children:"KYC Queue" }),
-              pendingKycCount > 0 && r.jsxs("span", { className:"px-1.5 py-0.2 bg-rose-500 text-white text-[10px] font-black rounded-full", children: [pendingKycCount] })
+              pendingKycCount > 0 && r.jsxs("span", { className:"px-1.5 py-0.2 bg-[#E5484D] text-white text-[10px] font-black rounded-full", children: [pendingKycCount] })
             ]
           }),
           // 5. LIVE JOBS TAB
           r.jsxs("button", {
             onClick: () => ve("jobs"),
-            className:`flex-1 min-w-[110px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "jobs" ? "bg-[#FAF7F2] dark:bg-[#121212] text-amber-600 dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[110px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "jobs" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-[#7A4E00] dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx(p0, { className:"w-3.5 h-3.5" }),
               r.jsx("span", { children:"Live Jobs" }),
-              r.jsxs("span", { className:"px-1.5 py-0.2 bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-full", children: [o.length] })
+              r.jsxs("span", { className:"px-1.5 py-0.2 bg-amber-500/20 text-[#7A4E00] dark:text-amber-300 text-[10px] font-bold rounded-full", children: [o.length] })
             ]
           }),
           // 6. SUPPORT CHATS TAB
           r.jsxs("button", {
             onClick: () => ve("support"),
-            className:`flex-1 min-w-[110px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "support" ? "bg-[#FAF7F2] dark:bg-[#121212] text-amber-600 dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[110px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "support" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-[#7A4E00] dark:text-amber-400 border-t-2 border-amber-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx(A0, { className:"w-3.5 h-3.5 text-amber-500" }),
               r.jsx("span", { children:"Support" })
@@ -5785,7 +5785,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
           // 7. SECURITY & AUDIT TAB
           r.jsxs("button", {
             onClick: () => { setAuditLogs(window.kaamzoAdminSecurity ? window.kaamzoAdminSecurity.getAuditLogs() : []); ve("security"); },
-            className:`flex-1 min-w-[125px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "security" ? "bg-[#FAF7F2] dark:bg-[#121212] text-emerald-600 dark:text-emerald-400 border-t-2 border-emerald-500 shadow-xs font-black" :"text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-[#FAF7F2] dark:hover:bg-[#252525]"}`,
+            className:`flex-1 min-w-[125px] py-2.5 px-3 rounded-t-xl text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${re === "security" ? "bg-[#FBF8F2] dark:bg-[#14120E] text-emerald-600 dark:text-emerald-400 border-t-2 border-emerald-500 shadow-xs font-black" :"text-[#4A443A] dark:text-[#6F685D] hover:text-[#1C1913] hover:bg-[#FBF8F2] dark:hover:bg-[#27231C]"}`,
             children: [
               r.jsx(Os, { className:"w-3.5 h-3.5 text-emerald-500" }),
               r.jsx("span", { children:"Security" })
@@ -5796,7 +5796,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
       // Main Content Area
       r.jsxs("div", {
-        className:"flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs bg-[#FAF7F2] dark:bg-[#121212]",
+        className:"flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs bg-[#FBF8F2] dark:bg-[#14120E]",
         children: [
           // Pending Worker KYC & Face ID Alert Banner
           pendingKycCount > 0 && re !== "kyc" && r.jsxs("div", {
@@ -5805,11 +5805,11 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
               r.jsxs("div", {
                 className:"flex items-center gap-2.5",
                 children: [
-                  r.jsx("span", { className:"px-2.5 py-1 bg-rose-600 text-white font-black rounded-xl text-xs animate-pulse", children: pendingKycCount + " Pending" }),
+                  r.jsx("span", { className:"px-2.5 py-1 bg-[#E5484D] text-white font-black rounded-xl text-xs animate-pulse", children: pendingKycCount + " Pending" }),
                   r.jsxs("div", {
                     children: [
-                      r.jsx("h4", { className:"font-black text-slate-900 dark:text-white text-xs sm:text-sm", children:"Worker Face ID & KYC Verification Waiting for Admin Approval" }),
-                      r.jsx("p", { className:"text-[11px] text-slate-600 dark:text-slate-300", children:"Review full worker details (Name, Username, Address, Job Status, Aadhaar & Live Face ID) to unlock their Worker Portal." })
+                      r.jsx("h4", { className:"font-black text-[#1C1913] dark:text-white text-xs sm:text-sm", children:"Worker Face ID & KYC Verification Waiting for Admin Approval" }),
+                      r.jsx("p", { className:"text-[11px] text-[#4A443A] dark:text-slate-300", children:"Review full worker details (Name, Username, Address, Job Status, Aadhaar & Live Face ID) to unlock their Worker Portal." })
                     ]
                   })
                 ]
@@ -5817,7 +5817,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
               r.jsxs("button", {
                 type:"button",
                 onClick: () => ve("kyc"),
-                className:"px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs transition shrink-0 cursor-pointer shadow-sm",
+                className:"px-3.5 py-2 bg-[#F5A524] hover:bg-[#E8930C] text-slate-950 font-black rounded-xl text-xs transition shrink-0 cursor-pointer shadow-sm",
                 children: ["Open KYC & Face ID Queue →"]
               })
             ]
@@ -5828,32 +5828,32 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
             className:"fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4",
             onClick: () => Z(null),
             children: r.jsxs("div", {
-              className:"bg-white dark:bg-[#1C1C1C] border-2 border-amber-500 rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl",
+              className:"bg-white dark:bg-[#1F1C17] border-2 border-amber-500 rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl",
               onClick: ev => ev.stopPropagation(),
               children: [
                 r.jsxs("div", {
-                  className:"flex items-center justify-between border-b border-[#EDE8E0] dark:border-[#333] pb-3",
+                  className:"flex items-center justify-between border-b border-[#EFE7DA] dark:border-[#3A342C] pb-3",
                   children: [
                     r.jsxs("div", {
                       children: [
-                        r.jsxs("h4", { className:"font-black text-slate-900 dark:text-white text-base flex items-center gap-1.5", children: [r.jsx(Os, { className:"w-4 h-4 text-amber-500" })," Face ID & Biometric Inspection"] }),
-                        r.jsxs("p", { className:"text-[11px] text-slate-500 font-mono", children: [he.workerName || he.name," (@", he.username,")"] })
+                        r.jsxs("h4", { className:"font-black text-[#1C1913] dark:text-white text-base flex items-center gap-1.5", children: [r.jsx(Os, { className:"w-4 h-4 text-amber-500" })," Face ID & Biometric Inspection"] }),
+                        r.jsxs("p", { className:"text-[11px] text-[#6F685D] font-mono", children: [he.workerName || he.name," (@", he.username,")"] })
                       ]
                     }),
                     r.jsx("button", {
                       type:"button",
                       onClick: () => Z(null),
-                      className:"px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold cursor-pointer",
+                      className:"px-2.5 py-1 bg-slate-100 dark:bg-[#1C1913] rounded-lg text-xs font-bold cursor-pointer",
                       children:"✕ Close"
                     })
                   ]
                 }),
                 r.jsx("div", {
-                  className:"w-full aspect-square max-h-72 mx-auto rounded-2xl overflow-hidden border-2 border-amber-500 bg-slate-950 flex items-center justify-center",
-                  children: he.facePhotoUrl ? r.jsx("img", { src: he.facePhotoUrl, alt:"Worker Face ID", className:"w-full h-full object-cover" }) : r.jsx("span", { className:"text-slate-400 text-xs", children:"No Photo" })
+                  className:"w-full aspect-square max-h-72 mx-auto rounded-2xl overflow-hidden border-2 border-amber-500 bg-[#1C1913] flex items-center justify-center",
+                  children: he.facePhotoUrl ? r.jsx("img", { src: he.facePhotoUrl, alt:"Worker Face ID", className:"w-full h-full object-cover" }) : r.jsx("span", { className:"text-[#6F685D] text-xs", children:"No Photo" })
                 }),
                 r.jsxs("div", {
-                  className:"bg-[#FAF7F2] dark:bg-[#252525] p-3 rounded-2xl border border-[#EDE8E0] dark:border-[#333] space-y-1 text-xs",
+                  className:"bg-[#FBF8F2] dark:bg-[#27231C] p-3 rounded-2xl border border-[#EFE7DA] dark:border-[#3A342C] space-y-1 text-xs",
                   children: [
                     r.jsxs("p", { children: [r.jsx("strong", { children:"Full Name:" }), he.workerName || he.name," • ", r.jsx("strong", { children:"Username:" }),"@", he.username] }),
                     r.jsxs("p", { children: [r.jsx("strong", { children:"Address:" }), he.fullAddress] }),
@@ -5868,13 +5868,13 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                     !(he.isVerified || he.status === "approved") && r.jsxs("button", {
                       type:"button",
                       onClick: () => { u(he.kycId || he.id,"approved"); Z(null); },
-                      className:"flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs cursor-pointer shadow-md",
+                      className:"flex-1 py-2.5 bg-[#2E9E57] hover:bg-[#2E9E57] text-white font-black rounded-xl text-xs cursor-pointer shadow-md",
                       children: ["Approve Face ID & Unlock Worker Portal"]
                     }),
                     r.jsx("button", {
                       type:"button",
                       onClick: () => Z(null),
-                      className:"px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs cursor-pointer",
+                      className:"px-4 py-2.5 bg-slate-200 dark:bg-[#1C1913] text-[#4A443A] dark:text-slate-200 font-bold rounded-xl text-xs cursor-pointer",
                       children:"Done"
                     })
                   ]
@@ -5891,35 +5891,35 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 className:"grid grid-cols-2 sm:grid-cols-4 gap-2.5",
                 children: [
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Total Customers" }),
-                      r.jsx("p", { className:"text-lg font-black text-slate-900 dark:text-white font-mono", children: allUnifiedCustomers.length }),
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Total Customers" }),
+                      r.jsx("p", { className:"text-lg font-black text-[#1C1913] dark:text-white font-mono", children: allUnifiedCustomers.length }),
                       r.jsx("p", { className:"text-[10px] text-emerald-600 font-semibold", children:"Registered & Verified" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Payments Made" }),
-                      r.jsx("p", { className:"text-lg font-black text-amber-600 dark:text-amber-400 font-mono", children:"₹" + totalCustomerPaymentsVolume.toLocaleString("en-IN") }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children: totalFundedPaymentsCount + " Escrow Payments" })
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Payments Made" }),
+                      r.jsx("p", { className:"text-lg font-black text-[#7A4E00] dark:text-amber-400 font-mono", children:"₹" + totalCustomerPaymentsVolume.toLocaleString("en-IN") }),
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children: totalFundedPaymentsCount + " Escrow Payments" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Orders Placed" }),
-                      r.jsx("p", { className:"text-lg font-black text-slate-900 dark:text-white font-mono", children: o.length }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children:"Ludhiana Platform" })
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Orders Placed" }),
+                      r.jsx("p", { className:"text-lg font-black text-[#1C1913] dark:text-white font-mono", children: o.length }),
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"Ludhiana Platform" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Disputes Raised" }),
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Disputes Raised" }),
                       r.jsx("p", { className:`text-lg font-black font-mono ${platformDisputes.length > 0 ? "text-rose-600" :"text-emerald-600"}`, children: platformDisputes.length }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children:"Zero-Loss Escrow" })
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"Zero-Loss Escrow" })
                     ]
                   })
                 ]
@@ -5927,7 +5927,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
               // Main Customers Card Container
               r.jsxs("div", {
-                className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-sm",
+                className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-sm",
                 children: [
                   r.jsxs("div", {
                     className:"flex flex-col sm:flex-row sm:items-center justify-between gap-2.5",
@@ -5935,11 +5935,11 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                       r.jsxs("div", {
                         children: [
                           r.jsxs("h3", {
-                            className:"font-black text-slate-900 dark:text-white text-sm flex items-center gap-1.5",
+                            className:"font-black text-[#1C1913] dark:text-white text-sm flex items-center gap-1.5",
                             children: [r.jsx(qh, { className:"w-4 h-4 text-amber-500" })," Customer Directory & Orders Ledger"]
                           }),
                           r.jsx("p", {
-                            className:"text-[11px] text-slate-500 dark:text-slate-400",
+                            className:"text-[11px] text-[#6F685D] dark:text-[#6F685D]",
                             children:"View customer sign-in timestamps, payments volume, disputes, and full details for every order."
                           })
                         ]
@@ -5952,9 +5952,9 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                             placeholder:"Search name, phone, order...",
                             value: custSearch,
                             onChange: ae => setCustSearch(ae.target.value),
-                            className:"w-full bg-[#FAF7F2] dark:bg-[#252525] border border-[#EDE8E0] dark:border-[#333] rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-amber-500"
+                            className:"w-full bg-[#FBF8F2] dark:bg-[#27231C] border border-[#EFE7DA] dark:border-[#3A342C] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#1C1913] dark:text-white focus:outline-amber-500"
                           }),
-                          r.jsx(Ru, { className:"w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" })
+                          r.jsx(Ru, { className:"w-3.5 h-3.5 text-[#6F685D] absolute left-2.5 top-2.5" })
                         ]
                       })
                     ]
@@ -5962,7 +5962,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                   // Customer Items
                   filteredCustomers.length === 0 ? r.jsx("div", {
-                    className:"p-8 text-center text-slate-400 bg-[#FAF7F2] dark:bg-[#222] rounded-xl text-xs",
+                    className:"p-8 text-center text-[#6F685D] bg-[#FBF8F2] dark:bg-[#222] rounded-xl text-xs",
                     children:"No customer records matching your query."
                   }) : r.jsx("div", {
                     className:"space-y-3",
@@ -5970,7 +5970,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                       const isExpanded = selectedCustId === cust.id;
                       return r.jsxs("div", {
                         key: cust.id,
-                        className:"bg-[#FDFBF7] dark:bg-[#222] border border-[#EDE8E0] dark:border-[#333] rounded-2xl p-4 transition shadow-xs space-y-3",
+                        className:"bg-[#FDFBF7] dark:bg-[#222] border border-[#EFE7DA] dark:border-[#3A342C] rounded-2xl p-4 transition shadow-xs space-y-3",
                         children: [
                           // Top Row: Avatar, Info, Status Badges
                           r.jsxs("div", {
@@ -5980,7 +5980,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                 className:"flex items-start gap-3",
                                 children: [
                                   r.jsx("div", {
-                                    className:"w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-black text-base flex items-center justify-center shrink-0",
+                                    className:"w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-[#7A4E00] dark:text-amber-400 font-black text-base flex items-center justify-center shrink-0",
                                     children: cust.name.charAt(0).toUpperCase()
                                   }),
                                   r.jsxs("div", {
@@ -5989,19 +5989,19 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                       r.jsxs("div", {
                                         className:"flex items-center gap-2 flex-wrap",
                                         children: [
-                                          r.jsx("h4", { className:"font-black text-slate-900 dark:text-white text-sm", children: cust.name }),
+                                          r.jsx("h4", { className:"font-black text-[#1C1913] dark:text-white text-sm", children: cust.name }),
                                           r.jsxs("span", {
-                                            className:"px-2 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-bold flex items-center gap-1",
-                                            children: [r.jsx("span", { className:"w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" })," Signed In:" + cust.signedInAt]
+                                            className:"px-2 py-0.5 bg-[#2E9E57]/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-bold flex items-center gap-1",
+                                            children: [r.jsx("span", { className:"w-1.5 h-1.5 rounded-full bg-[#2E9E57] animate-pulse" })," Signed In:" + cust.signedInAt]
                                           }),
                                           cust.disputesCount > 0 && r.jsxs("span", {
-                                            className:"px-2 py-0.5 bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 rounded-full text-[10px] font-bold",
+                                            className:"px-2 py-0.5 bg-[#E5484D]/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 rounded-full text-[10px] font-bold",
                                             children: ["" + cust.disputesCount + " Dispute(s)"]
                                           })
                                         ]
                                       }),
                                       r.jsxs("p", {
-                                        className:"text-[11px] text-slate-500 dark:text-slate-400",
+                                        className:"text-[11px] text-[#6F685D] dark:text-[#6F685D]",
                                         children: [cust.phone," • ", cust.email," • ", cust.area]
                                       })
                                     ]
@@ -6015,14 +6015,14 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                   r.jsxs("div", {
                                     className:"text-right pr-2 hidden sm:block",
                                     children: [
-                                      r.jsxs("p", { className:"text-xs font-black text-slate-900 dark:text-white font-mono", children: ["₹" + cust.totalPaid.toLocaleString("en-IN")] }),
-                                      r.jsxs("p", { className:"text-[10px] text-slate-400", children: [cust.paymentsCount," payments made"] })
+                                      r.jsxs("p", { className:"text-xs font-black text-[#1C1913] dark:text-white font-mono", children: ["₹" + cust.totalPaid.toLocaleString("en-IN")] }),
+                                      r.jsxs("p", { className:"text-[10px] text-[#6F685D]", children: [cust.paymentsCount," payments made"] })
                                     ]
                                   }),
                                   r.jsxs("button", {
                                     type:"button",
                                     onClick: () => setSelectedCustId(isExpanded ? null : cust.id),
-                                    className:"px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer shadow-xs",
+                                    className:"px-3 py-1.5 bg-[#F5A524] hover:bg-[#E8930C] active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer shadow-xs",
                                     children: [
                                       r.jsx("span", { children: isExpanded ? "Hide Orders" :`View Orders (${cust.orders.length})` }),
                                       r.jsx(yg, { className:`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" :""}` })
@@ -6035,27 +6035,27 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                           // Middle Highlights Bar
                           r.jsxs("div", {
-                            className:"grid grid-cols-3 gap-2 pt-1 border-t border-[#EDE8E0] dark:border-[#333] text-[11px]",
+                            className:"grid grid-cols-3 gap-2 pt-1 border-t border-[#EFE7DA] dark:border-[#3A342C] text-[11px]",
                             children: [
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e]",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e]",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-medium", children:"Payments Made" }),
-                                  r.jsxs("span", { className:"font-black text-amber-600 dark:text-amber-400 font-mono", children: [cust.paymentsCount," (₹", cust.totalPaid.toLocaleString("en-IN"),")"] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-medium", children:"Payments Made" }),
+                                  r.jsxs("span", { className:"font-black text-[#7A4E00] dark:text-amber-400 font-mono", children: [cust.paymentsCount," (₹", cust.totalPaid.toLocaleString("en-IN"),")"] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e]",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e]",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-medium", children:"Platform Disputes" }),
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-medium", children:"Platform Disputes" }),
                                   r.jsxs("span", { className:`font-bold ${cust.disputesCount > 0 ? "text-rose-600" :"text-emerald-600"}`, children: [cust.disputesCount," Disputes"] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e]",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e]",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-medium", children:"Total Orders" }),
-                                  r.jsxs("span", { className:"font-black text-slate-800 dark:text-slate-200", children: [cust.orders.length," Jobs Placed"] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-medium", children:"Total Orders" }),
+                                  r.jsxs("span", { className:"font-black text-[#1C1913] dark:text-slate-200", children: [cust.orders.length," Jobs Placed"] })
                                 ]
                               })
                             ]
@@ -6063,18 +6063,18 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                           // Expandable Orders Breakdown
                           isExpanded && r.jsxs("div", {
-                            className:"pt-2 border-t border-[#EDE8E0] dark:border-[#333] space-y-2 animate-in fade-in",
+                            className:"pt-2 border-t border-[#EFE7DA] dark:border-[#3A342C] space-y-2 animate-in fade-in",
                             children: [
                               r.jsxs("h5", {
-                                className:"font-bold text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5",
+                                className:"font-bold text-xs text-[#1C1913] dark:text-slate-200 flex items-center gap-1.5",
                                 children: [r.jsx(p0, { className:"w-3.5 h-3.5 text-amber-500" })," Information of Every Order Placed by " + cust.name]
                               }),
                               cust.orders.length === 0 ? r.jsx("p", {
-                                className:"text-[11px] text-slate-400 italic py-2",
+                                className:"text-[11px] text-[#6F685D] italic py-2",
                                 children:"No orders placed yet by this customer."
                               }) : cust.orders.map(order => r.jsxs("div", {
                                 key: order.id,
-                                className:"bg-white dark:bg-[#1a1a1a] border border-[#EDE8E0] dark:border-[#2e2e2e] rounded-xl p-3 space-y-2",
+                                className:"bg-white dark:bg-[#1a1a1a] border border-[#EFE7DA] dark:border-[#2e2e2e] rounded-xl p-3 space-y-2",
                                 children: [
                                   r.jsxs("div", {
                                     className:"flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs",
@@ -6082,16 +6082,16 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                       r.jsxs("div", {
                                         className:"space-y-0.5",
                                         children: [
-                                          r.jsxs("span", { className:"font-mono text-[10px] text-slate-400 font-bold", children: ["Order #", order.id] }),
-                                          r.jsxs("h6", { className:"font-bold text-slate-900 dark:text-white text-xs", children: [order.title || "Daily Wage Job"," (", order.trade,")"] })
+                                          r.jsxs("span", { className:"font-mono text-[10px] text-[#6F685D] font-bold", children: ["Order #", order.id] }),
+                                          r.jsxs("h6", { className:"font-bold text-[#1C1913] dark:text-white text-xs", children: [order.title || "Daily Wage Job"," (", order.trade,")"] })
                                         ]
                                       }),
                                       r.jsxs("div", {
                                         className:"flex items-center gap-2",
                                         children: [
-                                          r.jsxs("span", { className:"font-mono font-black text-amber-600 dark:text-amber-400 text-xs", children: ["₹", order.dailyWage || 500,"/day"] }),
+                                          r.jsxs("span", { className:"font-mono font-black text-[#7A4E00] dark:text-amber-400 text-xs", children: ["₹", order.dailyWage || 500,"/day"] }),
                                           r.jsx("span", {
-                                            className:`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${order.status === "completed" ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400" : order.status === "in_progress" ? "bg-blue-500/20 text-blue-700 dark:text-blue-400" :"bg-amber-500/20 text-amber-700 dark:text-amber-400"}`,
+                                            className:`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${order.status === "completed" ? "bg-[#2E9E57]/20 text-emerald-700 dark:text-emerald-400" : order.status === "in_progress" ? "bg-blue-500/20 text-blue-700 dark:text-blue-400" :"bg-amber-500/20 text-[#7A4E00] dark:text-amber-400"}`,
                                             children: order.status || "Broadcast"
                                           })
                                         ]
@@ -6099,7 +6099,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                     ]
                                   }),
                                   r.jsxs("div", {
-                                    className:"grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-[#FAF7F2] dark:bg-[#252525] p-2 rounded-lg",
+                                    className:"grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-[#4A443A] dark:text-slate-300 bg-[#FBF8F2] dark:bg-[#27231C] p-2 rounded-lg",
                                     children: [
                                       r.jsxs("p", { children: ["Assigned Worker:", r.jsx("strong", { children: order.assignedWorkerName || "Broadcast on Radar" }), order.assignedWorkerPhone ? " (" + order.assignedWorkerPhone + ")" :""] }),
                                       r.jsxs("p", { children: ["Escrow Status:", r.jsx("strong", { children: order.escrowStatus || "Funded & Held" }), order.startOtp ? " • Start OTP:" + order.startOtp :""] })
@@ -6112,7 +6112,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                       r.jsxs("div", {
                                         children: [
                                           r.jsxs("span", { className:"font-bold text-amber-800 dark:text-amber-300", children: ["Rating: ★ ", order.rating || 5,"/5"] }),
-                                          order.review && r.jsxs("p", { className:"text-slate-600 dark:text-slate-300 italic", children: ['"', order.review, '"'] })
+                                          order.review && r.jsxs("p", { className:"text-[#4A443A] dark:text-slate-300 italic", children: ['"', order.review, '"'] })
                                         ]
                                       })
                                     ]
@@ -6139,35 +6139,35 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 className:"grid grid-cols-2 sm:grid-cols-4 gap-2.5",
                 children: [
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Total Workers" }),
-                      r.jsx("p", { className:"text-lg font-black text-slate-900 dark:text-white font-mono", children: enrichedWorkers.length }),
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Total Workers" }),
+                      r.jsx("p", { className:"text-lg font-black text-[#1C1913] dark:text-white font-mono", children: enrichedWorkers.length }),
                       r.jsx("p", { className:"text-[10px] text-emerald-600 font-semibold", children: enrichedWorkers.filter(w => w.isVerified).length + " KYC Verified" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Worker Money (Wallet)" }),
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Worker Money (Wallet)" }),
                       r.jsx("p", { className:"text-lg font-black text-emerald-600 font-mono", children:"₹" + totalWorkerBalancesSum.toLocaleString("en-IN") }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children:"Active Worker Balances" })
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"Active Worker Balances" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Commission Earned" }),
-                      r.jsx("p", { className:"text-lg font-black text-amber-600 dark:text-amber-400 font-mono", children:"₹" + totalPlatformCommissionFromWorkers.toLocaleString("en-IN") }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children:"10% Platform Revenue" })
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Commission Earned" }),
+                      r.jsx("p", { className:"text-lg font-black text-[#7A4E00] dark:text-amber-400 font-mono", children:"₹" + totalPlatformCommissionFromWorkers.toLocaleString("en-IN") }),
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"10% Platform Revenue" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-3 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-3 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Gross Revenue" }),
-                      r.jsx("p", { className:"text-lg font-black text-slate-900 dark:text-white font-mono", children:"₹" + totalGrossRevenueFromWorkers.toLocaleString("en-IN") }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children: totalFulfilledJobsFromWorkers + " Orders Fulfilled" })
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Gross Revenue" }),
+                      r.jsx("p", { className:"text-lg font-black text-[#1C1913] dark:text-white font-mono", children:"₹" + totalGrossRevenueFromWorkers.toLocaleString("en-IN") }),
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children: totalFulfilledJobsFromWorkers + " Orders Fulfilled" })
                     ]
                   })
                 ]
@@ -6175,7 +6175,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
               // Main Workers Card Container
               r.jsxs("div", {
-                className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-sm",
+                className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-sm",
                 children: [
                   r.jsxs("div", {
                     className:"flex flex-col sm:flex-row sm:items-center justify-between gap-2.5",
@@ -6183,11 +6183,11 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                       r.jsxs("div", {
                         children: [
                           r.jsxs("h3", {
-                            className:"font-black text-slate-900 dark:text-white text-sm flex items-center gap-1.5",
+                            className:"font-black text-[#1C1913] dark:text-white text-sm flex items-center gap-1.5",
                             children: [r.jsx($d, { className:"w-4 h-4 text-amber-500" })," Worker Ledger, Commission & Order Ratings"]
                           }),
                           r.jsx("p", {
-                            className:"text-[11px] text-slate-500 dark:text-slate-400",
+                            className:"text-[11px] text-[#6F685D] dark:text-[#6F685D]",
                             children:"Track wallet money, platform commission, gross revenue delivered, fulfilled customers, and order rating feedback."
                           })
                         ]
@@ -6200,9 +6200,9 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                             placeholder:"Search name, phone, trade...",
                             value: ie,
                             onChange: ae => je(ae.target.value),
-                            className:"w-full bg-[#FAF7F2] dark:bg-[#252525] border border-[#EDE8E0] dark:border-[#333] rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-amber-500"
+                            className:"w-full bg-[#FBF8F2] dark:bg-[#27231C] border border-[#EFE7DA] dark:border-[#3A342C] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#1C1913] dark:text-white focus:outline-amber-500"
                           }),
-                          r.jsx(Ru, { className:"w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" })
+                          r.jsx(Ru, { className:"w-3.5 h-3.5 text-[#6F685D] absolute left-2.5 top-2.5" })
                         ]
                       })
                     ]
@@ -6210,7 +6210,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                   // Workers Items (Full Dossier + Face ID Verification)
                   filteredEnrichedWorkers.length === 0 ? r.jsx("div", {
-                    className:"p-8 text-center text-slate-400 bg-[#FAF7F2] dark:bg-[#222] rounded-xl text-xs",
+                    className:"p-8 text-center text-[#6F685D] bg-[#FBF8F2] dark:bg-[#222] rounded-xl text-xs",
                     children:"No worker records found."
                   }) : r.jsx("div", {
                     className:"space-y-4",
@@ -6218,7 +6218,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                       const isExpanded = selectedWorkerId === wrk.id;
                       return r.jsxs("div", {
                         key: wrk.id,
-                        className:"bg-[#FDFBF7] dark:bg-[#222] border-2 border-[#EDE8E0] dark:border-[#333] rounded-2xl p-4 sm:p-5 transition shadow-sm space-y-3.5",
+                        className:"bg-[#FDFBF7] dark:bg-[#222] border-2 border-[#EFE7DA] dark:border-[#3A342C] rounded-2xl p-4 sm:p-5 transition shadow-sm space-y-3.5",
                         children: [
                           // Top Profile & Face ID Row
                           r.jsxs("div", {
@@ -6234,7 +6234,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                     title:"Click to inspect full Face ID verification photo",
                                     children: [
                                       r.jsx("div", {
-                                        className:`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 shadow-md flex items-center justify-center bg-slate-900 ${wrk.isVerified ? "border-emerald-500" :"border-amber-500"}`,
+                                        className:`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 shadow-md flex items-center justify-center bg-[#1C1913] ${wrk.isVerified ? "border-emerald-500" :"border-amber-500"}`,
                                         children: wrk.facePhotoUrl ? r.jsx("img", {
                                           src: wrk.facePhotoUrl,
                                           alt: wrk.name + " Face ID",
@@ -6245,7 +6245,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                         })
                                       }),
                                       r.jsxs("span", {
-                                        className:`absolute -bottom-2 inset-x-0 mx-auto w-max px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs flex items-center gap-1 ${wrk.isVerified ? "bg-emerald-600 text-white" :"bg-amber-500 text-slate-950"}`,
+                                        className:`absolute -bottom-2 inset-x-0 mx-auto w-max px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs flex items-center gap-1 ${wrk.isVerified ? "bg-[#2E9E57] text-white" :"bg-[#F5A524] text-slate-950"}`,
                                         children: [r.jsx(Os, { className:"w-2.5 h-2.5" }), wrk.isVerified ? "Face ID Verified" :"Face ID Ready"]
                                       })
                                     ]
@@ -6256,24 +6256,24 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                       r.jsxs("div", {
                                         className:"flex items-center gap-2 flex-wrap",
                                         children: [
-                                          r.jsx("h4", { className:"font-black text-slate-900 dark:text-white text-base", children: wrk.name }),
+                                          r.jsx("h4", { className:"font-black text-[#1C1913] dark:text-white text-base", children: wrk.name }),
                                           r.jsxs("span", {
-                                            className:"px-2 py-0.5 bg-slate-900 text-amber-400 dark:bg-slate-800 rounded-lg text-[10px] font-mono font-bold",
+                                            className:"px-2 py-0.5 bg-[#1C1913] text-amber-400 dark:bg-[#1C1913] rounded-lg text-[10px] font-mono font-bold",
                                             children: ["Username: @", wrk.username]
                                           }),
                                           r.jsx("span", {
-                                            className:"px-2.5 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 rounded-full text-[10px] font-black",
+                                            className:"px-2.5 py-0.5 bg-amber-500/15 text-[#7A4E00] dark:text-amber-400 border border-amber-500/30 rounded-full text-[10px] font-black",
                                             children: wrk.primaryTrade
                                           }),
                                           r.jsxs("span", {
-                                            className:`px-2.5 py-0.5 text-[10px] font-black rounded-full flex items-center gap-1 ${wrk.isVerified ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30" :"bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40"}`,
+                                            className:`px-2.5 py-0.5 text-[10px] font-black rounded-full flex items-center gap-1 ${wrk.isVerified ? "bg-[#2E9E57]/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30" :"bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40"}`,
                                             children: [r.jsx(Os, { className:"w-3 h-3" }), wrk.isVerified ? "KYC & Face ID Approved" :"Pending Admin Verification"]
                                           })
                                         ]
                                       }),
                                       r.jsxs("p", {
-                                        className:"text-xs font-bold text-slate-700 dark:text-slate-200",
-                                        children: ["Job Status:", r.jsx("span", { className: wrk.isVerified ? "text-emerald-600 dark:text-emerald-400" :"text-amber-600 dark:text-amber-400", children: wrk.jobStatusText })]
+                                        className:"text-xs font-bold text-[#4A443A] dark:text-slate-200",
+                                        children: ["Job Status:", r.jsx("span", { className: wrk.isVerified ? "text-emerald-600 dark:text-emerald-400" :"text-[#7A4E00] dark:text-amber-400", children: wrk.jobStatusText })]
                                       }),
                                       r.jsxs("p", {
                                         className:"text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 flex-wrap",
@@ -6282,7 +6282,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                           wrk.facePhotoUrl && r.jsx("button", {
                                             type:"button",
                                             onClick: () => Z(wrk),
-                                            className:"underline text-amber-600 dark:text-amber-400 font-black cursor-pointer ml-1",
+                                            className:"underline text-[#7A4E00] dark:text-amber-400 font-black cursor-pointer ml-1",
                                             children:"Enlarge Face ID Photo"
                                           })
                                         ]
@@ -6298,16 +6298,16 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                   !wrk.isVerified ? r.jsxs("button", {
                                     type:"button",
                                     onClick: () => u(wrk.kycId || wrk.id,"approved"),
-                                    className:"px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-md",
+                                    className:"px-3.5 py-2 bg-[#2E9E57] hover:bg-[#2E9E57] active:scale-95 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-md",
                                     children: [r.jsx(nn, { className:"w-4 h-4" })," Verify Face ID & Approve (Open Worker Portal)"]
                                   }) : r.jsxs("span", {
-                                    className:"px-3 py-1.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-black flex items-center gap-1",
+                                    className:"px-3 py-1.5 bg-[#2E9E57]/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-black flex items-center gap-1",
                                     children: [r.jsx(nn, { className:"w-3.5 h-3.5 text-emerald-500" })," Worker Portal Unlocked"]
                                   }),
                                   r.jsxs("button", {
                                     type:"button",
                                     onClick: () => setSelectedWorkerId(isExpanded ? null : wrk.id),
-                                    className:"px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer shadow-xs",
+                                    className:"px-3 py-2 bg-[#F5A524] hover:bg-[#E8930C] active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer shadow-xs",
                                     children: [
                                       r.jsx("span", { children: isExpanded ? "Hide Ratings" :`Order Ratings (${wrk.ratedOrders.length})` }),
                                       r.jsx(yg, { className:`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" :""}` })
@@ -6320,61 +6320,61 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                           // Complete Worker Information Dossier Grid (Name, Username, Phone, Email, Address, Job Status, Aadhaar, Age/DOB, UPI)
                           r.jsxs("div", {
-                            className:"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2 border-t border-[#EDE8E0] dark:border-[#333] text-[11px]",
+                            className:"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2 border-t border-[#EFE7DA] dark:border-[#3A342C] text-[11px]",
                             children: [
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Full Name & Username" }),
-                                  r.jsx("p", { className:"font-black text-slate-900 dark:text-white text-xs", children: wrk.name }),
-                                  r.jsxs("p", { className:"font-mono text-[10px] text-amber-600 dark:text-amber-400 font-bold", children: ["@", wrk.username," • ID:", wrk.id] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Full Name & Username" }),
+                                  r.jsx("p", { className:"font-black text-[#1C1913] dark:text-white text-xs", children: wrk.name }),
+                                  r.jsxs("p", { className:"font-mono text-[10px] text-[#7A4E00] dark:text-amber-400 font-bold", children: ["@", wrk.username," • ID:", wrk.id] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Phone & Gmail / Email" }),
-                                  r.jsxs("p", { className:"font-mono font-bold text-slate-900 dark:text-white text-xs", children: ["", wrk.phone] }),
-                                  r.jsxs("p", { className:"font-mono text-[10px] text-slate-500 dark:text-slate-300 truncate", children: ["", wrk.email] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Phone & Gmail / Email" }),
+                                  r.jsxs("p", { className:"font-mono font-bold text-[#1C1913] dark:text-white text-xs", children: ["", wrk.phone] }),
+                                  r.jsxs("p", { className:"font-mono text-[10px] text-[#6F685D] dark:text-slate-300 truncate", children: ["", wrk.email] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Full Address & GPS" }),
-                                  r.jsxs("p", { className:"font-bold text-slate-900 dark:text-white text-xs", children: ["", wrk.fullAddress] }),
-                                  r.jsxs("p", { className:"font-mono text-[10px] text-slate-400", children: ["GPS:", wrk.gpsCoords] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Full Address & GPS" }),
+                                  r.jsxs("p", { className:"font-bold text-[#1C1913] dark:text-white text-xs", children: ["", wrk.fullAddress] }),
+                                  r.jsxs("p", { className:"font-mono text-[10px] text-[#6F685D]", children: ["GPS:", wrk.gpsCoords] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Trade, Wage & Experience" }),
-                                  r.jsxs("p", { className:"font-black text-amber-600 dark:text-amber-400 text-xs", children: ["", wrk.primaryTrade," • ₹", wrk.dailyRate,"/day"] }),
-                                  r.jsxs("p", { className:"text-[10px] text-slate-500 font-semibold", children: [wrk.experienceYears," Years Experience"] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Trade, Wage & Experience" }),
+                                  r.jsxs("p", { className:"font-black text-[#7A4E00] dark:text-amber-400 text-xs", children: ["", wrk.primaryTrade," • ₹", wrk.dailyRate,"/day"] }),
+                                  r.jsxs("p", { className:"text-[10px] text-[#6F685D] font-semibold", children: [wrk.experienceYears," Years Experience"] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Aadhaar & UPI ID" }),
-                                  r.jsxs("p", { className:"font-mono font-bold text-slate-900 dark:text-white text-xs", children: ["", wrk.aadhaarFull] }),
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Aadhaar & UPI ID" }),
+                                  r.jsxs("p", { className:"font-mono font-bold text-[#1C1913] dark:text-white text-xs", children: ["", wrk.aadhaarFull] }),
                                   r.jsxs("p", { className:"font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold", children: ["UPI:", wrk.upiId] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Age, DOB & Child Labour Check" }),
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Age, DOB & Child Labour Check" }),
                                   r.jsxs("p", { className:"font-black text-emerald-600 text-xs", children: ["", wrk.age," Years (18+ Adult)"] }),
-                                  r.jsxs("p", { className:"text-[10px] text-slate-500 font-mono", children: ["DOB:", wrk.dateOfBirth] })
+                                  r.jsxs("p", { className:"text-[10px] text-[#6F685D] font-mono", children: ["DOB:", wrk.dateOfBirth] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5 sm:col-span-2",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5 sm:col-span-2",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"Face ID Biometric & Live Job Status" }),
-                                  r.jsx("p", { className:"font-bold text-slate-900 dark:text-white text-xs", children: wrk.jobStatusText }),
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"Face ID Biometric & Live Job Status" }),
+                                  r.jsx("p", { className:"font-bold text-[#1C1913] dark:text-white text-xs", children: wrk.jobStatusText }),
                                   r.jsxs("p", { className:"text-[10px] text-emerald-600 font-semibold", children: [wrk.faceIdStatusText," • Active Jobs:", wrk.activeJobsCount," • Completed:", wrk.completedJobsCount] })
                                 ]
                               })
@@ -6383,38 +6383,38 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                           // 4-Card Financial Metrics: Money, Commission, Gross Revenue, Fulfilled
                           r.jsxs("div", {
-                            className:"grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-[#EDE8E0] dark:border-[#333] text-[11px]",
+                            className:"grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-[#EFE7DA] dark:border-[#3A342C] text-[11px]",
                             children: [
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-semibold", children:"Worker Money (Wallet)" }),
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-semibold", children:"Worker Money (Wallet)" }),
                                   r.jsxs("p", { className:"font-mono font-black text-emerald-600 text-xs", children: ["₹", wrk.money.toLocaleString("en-IN")] }),
-                                  r.jsxs("p", { className:"text-[9px] text-slate-400", children: ["Today: ₹", wrk.todayEarnings.toLocaleString("en-IN")] })
+                                  r.jsxs("p", { className:"text-[9px] text-[#6F685D]", children: ["Today: ₹", wrk.todayEarnings.toLocaleString("en-IN")] })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-semibold", children:"Commission Earned" }),
-                                  r.jsxs("p", { className:"font-mono font-black text-amber-600 dark:text-amber-400 text-xs", children: ["₹", wrk.commissionEarned.toLocaleString("en-IN")] }),
-                                  r.jsx("p", { className:"text-[9px] text-slate-400", children:"10% Platform Fee" })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-semibold", children:"Commission Earned" }),
+                                  r.jsxs("p", { className:"font-mono font-black text-[#7A4E00] dark:text-amber-400 text-xs", children: ["₹", wrk.commissionEarned.toLocaleString("en-IN")] }),
+                                  r.jsx("p", { className:"text-[9px] text-[#6F685D]", children:"10% Platform Fee" })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-semibold", children:"Gross Revenue" }),
-                                  r.jsxs("p", { className:"font-mono font-black text-slate-900 dark:text-white text-xs", children: ["₹", wrk.grossRevenue.toLocaleString("en-IN")] }),
-                                  r.jsx("p", { className:"text-[9px] text-slate-400", children:"Work Volume" })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-semibold", children:"Gross Revenue" }),
+                                  r.jsxs("p", { className:"font-mono font-black text-[#1C1913] dark:text-white text-xs", children: ["₹", wrk.grossRevenue.toLocaleString("en-IN")] }),
+                                  r.jsx("p", { className:"text-[9px] text-[#6F685D]", children:"Work Volume" })
                                 ]
                               }),
                               r.jsxs("div", {
-                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                                className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                                 children: [
-                                  r.jsx("span", { className:"text-slate-400 text-[10px] block font-semibold", children:"Customers Fulfilled" }),
-                                  r.jsxs("p", { className:"font-mono font-black text-slate-900 dark:text-white text-xs", children: [wrk.customersFulfilled," Orders"] }),
-                                  r.jsxs("p", { className:"text-[9px] text-slate-400", children: [wrk.uniqueCustomers," Unique Clients"] })
+                                  r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-semibold", children:"Customers Fulfilled" }),
+                                  r.jsxs("p", { className:"font-mono font-black text-[#1C1913] dark:text-white text-xs", children: [wrk.customersFulfilled," Orders"] }),
+                                  r.jsxs("p", { className:"text-[9px] text-[#6F685D]", children: [wrk.uniqueCustomers," Unique Clients"] })
                                 ]
                               })
                             ]
@@ -6422,43 +6422,43 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                           // Expandable Order Ratings Breakdown
                           isExpanded && r.jsxs("div", {
-                            className:"pt-2 border-t border-[#EDE8E0] dark:border-[#333] space-y-2 animate-in fade-in",
+                            className:"pt-2 border-t border-[#EFE7DA] dark:border-[#3A342C] space-y-2 animate-in fade-in",
                             children: [
                               r.jsxs("h5", {
-                                className:"font-bold text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5",
+                                className:"font-bold text-xs text-[#1C1913] dark:text-slate-200 flex items-center gap-1.5",
                                 children: [r.jsx(pi, { className:"w-3.5 h-3.5 text-amber-500" })," Order Ratings & Customer Reviews for " + wrk.name]
                               }),
                               wrk.ratedOrders.length === 0 ? r.jsx("p", {
-                                className:"text-[11px] text-slate-400 italic py-2",
+                                className:"text-[11px] text-[#6F685D] italic py-2",
                                 children:"No customer ratings or reviews submitted for this worker yet."
                               }) : wrk.ratedOrders.map((ord, oIdx) => r.jsxs("div", {
                                 key: oIdx,
-                                className:"bg-white dark:bg-[#1a1a1a] border border-[#EDE8E0] dark:border-[#2e2e2e] rounded-xl p-3 space-y-1.5",
+                                className:"bg-white dark:bg-[#1a1a1a] border border-[#EFE7DA] dark:border-[#2e2e2e] rounded-xl p-3 space-y-1.5",
                                 children: [
                                   r.jsxs("div", {
                                     className:"flex items-center justify-between text-xs",
                                     children: [
                                       r.jsxs("div", {
                                         children: [
-                                          r.jsx("h6", { className:"font-bold text-slate-900 dark:text-white", children: ord.title || "Daily Wage Order" }),
-                                          r.jsxs("p", { className:"text-[10px] text-slate-400", children: ["Customer:", ord.customerName," • ", ord.date || "Completed Job"] })
+                                          r.jsx("h6", { className:"font-bold text-[#1C1913] dark:text-white", children: ord.title || "Daily Wage Order" }),
+                                          r.jsxs("p", { className:"text-[10px] text-[#6F685D]", children: ["Customer:", ord.customerName," • ", ord.date || "Completed Job"] })
                                         ]
                                       }),
                                       r.jsxs("div", {
-                                        className:"flex items-center gap-1 bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-black text-xs",
+                                        className:"flex items-center gap-1 bg-amber-500/15 text-[#7A4E00] dark:text-amber-400 px-2 py-0.5 rounded-full font-black text-xs",
                                         children: [r.jsx(pi, { className:"w-3 h-3 text-amber-500 fill-amber-500" })," ★ ", ord.rating || 5,"/5"]
                                       })
                                     ]
                                   }),
                                   r.jsxs("div", {
-                                    className:"flex items-center justify-between text-[11px] bg-[#FAF7F2] dark:bg-[#252525] px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300 font-mono",
+                                    className:"flex items-center justify-between text-[11px] bg-[#FBF8F2] dark:bg-[#27231C] px-2.5 py-1 rounded-lg text-[#4A443A] dark:text-slate-300 font-mono",
                                     children: [
                                       r.jsxs("span", { children: ["Wage Earned: ₹", ord.wage || wrk.dailyRate] }),
                                       r.jsxs("span", { children: ["Commission Deducted: ₹", ord.commission || Math.round((ord.wage || wrk.dailyRate) * 0.10)] })
                                     ]
                                   }),
                                   ord.review && r.jsxs("p", {
-                                    className:"text-[11px] text-slate-600 dark:text-slate-300 italic pt-0.5",
+                                    className:"text-[11px] text-[#4A443A] dark:text-slate-300 italic pt-0.5",
                                     children: ['Feedback:"', ord.review, '"']
                                   })
                                 ]
@@ -6482,54 +6482,54 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                 className:"grid grid-cols-1 sm:grid-cols-3 gap-3",
                 children: [
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Treasury Balance" }),
-                      r.jsxs("p", { className:"text-2xl font-black text-slate-900 dark:text-white font-mono", children: ["₹", (B || 0).toLocaleString("en-IN")] }),
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Treasury Balance" }),
+                      r.jsxs("p", { className:"text-2xl font-black text-[#1C1913] dark:text-white font-mono", children: ["₹", (B || 0).toLocaleString("en-IN")] }),
                       r.jsx("p", { className:"text-[10px] text-emerald-600 font-semibold", children:"Secure Escrow Holding" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Platform Fees & Subscriptions" }),
-                      r.jsxs("p", { className:"text-2xl font-black text-amber-600 dark:text-amber-400 font-mono", children: ["₹", (g || 0).toLocaleString("en-IN")] }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children:"10% Fee + VIP Passes" })
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Platform Fees & Subscriptions" }),
+                      r.jsxs("p", { className:"text-2xl font-black text-[#7A4E00] dark:text-amber-400 font-mono", children: ["₹", (g || 0).toLocaleString("en-IN")] }),
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"10% Fee + VIP Passes" })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 shadow-xs space-y-1",
+                    className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 shadow-xs space-y-1",
                     children: [
-                      r.jsx("span", { className:"text-[10px] font-bold text-slate-500 uppercase tracking-wider", children:"Disbursed to Workers" }),
+                      r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Disbursed to Workers" }),
                       r.jsxs("p", { className:"text-2xl font-black text-emerald-600 font-mono", children: ["₹", (w || 0).toLocaleString("en-IN")] }),
-                      r.jsx("p", { className:"text-[10px] text-slate-500", children:"Direct UPI Payouts" })
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"Direct UPI Payouts" })
                     ]
                   })
                 ]
               }),
               r.jsxs("div", {
-                className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm",
+                className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm",
                 children: [
-                  r.jsxs("h4", { className:"font-black text-slate-900 dark:text-white text-sm flex items-center gap-1.5", children: [r.jsx(_b, { className:"w-4 h-4 text-amber-500" })," Platform Treasury Ledger"] }),
+                  r.jsxs("h4", { className:"font-black text-[#1C1913] dark:text-white text-sm flex items-center gap-1.5", children: [r.jsx(_b, { className:"w-4 h-4 text-amber-500" })," Platform Treasury Ledger"] }),
                   Array.isArray(N) && N.length > 0 ? r.jsx("div", {
                     className:"space-y-2",
                     children: N.map((tx, tIdx) => r.jsxs("div", {
                       key: tIdx,
-                      className:"bg-[#FAF7F2] dark:bg-[#252525] p-3 rounded-xl border border-[#EDE8E0] dark:border-[#333] flex items-center justify-between text-xs",
+                      className:"bg-[#FBF8F2] dark:bg-[#27231C] p-3 rounded-xl border border-[#EFE7DA] dark:border-[#3A342C] flex items-center justify-between text-xs",
                       children: [
                         r.jsxs("div", {
                           children: [
-                            r.jsx("p", { className:"font-bold text-slate-900 dark:text-white", children: tx.description || tx.type || "Transaction" }),
-                            r.jsxs("p", { className:"text-[10px] text-slate-400 font-mono", children: [tx.date || "Today", tx.reference ? " • Ref:" + tx.reference :""] })
+                            r.jsx("p", { className:"font-bold text-[#1C1913] dark:text-white", children: tx.description || tx.type || "Transaction" }),
+                            r.jsxs("p", { className:"text-[10px] text-[#6F685D] font-mono", children: [tx.date || "Today", tx.reference ? " • Ref:" + tx.reference :""] })
                           ]
                         }),
                         r.jsxs("span", {
-                          className:`font-mono font-black text-xs ${tx.amount >= 0 ? "text-emerald-600" :"text-slate-700 dark:text-slate-300"}`,
+                          className:`font-mono font-black text-xs ${tx.amount >= 0 ? "text-emerald-600" :"text-[#4A443A] dark:text-slate-300"}`,
                           children: [tx.amount >= 0 ? "+₹" :"-₹", Math.abs(tx.amount || 0).toLocaleString("en-IN")]
                         })
                       ]
                     }))
-                  }) : r.jsx("p", { className:"text-slate-400 italic py-4 text-center", children:"No recent treasury transactions." })
+                  }) : r.jsx("p", { className:"text-[#6F685D] italic py-4 text-center", children:"No recent treasury transactions." })
                 ]
               })
             ]
@@ -6537,35 +6537,35 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
           // 4. KYC & FACE ID VERIFICATION QUEUE VIEW (COMPLETE WORKER DOSSIER)
           re === "kyc" && r.jsxs("div", {
-            className:"space-y-4 animate-in fade-in bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 sm:p-5 shadow-sm",
+            className:"space-y-4 animate-in fade-in bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 sm:p-5 shadow-sm",
             children: [
               r.jsxs("div", {
                 className:"flex flex-col sm:flex-row sm:items-center justify-between gap-2.5",
                 children: [
                   r.jsxs("div", {
                     children: [
-                      r.jsxs("h3", { className:"font-black text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-1.5", children: [r.jsx(Tm, { className:"w-4 h-4 text-amber-500" })," Worker KYC, Full Identity Dossier & Face ID Verification Queue"] }),
-                      r.jsx("p", { className:"text-[11px] text-slate-500 dark:text-slate-400", children:"Inspect worker's full name, username, phone, email, full address, trade, job status, Aadhaar, age/DOB, and live Face ID selfie before unlocking their Worker Portal." })
+                      r.jsxs("h3", { className:"font-black text-[#1C1913] dark:text-white text-sm sm:text-base flex items-center gap-1.5", children: [r.jsx(Tm, { className:"w-4 h-4 text-amber-500" })," Worker KYC, Full Identity Dossier & Face ID Verification Queue"] }),
+                      r.jsx("p", { className:"text-[11px] text-[#6F685D] dark:text-[#6F685D]", children:"Inspect worker's full name, username, phone, email, full address, trade, job status, Aadhaar, age/DOB, and live Face ID selfie before unlocking their Worker Portal." })
                     ]
                   }),
                   r.jsxs("div", {
-                    className:"flex bg-[#FAF7F2] dark:bg-[#252525] p-1 rounded-xl border border-[#EDE8E0] dark:border-[#333] text-[11px] font-bold self-start sm:self-auto",
+                    className:"flex bg-[#FBF8F2] dark:bg-[#27231C] p-1 rounded-xl border border-[#EFE7DA] dark:border-[#3A342C] text-[11px] font-bold self-start sm:self-auto",
                     children: [
-                      r.jsxs("button", { onClick: () => be("pending"), className:`px-3 py-1.5 rounded-lg cursor-pointer transition ${ge === "pending" ? "bg-amber-500 text-slate-950 font-black" :"text-slate-500 hover:text-slate-900"}`, children: ["Pending (", pendingKycCount,")"] }),
-                      r.jsxs("button", { onClick: () => be("approved"), className:`px-3 py-1.5 rounded-lg cursor-pointer transition ${ge === "approved" ? "bg-amber-500 text-slate-950 font-black" :"text-slate-500 hover:text-slate-900"}`, children: ["Approved (", approvedKycCount,")"] }),
-                      r.jsxs("button", { onClick: () => be("all"), className:`px-3 py-1.5 rounded-lg cursor-pointer transition ${ge === "all" ? "bg-amber-500 text-slate-950 font-black" :"text-slate-500 hover:text-slate-900"}`, children: ["All (", enrichedKycList.length,")"] })
+                      r.jsxs("button", { onClick: () => be("pending"), className:`px-3 py-1.5 rounded-lg cursor-pointer transition ${ge === "pending" ? "bg-[#F5A524] text-slate-950 font-black" :"text-[#6F685D] hover:text-[#1C1913]"}`, children: ["Pending (", pendingKycCount,")"] }),
+                      r.jsxs("button", { onClick: () => be("approved"), className:`px-3 py-1.5 rounded-lg cursor-pointer transition ${ge === "approved" ? "bg-[#F5A524] text-slate-950 font-black" :"text-[#6F685D] hover:text-[#1C1913]"}`, children: ["Approved (", approvedKycCount,")"] }),
+                      r.jsxs("button", { onClick: () => be("all"), className:`px-3 py-1.5 rounded-lg cursor-pointer transition ${ge === "all" ? "bg-[#F5A524] text-slate-950 font-black" :"text-[#6F685D] hover:text-[#1C1913]"}`, children: ["All (", enrichedKycList.length,")"] })
                     ]
                   })
                 ]
               }),
               kycListFiltered.length === 0 ? r.jsx("div", {
-                className:"p-8 text-center text-slate-400 bg-[#FAF7F2] dark:bg-[#222] rounded-xl text-xs",
+                className:"p-8 text-center text-[#6F685D] bg-[#FBF8F2] dark:bg-[#222] rounded-xl text-xs",
                 children:"No worker verification applications in this filter."
               }) : r.jsx("div", {
                 className:"space-y-4",
                 children: kycListFiltered.map(item => r.jsxs("div", {
                   key: item.id,
-                  className:"bg-[#FDFBF7] dark:bg-[#222] border-2 border-[#EDE8E0] dark:border-[#333] rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs",
+                  className:"bg-[#FDFBF7] dark:bg-[#222] border-2 border-[#EFE7DA] dark:border-[#3A342C] rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs",
                   children: [
                     // Top Row: Large Face ID Photo + Core Identity + Approve/Reject Actions
                     r.jsxs("div", {
@@ -6581,7 +6581,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                               title:"Click to enlarge Face ID photo",
                               children: [
                                 r.jsx("div", {
-                                  className:`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 shadow-md flex items-center justify-center bg-slate-900 ${item.status === "approved" ? "border-emerald-500" :"border-amber-500"}`,
+                                  className:`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 shadow-md flex items-center justify-center bg-[#1C1913] ${item.status === "approved" ? "border-emerald-500" :"border-amber-500"}`,
                                   children: item.facePhotoUrl ? r.jsx("img", {
                                     src: item.facePhotoUrl,
                                     alt: item.workerName + " Face ID",
@@ -6592,7 +6592,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                   })
                                 }),
                                 r.jsxs("span", {
-                                  className:`absolute -bottom-2 inset-x-0 mx-auto w-max px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 ${item.status === "approved" ? "bg-emerald-600 text-white" :"bg-amber-500 text-slate-950"}`,
+                                  className:`absolute -bottom-2 inset-x-0 mx-auto w-max px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 ${item.status === "approved" ? "bg-[#2E9E57] text-white" :"bg-[#F5A524] text-slate-950"}`,
                                   children: [r.jsx(Os, { className:"w-2.5 h-2.5" }), item.status === "approved" ? "Face ID Verified" :"Live Face ID"]
                                 })
                               ]
@@ -6603,24 +6603,24 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                 r.jsxs("div", {
                                   className:"flex items-center gap-2 flex-wrap",
                                   children: [
-                                    r.jsx("h4", { className:"font-black text-slate-900 dark:text-white text-base sm:text-lg", children: item.workerName }),
+                                    r.jsx("h4", { className:"font-black text-[#1C1913] dark:text-white text-base sm:text-lg", children: item.workerName }),
                                     r.jsxs("span", {
-                                      className:"px-2.5 py-0.5 bg-slate-900 text-amber-400 dark:bg-slate-800 rounded-lg text-[11px] font-mono font-bold",
+                                      className:"px-2.5 py-0.5 bg-[#1C1913] text-amber-400 dark:bg-[#1C1913] rounded-lg text-[11px] font-mono font-bold",
                                       children: ["Username: @", item.username]
                                     }),
                                     r.jsx("span", {
-                                      className:"px-2.5 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 rounded-full text-[11px] font-black",
+                                      className:"px-2.5 py-0.5 bg-amber-500/15 text-[#7A4E00] dark:text-amber-400 border border-amber-500/30 rounded-full text-[11px] font-black",
                                       children: item.trade
                                     }),
                                     r.jsxs("span", {
-                                      className:"px-2.5 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-black",
+                                      className:"px-2.5 py-0.5 bg-[#2E9E57]/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-black",
                                       children: ["₹", item.dailyRate,"/day • ", item.experienceYears," Yrs Exp"]
                                     })
                                   ]
                                 }),
                                 r.jsxs("p", {
-                                  className:"text-xs font-bold text-slate-700 dark:text-slate-200",
-                                  children: ["Current Job Status:", r.jsx("span", { className: item.status === "approved" ? "text-emerald-600 dark:text-emerald-400" :"text-amber-600 dark:text-amber-400", children: item.jobStatusText })]
+                                  className:"text-xs font-bold text-[#4A443A] dark:text-slate-200",
+                                  children: ["Current Job Status:", r.jsx("span", { className: item.status === "approved" ? "text-emerald-600 dark:text-emerald-400" :"text-[#7A4E00] dark:text-amber-400", children: item.jobStatusText })]
                                 }),
                                 r.jsxs("div", {
                                   className:"flex items-center gap-2 flex-wrap text-[11px] font-bold text-emerald-700 dark:text-emerald-400",
@@ -6635,7 +6635,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                   ]
                                 }),
                                 r.jsxs("p", {
-                                  className:"text-[10px] text-slate-400 font-mono",
+                                  className:"text-[10px] text-[#6F685D] font-mono",
                                   children: ["Submitted:", item.submittedAt || "Just now"," • Worker ID:", item.workerId]
                                 })
                               ]
@@ -6650,17 +6650,17 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                               children: [
                                 r.jsxs("button", {
                                   onClick: () => u(item.id,"approved"),
-                                  className:"px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-md",
+                                  className:"px-4 py-2.5 bg-[#2E9E57] hover:bg-[#2E9E57] active:scale-95 text-white font-black rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-md",
                                   children: [r.jsx(nn, { className:"w-4 h-4" })," Verify Face ID & Approve Worker (Open Portal)"]
                                 }),
                                 r.jsxs("button", {
                                   onClick: () => u(item.id,"rejected","Aadhaar or Face ID verification mismatch"),
-                                  className:"px-3 py-2.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold rounded-xl text-xs transition cursor-pointer",
+                                  className:"px-3 py-2.5 bg-[#E5484D] hover:bg-[#E5484D] active:scale-95 text-white font-bold rounded-xl text-xs transition cursor-pointer",
                                   children: ["Reject"]
                                 })
                               ]
                             }) : r.jsxs("span", {
-                              className:"px-3.5 py-2 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-black rounded-xl text-xs flex items-center gap-1.5",
+                              className:"px-3.5 py-2 bg-[#2E9E57]/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-black rounded-xl text-xs flex items-center gap-1.5",
                               children: [r.jsx(nn, { className:"w-4 h-4 text-emerald-500" })," Approved • Worker Portal Open"]
                             })
                           ]
@@ -6670,66 +6670,66 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
                     // Full 8-Box Worker Verification Information Grid
                     r.jsxs("div", {
-                      className:"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-3 border-t border-[#EDE8E0] dark:border-[#333] text-[11px]",
+                      className:"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-3 border-t border-[#EFE7DA] dark:border-[#3A342C] text-[11px]",
                       children: [
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"1. Full Name & Username" }),
-                            r.jsx("p", { className:"font-black text-slate-900 dark:text-white text-xs", children: item.workerName }),
-                            r.jsxs("p", { className:"font-mono text-[10px] text-amber-600 dark:text-amber-400 font-bold", children: ["Username: @", item.username," (", item.workerId,")"] })
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"1. Full Name & Username" }),
+                            r.jsx("p", { className:"font-black text-[#1C1913] dark:text-white text-xs", children: item.workerName }),
+                            r.jsxs("p", { className:"font-mono text-[10px] text-[#7A4E00] dark:text-amber-400 font-bold", children: ["Username: @", item.username," (", item.workerId,")"] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"2. Phone & Gmail / Email" }),
-                            r.jsxs("p", { className:"font-mono font-bold text-slate-900 dark:text-white text-xs", children: ["", item.phone] }),
-                            r.jsxs("p", { className:"font-mono text-[10px] text-slate-500 dark:text-slate-300 truncate", children: ["", item.email] })
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"2. Phone & Gmail / Email" }),
+                            r.jsxs("p", { className:"font-mono font-bold text-[#1C1913] dark:text-white text-xs", children: ["", item.phone] }),
+                            r.jsxs("p", { className:"font-mono text-[10px] text-[#6F685D] dark:text-slate-300 truncate", children: ["", item.email] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"3. Full Address & GPS" }),
-                            r.jsxs("p", { className:"font-bold text-slate-900 dark:text-white text-xs", children: ["", item.fullAddress] }),
-                            r.jsxs("p", { className:"font-mono text-[10px] text-slate-400", children: ["GPS:", item.gpsCoords] })
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"3. Full Address & GPS" }),
+                            r.jsxs("p", { className:"font-bold text-[#1C1913] dark:text-white text-xs", children: ["", item.fullAddress] }),
+                            r.jsxs("p", { className:"font-mono text-[10px] text-[#6F685D]", children: ["GPS:", item.gpsCoords] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"4. Trade, Wage & Experience" }),
-                            r.jsxs("p", { className:"font-black text-amber-600 dark:text-amber-400 text-xs", children: ["", item.trade," • ₹", item.dailyRate,"/day"] }),
-                            r.jsxs("p", { className:"text-[10px] text-slate-500 font-semibold", children: [item.experienceYears," Years Field Experience"] })
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"4. Trade, Wage & Experience" }),
+                            r.jsxs("p", { className:"font-black text-[#7A4E00] dark:text-amber-400 text-xs", children: ["", item.trade," • ₹", item.dailyRate,"/day"] }),
+                            r.jsxs("p", { className:"text-[10px] text-[#6F685D] font-semibold", children: [item.experienceYears," Years Field Experience"] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"5. Aadhaar Number & UPI ID" }),
-                            r.jsxs("p", { className:"font-mono font-bold text-slate-900 dark:text-white text-xs", children: ["Aadhaar:", item.aadhaarNumber] }),
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"5. Aadhaar Number & UPI ID" }),
+                            r.jsxs("p", { className:"font-mono font-bold text-[#1C1913] dark:text-white text-xs", children: ["Aadhaar:", item.aadhaarNumber] }),
                             r.jsxs("p", { className:"font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold", children: ["UPI:", item.upiId] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"6. Age, DOB & Child Labour" }),
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"6. Age, DOB & Child Labour" }),
                             r.jsxs("p", { className:"font-black text-emerald-600 text-xs", children: ["", item.age," Years Old (18+ Adult)"] }),
-                            r.jsxs("p", { className:"text-[10px] text-slate-500 font-mono", children: ["DOB:", item.dateOfBirth] })
+                            r.jsxs("p", { className:"text-[10px] text-[#6F685D] font-mono", children: ["DOB:", item.dateOfBirth] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#2e2e2e] space-y-0.5",
+                          className:"bg-white dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#2e2e2e] space-y-0.5",
                           children: [
-                            r.jsx("span", { className:"text-slate-400 text-[10px] block font-bold uppercase", children:"7. Job Status & Orders" }),
-                            r.jsx("p", { className:"font-bold text-slate-900 dark:text-white text-xs", children: item.jobStatusText }),
-                            r.jsxs("p", { className:"text-[10px] text-slate-500", children: ["Active:", item.activeJobsCount," • Completed:", item.completedJobsCount," • Wallet: ₹", item.walletBalance] })
+                            r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-bold uppercase", children:"7. Job Status & Orders" }),
+                            r.jsx("p", { className:"font-bold text-[#1C1913] dark:text-white text-xs", children: item.jobStatusText }),
+                            r.jsxs("p", { className:"text-[10px] text-[#6F685D]", children: ["Active:", item.activeJobsCount," • Completed:", item.completedJobsCount," • Wallet: ₹", item.walletBalance] })
                           ]
                         }),
                         r.jsxs("div", {
-                          className:"bg-emerald-500/10 dark:bg-emerald-950/30 p-2.5 rounded-xl border border-emerald-500/30 space-y-0.5",
+                          className:"bg-[#2E9E57]/10 dark:bg-emerald-950/30 p-2.5 rounded-xl border border-emerald-500/30 space-y-0.5",
                           children: [
                             r.jsx("span", { className:"text-emerald-700 dark:text-emerald-300 text-[10px] block font-black uppercase", children:"8. Face ID Verification" }),
                             r.jsx("p", { className:"font-black text-emerald-700 dark:text-emerald-400 text-xs", children: item.facePhotoUrl ? "✓ Live Face Selfie Attached" :"Pending Photo" }),
@@ -6746,44 +6746,44 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
           // 5. LIVE SYSTEM JOBS VIEW (PRESERVED)
           re === "jobs" && r.jsxs("div", {
-            className:"space-y-3 animate-in fade-in bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 sm:p-5 shadow-sm",
+            className:"space-y-3 animate-in fade-in bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 sm:p-5 shadow-sm",
             children: [
               r.jsxs("div", {
                 className:"flex flex-wrap items-center justify-between gap-2",
                 children: [
-                  r.jsxs("h3", { className:"font-black text-slate-900 dark:text-white text-sm flex items-center gap-1.5", children: [r.jsx(p0, { className:"w-4 h-4 text-amber-500" })," Live System Jobs (", o.length,")"] }),
+                  r.jsxs("h3", { className:"font-black text-[#1C1913] dark:text-white text-sm flex items-center gap-1.5", children: [r.jsx(p0, { className:"w-4 h-4 text-amber-500" })," Live System Jobs (", o.length,")"] }),
                   r.jsxs("div", {
                     className:"flex items-center gap-2",
                     children: [
-                      r.jsxs("span", { className:"px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 rounded-full text-[10px] font-bold", children: [o.filter(j => j.status === "broadcast").length," Broadcast"] }),
+                      r.jsxs("span", { className:"px-2 py-0.5 bg-amber-500/15 text-[#7A4E00] dark:text-amber-400 border border-amber-500/30 rounded-full text-[10px] font-bold", children: [o.filter(j => j.status === "broadcast").length," Broadcast"] }),
                       r.jsxs("button", {
                         type:"button",
                         onClick: () => P(),
-                        className:"px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-600 cursor-pointer",
+                        className:"px-2.5 py-1 bg-[#F5A524] text-slate-950 font-bold rounded-xl text-xs hover:bg-[#E8930C] cursor-pointer",
                         children: ["Check Expired"]
                       })
                     ]
                   })
                 ]
               }),
-              o.length === 0 ? r.jsx("p", { className:"text-slate-400 italic py-4 text-center", children:"No active jobs." }) : r.jsx("div", {
+              o.length === 0 ? r.jsx("p", { className:"text-[#6F685D] italic py-4 text-center", children:"No active jobs." }) : r.jsx("div", {
                 className:"space-y-2.5",
                 children: o.map(j => r.jsxs("div", {
                   key: j.id,
-                  className:"bg-[#FAF7F2] dark:bg-[#252525] border border-[#EDE8E0] dark:border-[#333] rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2",
+                  className:"bg-[#FBF8F2] dark:bg-[#27231C] border border-[#EFE7DA] dark:border-[#3A342C] rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2",
                   children: [
                     r.jsxs("div", {
                       className:"space-y-0.5",
                       children: [
-                        r.jsxs("h5", { className:"font-bold text-slate-900 dark:text-white text-xs", children: [j.title," (", j.trade,")"] }),
-                        r.jsxs("p", { className:"text-[11px] text-slate-500 dark:text-slate-400 font-mono", children: ["Customer:", j.customerName," • ", j.locationAddress || j.area] })
+                        r.jsxs("h5", { className:"font-bold text-[#1C1913] dark:text-white text-xs", children: [j.title," (", j.trade,")"] }),
+                        r.jsxs("p", { className:"text-[11px] text-[#6F685D] dark:text-[#6F685D] font-mono", children: ["Customer:", j.customerName," • ", j.locationAddress || j.area] })
                       ]
                     }),
                     r.jsxs("div", {
                       className:"flex items-center gap-2 self-end sm:self-auto",
                       children: [
-                        r.jsxs("span", { className:"font-mono font-black text-amber-600 dark:text-amber-400 text-xs", children: ["₹", j.dailyWage,"/day"] }),
-                        r.jsx("span", { className:`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${j.status === "completed" ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400" :"bg-amber-500/20 text-amber-700 dark:text-amber-400"}`, children: j.status })
+                        r.jsxs("span", { className:"font-mono font-black text-[#7A4E00] dark:text-amber-400 text-xs", children: ["₹", j.dailyWage,"/day"] }),
+                        r.jsx("span", { className:`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${j.status === "completed" ? "bg-[#2E9E57]/20 text-emerald-700 dark:text-emerald-400" :"bg-amber-500/20 text-[#7A4E00] dark:text-amber-400"}`, children: j.status })
                       ]
                     })
                   ]
@@ -6794,41 +6794,41 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
 
           // 6. SUPPORT CHATS VIEW (PRESERVED)
           re === "support" && r.jsxs("div", {
-            className:"bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-5 text-center space-y-2 animate-in fade-in shadow-sm",
+            className:"bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-5 text-center space-y-2 animate-in fade-in shadow-sm",
             children: [
               r.jsx(A0, { className:"w-10 h-10 text-amber-500 mx-auto" }),
-              r.jsx("h4", { className:"font-black text-slate-900 dark:text-white text-sm", children:"Support & Mediation Hub" }),
-              r.jsx("p", { className:"text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto", children:"All live chat conversations, worker dialer logs, and customer support disputes are synchronized and secured." })
+              r.jsx("h4", { className:"font-black text-[#1C1913] dark:text-white text-sm", children:"Support & Mediation Hub" }),
+              r.jsx("p", { className:"text-[#6F685D] dark:text-[#6F685D] text-xs max-w-sm mx-auto", children:"All live chat conversations, worker dialer logs, and customer support disputes are synchronized and secured." })
             ]
           }),
 
           // 7. SECURITY & AUDIT VIEW (PRESERVED)
           re === "security" && r.jsxs("div", {
-            className:"space-y-3 animate-in fade-in bg-white dark:bg-[#1C1C1C] border border-[#EDE8E0] dark:border-[#2E2E2E] rounded-2xl p-4 sm:p-5 shadow-sm",
+            className:"space-y-3 animate-in fade-in bg-white dark:bg-[#1F1C17] border border-[#EFE7DA] dark:border-[#2E2A22] rounded-2xl p-4 sm:p-5 shadow-sm",
             children: [
               r.jsxs("div", {
                 className:"flex items-center justify-between",
                 children: [
-                  r.jsxs("h3", { className:"font-black text-slate-900 dark:text-white text-sm flex items-center gap-1.5", children: [r.jsx(Os, { className:"w-4 h-4 text-emerald-500" })," Security & Tamper-Proof Audit Logs"] }),
-                  r.jsx("span", { className:"px-2 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-bold", children:"ISO / SOC2 Compliant" })
+                  r.jsxs("h3", { className:"font-black text-[#1C1913] dark:text-white text-sm flex items-center gap-1.5", children: [r.jsx(Os, { className:"w-4 h-4 text-emerald-500" })," Security & Tamper-Proof Audit Logs"] }),
+                  r.jsx("span", { className:"px-2 py-0.5 bg-[#2E9E57]/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-bold", children:"ISO / SOC2 Compliant" })
                 ]
               }),
               Array.isArray(auditLogs) && auditLogs.length > 0 ? r.jsx("div", {
                 className:"space-y-1.5 max-h-80 overflow-y-auto",
                 children: auditLogs.slice(0, 20).map((log, lIdx) => r.jsxs("div", {
                   key: lIdx,
-                  className:"bg-[#FAF7F2] dark:bg-[#252525] p-2.5 rounded-xl border border-[#EDE8E0] dark:border-[#333] flex items-center justify-between text-[11px] font-mono",
+                  className:"bg-[#FBF8F2] dark:bg-[#27231C] p-2.5 rounded-xl border border-[#EFE7DA] dark:border-[#3A342C] flex items-center justify-between text-[11px] font-mono",
                   children: [
                     r.jsxs("div", {
                       children: [
-                        r.jsx("span", { className:"font-black text-slate-800 dark:text-slate-200", children: log.action || "SECURITY_EVENT" }),
-                        r.jsxs("p", { className:"text-[10px] text-slate-500", children: [log.details || "", log.adminEmail ? " • " + log.adminEmail :""] })
+                        r.jsx("span", { className:"font-black text-[#1C1913] dark:text-slate-200", children: log.action || "SECURITY_EVENT" }),
+                        r.jsxs("p", { className:"text-[10px] text-[#6F685D]", children: [log.details || "", log.adminEmail ? " • " + log.adminEmail :""] })
                       ]
                     }),
-                    r.jsx("span", { className:"text-[10px] text-slate-400", children: log.timestamp ? new Date(log.timestamp).toLocaleTimeString() :"Just now" })
+                    r.jsx("span", { className:"text-[10px] text-[#6F685D]", children: log.timestamp ? new Date(log.timestamp).toLocaleTimeString() :"Just now" })
                   ]
                 }))
-              }) : r.jsx("p", { className:"text-slate-400 italic py-4 text-center", children:"All security systems operational. No suspicious attempts." })
+              }) : r.jsx("p", { className:"text-[#6F685D] italic py-4 text-center", children:"All security systems operational. No suspicious attempts." })
             ]
           })
         ]
@@ -7199,4 +7199,4 @@ You have an instant job offer on Kaamzo platform:
 
 Open Kaamzo App or accept via WhatsApp/SMS to lock this job.`,de=()=>o==="pa"?`ਨਮਸਕਾਰ ${n.name} ਜੀ! ਦਿਹਾੜੀ ਵੱਲੋਂ ਤੁਹਾਡੇ ਲਈ ${t.area||"ਸਥਾਨਕ ਖੇਤਰ"} ਵਿੱਚ ${t.trade} ਦਾ ਨਵਾਂ ਕੰਮ ਹੈ। ਰੋਜ਼ਾਨਾ ਦਿਹਾੜੀ ₹${t.dailyWage} ਹੈ। ਕੰਮ ਸਵੀਕਾਰ ਕਰਨ ਲਈ 1 ਦਬਾਓ।`:o==="hi"?`नमस्ते ${n.name} जी! दिहाड़ी की तरफ से आपके लिए ${t.area||"स्थानीय क्षेत्र"} में ${t.trade} का नया काम उपलब्ध है। दैनिक मजदूरी ₹${t.dailyWage} है। काम स्वीकार करने के लिए 1 दबाएं।`:`Hello ${n.name}! Kaamzo has an instant ${t.trade} job for you at ${t.area||"your area"}. Daily wage is ₹${t.dailyWage}. Press 1 to accept this job.`,Te=()=>{if(c(`[4-Channel Alert] New ${t.trade} job alert pushed to ${n.name} in App & Radar!`),typeof window<"u"&&"Notification"in window)if(Notification.permission==="granted")try{new Notification(`Kaamzo Job Alert: ${t.trade}`,{body:`₹${t.dailyWage}/day at ${t.area||t.locationAddress} (~${t.distanceKm} km). Employer: ${t.customerName}`,icon:"/icon.png"})}catch(Oe){console.debug("Notification trigger note:",Oe)}else Notification.permission!=="denied"&&Notification.requestPermission().then(Oe=>{if(Oe==="granted")try{new Notification(`Kaamzo Job Alert: ${t.trade}`,{body:`₹${t.dailyWage}/day at ${t.area||t.locationAddress}. Employer: ${t.customerName}`})}catch(Et){console.debug(Et)}})},ke=async Oe=>{try{S(!0),(await(await fetch("/api/send-alert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workerName:n.name,workerPhone:n.phone,workerEmail:Oe||n.email,customerName:t.customerName,jobTitle:t.title,trade:t.trade,dailyWage:t.dailyWage,area:t.area||t.locationAddress,distanceKm:t.distanceKm,durationDays:t.durationDays||1,channels:["whatsapp","email","mail","sms","push","voice"]})})).json()).success&&O(`✓ Dispatched to ${Oe||"Email"} & all 4 channels`)}catch(Et){console.debug("Alert dispatch API note:",Et),O("✓ Dispatched to all active channels")}finally{S(!1)}},Ee=async()=>{je(!0),Ae("incoming_job"),Te(),await ke(T),Se(),F(!0),P(!0),ve(!0),be(!0),c(`All 4 Channels (WhatsApp, Mail, SMS, App Push & IVR) Dispatched to ${n.name}!`),setTimeout(()=>{je(!1)},1200)},Se=()=>{const Oe=de();N(!0),oB(Oe,o)},He=Oe=>{_(Oe),Ae("click"),Oe==="1"?(Ae("success"),c(`IVR Voice Call: ${n.name} pressed 1 (ACCEPTED JOB)!`),a&&a(t.id,n.id),setTimeout(()=>{p("ended"),yf(),N(!1)},1500)):Oe==="2"&&(Ae("alert"),c(`IVR Voice Call: ${n.name} pressed 2 (Declined).`),p("ended"),yf(),N(!1))},st=()=>{z(!0),Ae("success"),c(`WhatsApp Alert: ${n.name} tapped ACCEPT!`),a&&a(t.id,n.id)},ae=()=>{Ae("click");const Oe=encodeURIComponent(se()),Et=$.startsWith("91")?$:`91${$}`;window.open(`https://api.whatsapp.com/send?phone=${Et}&text=${Oe}`,"_blank"),F(!0),c(`WhatsApp Web/App opened with job alert for ${n.name}!`)},ce=()=>{Ae("click");const Oe=encodeURIComponent(ne()),Et=encodeURIComponent(pe()),kt=T||n.email||"worker@kaamzo.in",ns=`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(kt)}&su=${Oe}&body=${Et}`;window.open(ns,"_blank"),c(`Gmail composer opened with job alert for ${kt}!`)},dt=()=>{Ae("click");const Oe=encodeURIComponent(U());window.open(`sms:${$}?body=${Oe}`,"_self"),c(`Native SMS app triggered for ${n.phone}!`)},_t=()=>{Ae("click"),window.open(`tel:${n.phone}`,"_self"),c(`Calling ${n.name} (${n.phone})...`)},at=(Oe,Et)=>{navigator.clipboard.writeText(Oe),Z(Et),Ae("click"),c("Alert message copied to clipboard!"),setTimeout(()=>Z(null),2500)};return r.jsx("div",{className:"fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200 select-none",children:r.jsxs("div",{className:"bg-slate-900 text-white w-full max-w-2xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]",children:[r.jsxs("div",{className:"bg-gradient-to-r from-amber-700 via-amber-700 to-purple-800 p-4 shrink-0 flex items-center justify-between text-white border-b border-amber-500/30",children:[r.jsxs("div",{className:"flex items-center gap-2.5",children:[r.jsx("div",{className:"w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/30 text-amber-300",children:r.jsx(mo,{className:"w-5 h-5 animate-pulse"})}),r.jsxs("div",{children:[r.jsxs("div",{className:"flex items-center gap-1.5",children:[r.jsx("span",{className:"px-2 py-0.5 bg-amber-400 text-slate-950 font-black text-[10px] uppercase rounded-full",children:"4-Channel Alert Engine"}),r.jsxs("span",{className:"text-xs text-amber-200 font-medium flex items-center gap-1",children:[r.jsx("span",{className:"w-2 h-2 rounded-full bg-amber-400 animate-ping inline-block"}),"Live Multi-Dispatch Active"]})]}),r.jsxs("h3",{className:"text-base font-black text-white flex items-center gap-1.5 mt-0.5",children:[r.jsxs("span",{children:["Broadcasting to ",n.name]}),r.jsxs("span",{className:"text-xs font-normal text-amber-200",children:["(",n.phone,")"]})]})]})]}),r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsxs("button",{onClick:Ee,disabled:ie,className:"px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl font-black text-xs transition flex items-center gap-1.5 shadow-md active:scale-95",title:"Blast alert across WhatsApp, Mail, SMS & In-App",children:[ie?r.jsx(uc,{className:"w-3.5 h-3.5 animate-spin"}):r.jsx(Pm,{className:"w-3.5 h-3.5"}),r.jsx("span",{className:"hidden sm:inline",children:"Dispatch All 4 Channels"}),r.jsx("span",{className:"sm:hidden",children:"Blast All"})]}),r.jsx("button",{onClick:()=>{yf(),e()},className:"p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition",children:r.jsx(Fn,{className:"w-5 h-5"})})]})]}),r.jsxs("div",{className:"bg-slate-950 p-3 px-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("span",{className:"px-2 py-0.5 bg-amber-600/80 text-white font-bold rounded-md",children:t.trade}),r.jsx("span",{className:"font-bold text-slate-200",children:t.title}),r.jsxs("span",{className:"text-slate-400",children:["• ",t.area||t.locationAddress]})]}),r.jsxs("div",{className:"flex items-center gap-3",children:[r.jsxs("span",{className:"font-mono text-amber-400 font-bold",children:["₹",t.dailyWage,"/day"]}),r.jsxs("span",{className:"text-slate-400 font-mono",children:["Distance: ~",t.distanceKm||1.2," km"]})]})]}),r.jsxs("div",{className:"bg-slate-900/80 p-2 px-3 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs font-bold no-scrollbar",children:[r.jsxs("button",{onClick:()=>x("all"),className:`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shrink-0 ${d==="all"?"bg-amber-600 text-white shadow-xs":"text-slate-400 hover:text-white bg-slate-800"}`,children:[r.jsx(Yn,{className:"w-3.5 h-3.5 text-amber-400"}),r.jsx("span",{children:"All 4 Channels"})]}),r.jsxs("button",{onClick:()=>x("whatsapp"),className:`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shrink-0 ${d==="whatsapp"?"bg-amber-600 text-white shadow-xs":"text-slate-400 hover:text-white bg-slate-800"}`,children:[r.jsx(ac,{className:"w-3.5 h-3.5 text-amber-400"}),r.jsx("span",{children:"WhatsApp Alert"}),r.jsx("span",{className:"w-2 h-2 rounded-full bg-amber-400 animate-ping"})]}),r.jsxs("button",{onClick:()=>x("mail"),className:`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shrink-0 ${d==="mail"?"bg-sky-600 text-white shadow-xs":"text-slate-400 hover:text-white bg-slate-800"}`,children:[r.jsx(To,{className:"w-3.5 h-3.5 text-sky-400"}),r.jsx("span",{children:"Mail / Email"})]}),r.jsxs("button",{onClick:()=>x("push"),className:`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shrink-0 ${d==="push"?"bg-purple-600 text-white shadow-xs":"text-slate-400 hover:text-white bg-slate-800"}`,children:[r.jsx(ag,{className:"w-3.5 h-3.5 text-purple-400"}),r.jsx("span",{children:"In-App & Push"})]}),r.jsxs("button",{onClick:()=>x("voice"),className:`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shrink-0 ${d==="voice"?"bg-amber-600 text-white shadow-xs":"text-slate-400 hover:text-white bg-slate-800"}`,children:[r.jsx(C_,{className:"w-3.5 h-3.5 text-amber-400"}),r.jsx("span",{children:"Voice IVR (TTS)"}),f==="connected"&&r.jsx("span",{className:"w-2 h-2 rounded-full bg-amber-400 animate-pulse"})]}),r.jsxs("button",{onClick:()=>x("sms"),className:`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shrink-0 ${d==="sms"?"bg-amber-600 text-white shadow-xs":"text-slate-400 hover:text-white bg-slate-800"}`,children:[r.jsx(ic,{className:"w-3.5 h-3.5 text-amber-400"}),r.jsx("span",{children:"GSM SMS"})]})]}),r.jsxs("div",{className:"flex-1 overflow-y-auto p-4 space-y-4",children:[d==="all"&&r.jsxs("div",{className:"bg-gradient-to-br from-slate-950 to-slate-900 p-3.5 rounded-2xl border border-slate-800 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("span",{className:"text-xs font-bold text-slate-300 flex items-center gap-1.5",children:[r.jsx(Yn,{className:"w-4 h-4 text-amber-400"})," Real Multi-Channel Dispatch Center"]}),r.jsxs("span",{className:"text-[11px] text-amber-400 font-mono font-bold flex items-center gap-1",children:[r.jsx(nr,{className:"w-3.5 h-3.5"})," Synchronized"]})]}),r.jsxs("div",{className:"grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs",children:[r.jsxs("div",{className:"bg-amber-950/40 border border-amber-500/30 p-2.5 rounded-xl text-center space-y-1",children:[r.jsxs("div",{className:"text-amber-400 font-bold flex items-center justify-center gap-1",children:[r.jsx(ac,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:"WhatsApp"})]}),r.jsx("div",{className:"text-[10px] text-amber-300 font-medium",children:"Ready & Dispatched"})]}),r.jsxs("div",{className:"bg-sky-950/40 border border-sky-500/30 p-2.5 rounded-xl text-center space-y-1",children:[r.jsxs("div",{className:"text-sky-400 font-bold flex items-center justify-center gap-1",children:[r.jsx(To,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:"Gmail / SMTP"})]}),r.jsx("div",{className:"text-[10px] text-sky-300 font-medium",children:"Dispatched"})]}),r.jsxs("div",{className:"bg-purple-950/40 border border-purple-500/30 p-2.5 rounded-xl text-center space-y-1",children:[r.jsxs("div",{className:"text-purple-400 font-bold flex items-center justify-center gap-1",children:[r.jsx(ag,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:"In-App / Push"})]}),r.jsx("div",{className:"text-[10px] text-purple-300 font-medium",children:"Delivered to Radar"})]}),r.jsxs("div",{className:"bg-amber-950/40 border border-amber-500/30 p-2.5 rounded-xl text-center space-y-1",children:[r.jsxs("div",{className:"text-amber-400 font-bold flex items-center justify-center gap-1",children:[r.jsx(ic,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:"GSM SMS"})]}),r.jsx("div",{className:"text-[10px] text-amber-300 font-medium",children:"Carrier Queued"})]})]})]}),(d==="all"||d==="whatsapp")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold",children:r.jsx(ac,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"WhatsApp Business Notification"}),r.jsx("span",{className:"px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[10px] rounded border border-amber-500/40",children:I?"Accepted":M?"Read (Double Blue Tick)":"Delivered"})]}),r.jsxs("span",{className:"text-[10px] text-slate-400",children:["Sent to ",n.phone]})]})]}),r.jsxs("div",{className:"flex items-center gap-1 text-amber-400 text-xs",children:[r.jsx(Xg,{className:"w-4 h-4 text-amber-400"}),r.jsx("span",{className:"text-[10px] font-mono",children:"Delivered"})]})]}),r.jsxs("div",{className:"bg-slate-950 p-3 rounded-xl border border-amber-900/40 text-xs text-slate-200 font-sans space-y-2 relative",children:[r.jsxs("div",{className:"bg-amber-900 p-3 rounded-xl text-white space-y-1.5 shadow-md max-w-md",children:[r.jsx("p",{className:"font-bold text-amber-300 flex items-center gap-1",children:r.jsx("span",{children:"Kaamzo Instant Job Alert!"})}),r.jsx("p",{className:"text-[11px] leading-relaxed whitespace-pre-line",children:se()}),r.jsxs("div",{className:"flex justify-end items-center gap-1 text-[9px] text-amber-200 pt-1",children:[r.jsx("span",{children:"Just now"}),r.jsx(Xg,{className:"w-3 h-3 text-amber-300"})]})]}),r.jsxs("div",{className:"flex flex-wrap items-center gap-2 pt-1",children:[r.jsxs("button",{onClick:ae,className:"flex-1 py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95",title:"Open WhatsApp Web or Native App with pre-filled message",children:[r.jsx(Ti,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:"Open & Send in WhatsApp"})]}),r.jsxs("button",{onClick:()=>at(se(),"wa"),className:"py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-700",title:"Copy WhatsApp formatted message",children:[he==="wa"?r.jsx(nn,{className:"w-3.5 h-3.5 text-amber-400"}):r.jsx(zc,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:he==="wa"?"Copied":"Copy"})]}),r.jsxs("button",{onClick:st,disabled:I,className:`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center gap-1 ${I?"bg-amber-800 text-amber-200 cursor-default":"bg-slate-800 hover:bg-amber-950 text-amber-300 border border-amber-700/50"}`,children:[r.jsx(nr,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:I?"Accepted":"Simulate Accept"})]})]})]})]}),(d==="all"||d==="mail")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-sky-500/30 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold",children:r.jsx(To,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"Gmail & SMTP Mail Alert"}),r.jsx("span",{className:"px-1.5 py-0.2 bg-sky-500/20 text-sky-300 text-[10px] rounded border border-sky-500/40",children:G?"Sending...":j||"SMTP Dispatched"})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Direct employer briefing delivered to inbox"})]})]}),r.jsxs("button",{onClick:()=>ke(T),disabled:G,className:"px-2 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Resend email via SMTP",children:[r.jsx(uc,{className:`w-3 h-3 ${G?"animate-spin":""}`}),r.jsx("span",{children:"Resend Email"})]})]}),r.jsxs("div",{className:"bg-slate-900 p-3 rounded-xl border border-sky-900/40 space-y-2.5 text-xs",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("span",{className:"text-slate-400 text-[11px] shrink-0 font-medium",children:"To:"}),r.jsx("input",{type:"email",value:T,onChange:Oe=>k(Oe.target.value),placeholder:"Worker or Employer Email Address",className:"w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-sky-500"})]}),r.jsxs("div",{className:"bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] space-y-1",children:[r.jsx("div",{className:"text-sky-300 font-bold",children:ne()}),r.jsx("p",{className:"text-slate-300 whitespace-pre-line leading-relaxed",children:pe()})]}),r.jsxs("div",{className:"flex flex-wrap items-center gap-2 pt-1",children:[r.jsxs("button",{onClick:ce,className:"flex-1 py-2 px-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95",title:"Open Gmail Composer with pre-filled subject and body",children:[r.jsx(Ti,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:"Open in Gmail / Mail App"})]}),r.jsxs("button",{onClick:()=>at(`${ne()}
 
-${pe()}`,"mail"),className:"py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-700",title:"Copy email text",children:[he==="mail"?r.jsx(nn,{className:"w-3.5 h-3.5 text-amber-400"}):r.jsx(zc,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:he==="mail"?"Copied":"Copy"})]})]})]})]}),(d==="all"||d==="push")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-purple-500/30 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold",children:r.jsx(ag,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"In-App & Device Push Notification"}),r.jsx("span",{className:"px-1.5 py-0.2 bg-purple-500/20 text-purple-300 text-[10px] rounded border border-purple-500/40",children:ge?"Live on Radar":"Active"})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Device notification shade + Worker radar beacon"})]})]}),r.jsxs("button",{onClick:Te,className:"px-2 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Trigger desktop/phone notification",children:[r.jsx(ag,{className:"w-3 h-3"}),r.jsx("span",{children:"Trigger Notification"})]})]}),r.jsxs("div",{className:"bg-slate-900/90 p-3 rounded-2xl border border-purple-900/50 shadow-lg space-y-1.5",children:[r.jsxs("div",{className:"flex items-center justify-between text-[10px] text-purple-300 font-bold",children:[r.jsxs("div",{className:"flex items-center gap-1.5",children:[r.jsx("div",{className:"w-4 h-4 rounded bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-black",children:"D"}),r.jsx("span",{children:"Kaamzo Worker Radar • Now"})]}),r.jsx("span",{className:"text-slate-500",children:"Just now"})]}),r.jsxs("h5",{className:"font-bold text-white text-xs",children:["New Hyperlocal Job:",t.trade," (₹",t.dailyWage,"/day)"]}),r.jsxs("p",{className:"text-[11px] text-slate-300",children:[t.customerName," needs a verified ",t.trade," in ",t.area||t.locationAddress," (~",t.distanceKm||1.2," km away). Tap to accept."]})]})]}),(d==="all"||d==="voice")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30 space-y-3",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold",children:r.jsx(C_,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"Automated Voice Call (IVR with Audio TTS)"}),r.jsx("span",{className:`px-1.5 py-0.2 text-[10px] rounded border ${f==="connected"?"bg-amber-500/20 text-amber-300 border-amber-500/40":f==="ringing"?"bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse":"bg-slate-800 text-slate-300 border-slate-700"}`,children:f==="connected"?`Connected (${B}s)`:f})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Accommodates workers without smartphones"})]})]}),r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsxs("button",{onClick:_t,className:"px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Direct Phone Call",children:[r.jsx(Xi,{className:"w-3 h-3"}),r.jsx("span",{children:"Call Phone"})]}),r.jsxs("button",{onClick:Se,className:"px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Play synthesized voice audio",children:[r.jsx(sh,{className:"w-3 h-3"}),r.jsx("span",{children:"Replay Audio"})]})]})]}),r.jsxs("div",{className:"bg-slate-900 p-3.5 rounded-xl border border-amber-900/40 space-y-3",children:[r.jsx("div",{className:"flex items-center justify-between text-xs",children:r.jsxs("div",{className:"space-y-0.5 w-full",children:[r.jsxs("p",{className:"text-slate-400 text-[11px]",children:["IVR Spoken Prompt (",o.toUpperCase(),"):"]}),r.jsxs("p",{className:"text-slate-100 italic bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] leading-relaxed",children:['"',de(),'"']})]})}),r.jsxs("div",{className:"space-y-1.5",children:[r.jsx("span",{className:"text-[10px] font-bold text-slate-400 uppercase tracking-wider block",children:"Simulate Worker Dialpad Input:"}),r.jsxs("div",{className:"grid grid-cols-2 gap-2",children:[r.jsxs("button",{onClick:()=>He("1"),className:"py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95",children:[r.jsx("span",{className:"w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-black",children:"1"}),r.jsx("span",{children:"Press [1] Accept Work"})]}),r.jsxs("button",{onClick:()=>He("2"),className:"py-2 px-3 bg-slate-800 hover:bg-amber-900/50 text-slate-300 hover:text-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition border border-slate-700 active:scale-95",children:[r.jsx("span",{className:"w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs font-black",children:"2"}),r.jsx("span",{children:"Press [2] Decline"})]})]})]})]})]}),(d==="all"||d==="sms")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold",children:r.jsx(ic,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"GSM SMS (Basic Feature Phones)"}),r.jsx("span",{className:"px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[10px] rounded border border-amber-500/40",children:re?"Delivered to SIM":"Queued"})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Carrier GSM Network • 160 Chars"})]})]}),r.jsx("span",{className:"text-[10px] font-mono text-amber-400",children:"SIM Slot 1"})]}),r.jsxs("div",{className:"bg-slate-900 p-3 rounded-xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2",children:[r.jsxs("div",{className:"flex justify-between text-[10px] text-slate-500 border-b border-slate-800 pb-1",children:[r.jsx("span",{children:"From: KAAMZO-GOVT"}),r.jsx("span",{children:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})})]}),r.jsx("p",{className:"text-slate-100 leading-relaxed py-1",children:U()}),r.jsxs("div",{className:"flex flex-wrap justify-between items-center gap-2 text-[10px] text-slate-500 pt-1",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsxs("button",{onClick:dt,className:"px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg font-bold transition flex items-center gap-1",children:[r.jsx(Ti,{className:"w-3 h-3"}),r.jsx("span",{children:"Open Native SMS App"})]}),r.jsxs("button",{onClick:()=>at(U(),"sms"),className:"px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold transition flex items-center gap-1",children:[he==="sms"?r.jsx(nn,{className:"w-3 h-3 text-amber-400"}):r.jsx(zc,{className:"w-3 h-3"}),r.jsx("span",{children:he==="sms"?"Copied":"Copy"})]})]}),r.jsx("button",{onClick:()=>{Ae("success"),c(`SMS Response: ${n.name} replied YES via SMS!`),a&&a(t.id,n.id)},className:"px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 rounded-lg font-bold transition",children:'Simulate SMS Reply "YES"'})]})]})]})]}),r.jsxs("div",{className:"bg-slate-950 p-3.5 px-4 border-t border-slate-800 flex items-center justify-between text-xs shrink-0",children:[r.jsx("div",{className:"text-slate-400 text-[11px] hidden sm:block",children:r.jsx("span",{children:"Dispatched across WhatsApp, Gmail/Mail, GSM SMS, App Push & IVR"})}),r.jsxs("div",{className:"flex items-center gap-2 w-full sm:w-auto justify-end",children:[r.jsx("button",{onClick:()=>{yf(),e()},className:"px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition",children:"Close Dispatcher"}),r.jsxs("button",{onClick:()=>{a&&a(t.id,n.id),Ae("success"),c(`Job successfully assigned to ${n.name}!`),yf(),e()},className:"px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl transition flex items-center gap-1.5 shadow-md active:scale-95",children:[r.jsx(nr,{className:"w-4 h-4"}),r.jsx("span",{children:"Direct Assign to Worker"})]})]})]})]})})},joe=({isOpen:s,onClose:e,job:t,onOpenMultiChannel:n,onOpenRadar:a,onOpenChat:o})=>{var F,T;const{workers:c,currentCustomer:u,currentCity:d,currentLanguage:x,startCall:f,showNotification:p,acceptJobByWorker:B}=Qo(),[g,w]=L.useState(10),[N,v]=L.useState(!1);if(!s||!t)return null;const _=((F=t.jobGps)==null?void 0:F.lat)||(u==null?void 0:u.gpsLocation.lat)||d.lat,M=((T=t.jobGps)==null?void 0:T.lng)||(u==null?void 0:u.gpsLocation.lng)||d.lng,I=Ew(c,{trade:t.trade,lat:_,lng:M,maxRadiusKm:g,language:x}).slice(0,5),z=k=>{Ae("success"),B(t.id),p(`Hired ${k.name}! Start OTP generated: ${t.otpCode}`),e()},W=async()=>{if(v(!0),Ae("incoming_job"),p(`Multi-Channel Alert blasted to Top ${I.length} verified ${t.trade}s via WhatsApp, Mail, SMS & Radar!`),typeof window<"u"&&"Notification"in window&&Notification.permission==="granted")try{new Notification("4-Channel Alert Broadcasted",{body:`Sent instant job notifications to ${I.length} nearby ${t.trade}s.`,icon:"/icon.png"})}catch(k){console.debug("Notification note:",k)}if(I.length>0){try{const k=I[0].worker;fetch("/api/send-alert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workerName:k.name,workerPhone:k.phone,workerEmail:k.email||"bhavnoorsinghkochar@gmail.com",customerName:t.customerName,jobTitle:t.title,trade:t.trade,dailyWage:t.dailyWage,area:t.area||t.locationAddress,distanceKm:t.distanceKm,durationDays:t.durationDays||1,channels:["whatsapp","email","mail","sms","push","voice"]})}).catch(G=>console.debug("Blast API note:",G))}catch(k){console.debug("Blast dispatch note:",k)}setTimeout(()=>{v(!1),n(t,I[0].worker)},700)}else v(!1)};return r.jsxs("div",{className:"fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200 select-none",children:[" ",r.jsxs("div",{className:"bg-white text-slate-900 w-full max-w-3xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]",children:[" "," ",r.jsxs("div",{className:"bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 text-white p-4 sm:p-5 shrink-0 flex items-center justify-between border-b border-amber-500/30",children:[" ",r.jsxs("div",{className:"flex items-center gap-3",children:[" ",r.jsxs("div",{className:"w-11 h-11 rounded-2xl bg-white/20 text-amber-300 flex items-center justify-center font-black border border-white/30 shadow-inner",children:[" ",r.jsx(Yn,{className:"w-6 h-6 animate-pulse"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black uppercase rounded-full tracking-wide",children:" AI Matching Engine "})," ",r.jsxs("span",{className:"text-xs text-amber-100 font-medium flex items-center gap-1",children:[" ",r.jsx(na,{className:"w-3 h-3 text-amber-300"})," Strict 10km Hyperlocal Radius "]})," "]})," ",r.jsxs("h3",{className:"text-lg font-black text-white flex items-center gap-2 mt-0.5",children:[" ",r.jsxs("span",{children:["Top-5 Shortlisted ",t.trade,"s"]})," ",r.jsxs("span",{className:"text-xs font-normal text-amber-200",children:["(",t.title,")"]})," "]})," "]})," "]})," ",r.jsxs("button",{onClick:e,className:"p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition",children:[" ",r.jsx(Fn,{className:"w-5 h-5"})," "]})," "]})," "," ",r.jsxs("div",{className:"bg-slate-50 p-3 px-4 sm:px-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs",children:[" "," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("span",{className:"font-bold text-slate-700 flex items-center gap-1",children:[" ",r.jsx(vT,{className:"w-3.5 h-3.5 text-amber-600"})," Radius:"]})," ",r.jsxs("div",{className:"flex bg-white p-0.5 rounded-xl border border-slate-300 shadow-xs font-bold text-[11px]",children:[" ",[3,5,10].map(k=>r.jsxs("button",{onClick:()=>{w(k),Ae("click")},className:`px-2.5 py-1 rounded-lg transition ${g===k?"bg-amber-600 text-white":"text-slate-600 hover:text-slate-900"}`,children:[" ",k===10?"Strict 10 km":`${k} km`," "]},k))," "]})," ",r.jsxs("span",{className:"text-[11px] text-slate-500 font-medium hidden sm:inline",children:[" (",I.length," matches found within ",g,"km) "]})," "]})," "," ",r.jsxs("button",{onClick:W,disabled:N||I.length===0,className:"px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm",children:[" ",r.jsx(Pm,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Blast Multi-Channel Alerts to Top-5"})," "]})," "]})," "," ",r.jsxs("div",{className:"flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5",children:[" ",I.length===0?r.jsxs("div",{className:"bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-2",children:[" ",r.jsx(Oc,{className:"w-8 h-8 text-amber-500 mx-auto"})," ",r.jsxs("h4",{className:"font-bold text-amber-900 text-sm",children:["No workers found within ",g," km"]})," ",r.jsxs("p",{className:"text-xs text-amber-700",children:[" Expand radius to strict 10km or switch city to discover verified ",t.trade,"s nearby. "]})," ",r.jsx("button",{onClick:()=>w(10),className:"px-3 py-1.5 bg-amber-500 text-slate-950 rounded-xl text-xs font-bold transition mt-2",children:" Reset to Strict 10km Radius "})," "]}):I.map((k,G)=>{const S=k.worker,j=G===0;return r.jsxs("div",{className:`rounded-2xl p-4 transition-all duration-200 border relative ${j?"bg-amber-50/70 border-amber-300 shadow-sm ring-1 ring-amber-400/40":"bg-white border-slate-200 hover:border-amber-200 shadow-xs"}`,children:[" "," ",r.jsxs("div",{className:"flex items-start justify-between gap-3",children:[" ",r.jsxs("div",{className:"flex items-center gap-3",children:[" ",r.jsxs("div",{className:"relative",children:[" ",r.jsxs("div",{className:`w-11 h-11 rounded-2xl font-black flex items-center justify-center text-sm shadow-sm ${j?"bg-amber-600 text-white":"bg-slate-900 text-amber-400"}`,children:[" ",S.name.charAt(0)," "]})," ",r.jsxs("span",{className:`absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black border ${j?"bg-amber-400 text-slate-950 border-white":"bg-slate-800 text-slate-200 border-white"}`,children:[" #",k.rank," "]})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("h4",{className:"font-black text-slate-900 text-sm flex items-center gap-1.5",children:[" ",r.jsx("span",{children:S.name})," ",S.isVerified&&r.jsxs("span",{title:"Govt Aadhaar Verified",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-600"})," "]})," "]})," ",r.jsxs("span",{className:"px-2 py-0.2 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full border border-amber-300",children:[" ",k.matchScore,"% AI Match "]})," "]})," ",r.jsxs("p",{className:"text-xs text-slate-500 flex items-center gap-2 mt-0.5",children:[" ",r.jsx("span",{className:"font-bold text-slate-700",children:S.primaryTrade})," ",r.jsx("span",{children:"•"})," ",r.jsxs("span",{className:"flex items-center gap-1 text-slate-600",children:[" ",r.jsx(na,{className:"w-3 h-3 text-slate-400"})," ",S.location.area," (",k.distanceKm," km away) "]})," ",r.jsx("span",{children:"•"})," ",r.jsxs("span",{className:"text-amber-600 font-bold",children:["~",k.etaMinutes,"m ETA"]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"text-right shrink-0",children:[" ",r.jsxs("span",{className:"text-base font-black text-slate-900",children:["₹",S.dailyRate]})," ",r.jsx("span",{className:"text-[10px] text-slate-500 block",children:"per day"})," ",r.jsx("span",{className:"text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 mt-0.5 block",children:" Prepaid Escrow "})," ",r.jsxs("span",{className:"text-[11px] font-bold text-amber-600 flex items-center justify-end gap-1 mt-0.5",children:[" ★ ",S.rating," (",S.reviewCount,") "]})," "]})," "]})," "," ",r.jsxs("div",{className:"mt-3 bg-white/80 p-2.5 rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 text-slate-700",children:[" ",r.jsx(Yn,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsxs("span",{className:"text-[11px] font-medium leading-tight",children:[" ",r.jsx("b",{className:"text-slate-900",children:"AI Match Breakdown:"})," ",k.aiReasoning," "]})," "]})," ",k.isWithin10Km&&r.jsx("span",{className:"px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-black uppercase rounded shrink-0",children:" Strict 10km Zone "})," "]})," "," ",r.jsxs("div",{className:"mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs",children:[" "," ",r.jsxs("button",{onClick:()=>z(S),className:"py-2 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm",children:[" ",r.jsx(nr,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Hire Now"})," "]})," "," ",r.jsxs("button",{onClick:()=>{o&&o(t,S)},className:"py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs",title:"Open Quick Chat with Candidate",children:[" ",r.jsx(ac,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Chat"})," "]})," "," ",r.jsxs("button",{onClick:()=>{n(t,S)},className:"py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl border border-amber-200 transition flex items-center justify-center gap-1.5",title:"Send WhatsApp, Mail, SMS & IVR Alert",children:[" ",r.jsx(Pm,{className:"w-3.5 h-3.5 text-amber-600"})," ",r.jsx("span",{children:"4-Channel"})," "]})," "," ",r.jsxs("button",{onClick:()=>f({name:(u==null?void 0:u.name)||"Employer",role:"customer",phone:(u==null?void 0:u.phone)||"+91 99100 88221"},{name:S.name,role:"worker",phone:S.phone},t.title),className:"py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl border border-amber-200 transition flex items-center justify-center gap-1.5",children:[" ",r.jsx(Xi,{className:"w-3.5 h-3.5 text-amber-600"})," ",r.jsx("span",{children:"Call"})," "]})," "," ",r.jsxs("button",{onClick:()=>{a({...t,assignedWorkerName:S.name,assignedWorkerPhone:S.phone,distanceKm:k.distanceKm}),e()},className:"py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-200 transition flex items-center justify-center gap-1.5",children:[" ",r.jsx(mo,{className:"w-3.5 h-3.5 text-amber-600"})," ",r.jsx("span",{children:"Radar"})," "]})," "]})," "]},S.id)})," "]})," "," ",r.jsxs("div",{className:"bg-slate-50 p-3 px-5 border-t border-slate-200 flex items-center justify-between text-xs shrink-0",children:[" ",r.jsx("span",{className:"text-slate-500 text-[11px]",children:" AI shortlisting dynamically prioritizes proximity, verified skills, and fast availability. "})," ",r.jsx("button",{onClick:e,className:"px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition",children:" Close Shortlist "})," "]})," "]})," "]})},Soe=({notifications:s,onDismiss:e,onOpenChat:t})=>!s||s.length===0?null:r.jsxs("div",{id:"global-chat-notifications-container",className:"fixed top-3 right-3 sm:right-6 sm:top-5 z-[9999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-[calc(100vw-24px)] sm:w-auto pointer-events-none",children:[" ",s.map(n=>r.jsx(Foe,{item:n,onDismiss:()=>e(n.id),onOpenChat:()=>t(n)},n.id))," "]}),Foe=({item:s,onDismiss:e,onOpenChat:t})=>{const[n,a]=L.useState(100),[o,c]=L.useState(!1),u=6500,d=50;L.useEffect(()=>{if(o)return;const f=d/u*100,p=setInterval(()=>{a(B=>B<=f?(clearInterval(p),e(),0):B-f)},d);return()=>clearInterval(p)},[o,e]);const x=s.senderRole==="worker";return s.isSender,r.jsxs("div",{id:`chat-popup-${s.id}`,onMouseEnter:()=>c(!0),onMouseLeave:()=>c(!1),className:"pointer-events-auto bg-slate-900/95 backdrop-blur-md text-white border border-slate-700/80 shadow-2xl rounded-2xl p-3.5 sm:p-4 transition-all duration-300 transform translate-y-0 animate-in slide-in-from-top-4 hover:shadow-amber-500/10 hover:border-amber-500/50 flex flex-col gap-2.5 relative overflow-hidden",children:[" "," ",r.jsxs("div",{className:"flex items-center justify-between gap-2",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 min-w-0",children:[" ",r.jsxs("div",{className:"w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/20 border border-amber-500/40 text-amber-400",children:[" ",r.jsx(ac,{className:"w-4 h-4 animate-pulse"})," "]})," ",r.jsxs("div",{className:"min-w-0",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 flex-wrap",children:[" ",r.jsxs("span",{className:"text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-md border bg-amber-950/80 border-amber-700/60 text-amber-300",children:[" ",x?"Worker Message":"Employer Message"," "]})," ",r.jsxs("span",{className:"text-[11px] text-slate-400 font-medium",children:[" ",s.timestamp||"Just now"," "]})," "]})," ",r.jsxs("p",{className:"text-xs font-bold text-slate-100 truncate mt-1",children:[" ","From:"," ",r.jsx("span",{className:"text-amber-300",children:s.senderName})," ",r.jsxs("span",{className:"text-slate-400 font-normal",children:["(",x?"Skilled Worker":"Work Requester",")"]})," "]})," "]})," "]})," "," ",r.jsxs("button",{type:"button",onClick:f=>{f.stopPropagation(),Ae("click"),e()},className:"p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0",title:"Dismiss notification",children:[" ",r.jsx(Fn,{className:"w-4 h-4"})," "]})," "]})," "," ",r.jsxs("div",{onClick:()=>{Ae("click"),t()},className:"bg-slate-950/80 rounded-xl p-2.5 border border-slate-800 text-xs text-slate-200 cursor-pointer hover:border-slate-700 hover:bg-slate-950 transition group",children:[" ",r.jsxs("p",{className:"line-clamp-2 leading-relaxed font-normal text-slate-200 group-hover:text-white",children:['"',s.text,'"'," "]})," ",s.jobTitle&&r.jsxs("div",{className:"flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-800/80 text-[10px] text-slate-400",children:[" ",r.jsx(p0,{className:"w-3 h-3 text-amber-400 shrink-0"})," ",r.jsx("span",{className:"truncate",children:s.jobTitle})," "]})," "]})," "," ",r.jsxs("div",{className:"flex items-center justify-between gap-2 pt-0.5",children:[" ",r.jsxs("span",{className:"text-[10px] text-slate-400 flex items-center gap-1",children:[" ",r.jsx(Xg,{className:"w-3 h-3 text-amber-400"})," ",r.jsx("span",{children:"Real-time Kaamzo Chat"})," "]})," ",r.jsxs("button",{type:"button",onClick:()=>{Ae("click"),t()},className:"px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]",children:[" ",r.jsx("span",{children:"Open & Reply"})," ",r.jsx(Qi,{className:"w-3.5 h-3.5"})," "]})," "]})," "," ",r.jsxs("div",{className:"absolute bottom-0 left-0 right-0 h-1 bg-slate-800",children:[" ",r.jsx("div",{className:"h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-75",style:{width:`${n}%`}})," "]})," "]})},Toe=({isOpen:s,onClose:e,initialRole:t="customer",allowRoleSwitch:n=!1})=>{const{currentWorker:a,currentCustomer:o,subscribeCustomerPremium:c,subscribeWorkerPremium:u}=Qo(),[d,x]=L.useState(t),[f,p]=L.useState(3),[B,g]=L.useState(!1),[w,N]=L.useState(!1),[v,_]=L.useState(!1),[M,P]=L.useState(!1),[I,z]=L.useState("");if(L.useEffect(()=>{if(s){x(t),p(3),g(!1),P(!1);const T=setInterval(()=>{p(k=>k<=1?(clearInterval(T),g(!0),0):k-1)},1e3);return()=>clearInterval(T)}},[s,t]),!s)return null;const W=async()=>{N(!0),Ae("click");try{c((o==null?void 0:o.id)||"cust-1","UPI").success&&(P(!0),z("₹15,000 Customer Gold Subscription Activated! Money credited to Admin Account. Worker wages will now be automatically disbursed by Admin directly into worker wallets!"),Ae("success"))}finally{N(!1)}},F=async()=>{N(!0),Ae("click");try{u((a==null?void 0:a.id)||"w-1","UPI").success&&(P(!0),z("Worker VIP Pass & Instant Aadhaar Verification Activated! You are now Govt. Aadhaar Verified with 6 Zero-Commission Jobs and top radar priority!"),Ae("success"))}finally{N(!1)}};return r.jsxs("div",{className:"fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300",children:[" ",r.jsxs("div",{className:"bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border-2 border-amber-400/60 relative flex flex-col max-h-[92vh]",children:[" "," ",r.jsxs("div",{className:"bg-slate-950/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between shrink-0",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("span",{className:"flex h-2 w-2 relative",children:[" ",r.jsx("span",{className:"animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"})," ",r.jsx("span",{className:"relative inline-flex rounded-full h-2 w-2 bg-amber-500"})," "]})," ",r.jsxs("div",{className:"flex items-center gap-1.5 bg-amber-600/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md",children:[" ",r.jsx(dY,{className:"w-3 h-3 fill-amber-300"})," ",r.jsx("span",{children:"Membership Feature Spotlight"})," "]})," "]})," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("button",{onClick:()=>_(!v),className:"p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition text-xs",title:"Toggle Audio",children:[" ",v?r.jsx(_T,{className:"w-3.5 h-3.5"}):r.jsx(sh,{className:"w-3.5 h-3.5 text-amber-400"})," "]})," ",B?r.jsxs("button",{onClick:e,className:"flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-1 rounded-xl border border-slate-700 transition",children:[" ",r.jsx("span",{children:"Skip Ad"})," ",r.jsx(Qi,{className:"w-3.5 h-3.5"})," "]}):r.jsxs("span",{className:"text-[11px] font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800",children:[" ","Skip in ",f,"s"," "]})," "]})," "]})," "," ",n?r.jsxs("div",{className:"p-4 bg-slate-900/60 border-b border-slate-800/80 flex gap-2",children:[" ",r.jsxs("button",{onClick:()=>{x("customer"),Ae("click")},className:`flex-1 py-2 px-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${d==="customer"?"bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20":"bg-slate-800/70 text-slate-400 hover:text-white"}`,children:[" ",r.jsx(Kf,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Customer Gold Plan (₹15,000)"})," "]})," ",r.jsxs("button",{onClick:()=>{x("worker"),Ae("click")},className:`flex-1 py-2 px-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${d==="worker"?"bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20":"bg-slate-800/70 text-slate-400 hover:text-white"}`,children:[" ",r.jsx(Os,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Worker VIP & Aadhaar (₹2,000)"})," "]})," "]}):r.jsxs("div",{className:"px-5 py-3 bg-slate-900/80 border-b border-slate-800/80 flex items-center justify-between",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",d==="customer"?r.jsxs(r.Fragment,{children:[" ",r.jsxs("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center",children:[" ",r.jsx(Kf,{className:"w-4 h-4"})," "]})," ",r.jsxs("div",{children:[" ",r.jsx("h4",{className:"text-xs font-black text-white",children:"Customer Exclusive Membership"})," ",r.jsx("p",{className:"text-[10px] text-amber-400",children:"1 Month Free Service & Admin Automated Worker Payouts"})," "]})," "]}):r.jsxs(r.Fragment,{children:[" ",r.jsxs("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center",children:[" ",r.jsx(Os,{className:"w-4 h-4"})," "]})," ",r.jsxs("div",{children:[" ",r.jsx("h4",{className:"text-xs font-black text-white",children:"Worker VIP Pass & Verification"})," ",r.jsx("p",{className:"text-[10px] text-amber-400",children:"Instant Govt. Aadhaar Verified Gold Badge + 0% Commission"})," "]})," "]})," "]})," ",r.jsxs("span",{className:"text-[10px] font-mono uppercase bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700 font-bold",children:[" ",d==="customer"?"Customer Special":"Worker Special"," "]})," "]})," "," ",r.jsxs("div",{className:"p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 custom-scrollbar",children:[" ",M?r.jsxs("div",{className:"text-center py-6 space-y-4 animate-in zoom-in-95",children:[" ",r.jsxs("div",{className:"w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400 text-amber-400 mx-auto flex items-center justify-center shadow-lg",children:[" ",r.jsx(nr,{className:"w-8 h-8"})," "]})," ",r.jsx("h3",{className:"text-xl font-black text-white",children:"Membership Activated!"})," ",r.jsxs("p",{className:"text-xs text-amber-300 font-medium px-4",children:[" ",I," "]})," ",r.jsxs("button",{onClick:e,className:"w-full py-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-sm rounded-2xl transition shadow-lg mt-4 cursor-pointer",children:[" ","Continue to Platform"," "]})," "]}):d==="customer"?r.jsxs("div",{className:"space-y-4 animate-in fade-in",children:[" "," ",r.jsxs("div",{className:"bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-5 relative overflow-hidden",children:[" ",r.jsxs("div",{className:"flex items-start justify-between",children:[" ",r.jsxs("div",{className:"space-y-1",children:[" ",r.jsxs("span",{className:"text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-md inline-block",children:[" ","YouTube-Style Channel Membership"," "]})," ",r.jsxs("h3",{className:"text-2xl font-black text-amber-300 leading-tight",children:[" ","Kaamzo Gold Club"," "]})," ",r.jsxs("p",{className:"text-xs text-slate-300",children:[" ","All-inclusive 1 Month Free Service with Automated Admin Payouts"," "]})," "]})," ",r.jsxs("div",{className:"text-right",children:[" ",r.jsx("div",{className:"text-3xl font-black text-white font-mono",children:"₹15,000"})," ",r.jsx("span",{className:"text-[10px] text-amber-400 font-bold block",children:"1 Month Free Plan"})," "]})," "]})," ",r.jsxs("div",{className:"mt-4 pt-3 border-t border-amber-400/30 bg-amber-950/40 p-3 rounded-2xl border border-amber-500/30",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 text-xs text-amber-200 font-bold",children:[" ",r.jsx(_d,{className:"w-4 h-4 text-amber-400 shrink-0"})," ",r.jsx("span",{children:"Admin Treasury Auto-Disburses Worker Wages Directly to Worker Wallets!"})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"space-y-2 text-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(nr,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"Admin Automated Wallet Transfers:"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","When you hire or book a worker, the platform Admin directly transfers the worker's earnings straight into their wallet automatically."," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Cx,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"1 Month 100% Free Booking (0% Surcharge):"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","Post unlimited jobs with zero platform commission fees for 30 full days."," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"Free Verified Aadhaar KYC Dossiers:"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","Instant access to official verified worker performance dossiers and police verification badges."," "]})," "]})," "]})," "]})," "," ",r.jsxs("button",{onClick:W,disabled:w,className:"w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:opacity-90 disabled:opacity-50 text-slate-950 font-black text-sm rounded-2xl transition shadow-xl flex items-center justify-center gap-2 cursor-pointer",children:[" ",r.jsx(Kf,{className:"w-4 h-4"})," ",r.jsx("span",{children:w?"Processing ₹15,000 Plan...":"Join Gold Club (₹15,000 / Month)"})," ",r.jsx(Qi,{className:"w-4 h-4"})," "]})," "]}):r.jsxs("div",{className:"space-y-4 animate-in fade-in",children:[" "," ",r.jsxs("div",{className:"bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-5 relative overflow-hidden",children:[" ",r.jsxs("div",{className:"flex items-start justify-between",children:[" ",r.jsxs("div",{className:"space-y-1",children:[" ",r.jsxs("span",{className:"text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-md inline-block",children:[" ","FAST-TRACK VERIFICATION & VIP"," "]})," ",r.jsxs("h3",{className:"text-2xl font-black text-amber-300 leading-tight",children:[" ","Worker VIP Pass"," "]})," ",r.jsxs("p",{className:"text-xs text-slate-300",children:[" ","Instant Govt Aadhaar Verification + 6 Zero-Commission Jobs"," "]})," "]})," ",r.jsxs("div",{className:"text-right",children:[" ",r.jsx("div",{className:"text-3xl font-black text-white font-mono",children:"₹2,000"})," ",r.jsx("span",{className:"text-[10px] text-amber-400 font-bold block",children:"6 Jobs Pass"})," "]})," "]})," ",r.jsxs("div",{className:"mt-4 pt-3 border-t border-amber-400/30 bg-amber-950/40 p-3 rounded-2xl border border-amber-500/30",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 text-xs text-amber-200 font-bold",children:[" ",r.jsx(zY,{className:"w-4 h-4 text-amber-400 shrink-0"})," ",r.jsx("span",{children:"Includes Instant Govt. Aadhaar Card Verification — Skip the Admin Approval Queue!"})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"space-y-2 text-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-amber-950/40 p-3 rounded-2xl border border-amber-500/40",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-amber-300",children:"Instant Aadhaar KYC Verification:"})," ",r.jsxs("p",{className:"text-slate-300 text-[11px]",children:[" ",'Your profile is instantly upgraded to "Aadhaar Verified" with an official verified gold badge, attracting 3x more direct customer bookings.'," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Cx,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"0% Platform Commission (Keep 100%):"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","The 20% platform cut is waived for 6 jobs. If the daily wage is ₹900, you keep the full ₹900 in your wallet."," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Kf,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"Top 5 Radar Priority Ranking:"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","Your profile appears at the top of customer search and direct auto-hiring rankings."," "]})," "]})," "]})," "]})," "," ",r.jsxs("button",{onClick:F,disabled:w,className:"w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:opacity-90 disabled:opacity-50 text-slate-950 font-black text-sm rounded-2xl transition shadow-xl flex items-center justify-center gap-2 cursor-pointer",children:[" ",r.jsx(Os,{className:"w-4 h-4"})," ",r.jsx("span",{children:w?"Activating VIP Pass...":"Activate VIP Pass & Aadhaar (₹2,000)"})," ",r.jsx(Qi,{className:"w-4 h-4"})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"bg-slate-950 px-4 py-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 shrink-0",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-400 font-bold",children:[" ",r.jsx(Yn,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"YouTube-Style Ad Promotion"})," "]})," ",r.jsxs("button",{onClick:e,className:"text-slate-400 hover:text-white underline transition",children:[" ","Close & Go to App"," "]})," "]})," "]})," "]})},Ioe=({isOpen:s,onClose:e,variant:t="post_rating",workerName:n,workerTrade:a,workerAadhaarMasked:o="XXXX-XXXX-9901",refundAmount:c})=>{if(!s)return null;const u=()=>{Ae("success"),e()},d=t==="post_rating";return r.jsxs("div",{className:"fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200 select-none",children:[" ",r.jsxs("div",{className:"bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[92vh]",children:[" "," ",r.jsxs("div",{className:"bg-linear-to-r from-slate-950 via-slate-900 to-amber-950 text-white p-5 flex items-center justify-between shrink-0 border-b border-amber-500/20",children:[" ",r.jsxs("div",{className:"flex items-center gap-3",children:[" ",r.jsxs("div",{className:"w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0",children:[" ",r.jsx(qd,{className:"w-6 h-6 text-amber-400 animate-pulse"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("span",{className:"px-2.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded-full uppercase tracking-wider",children:[" ","Important Security Advisory"," "]})," ",d&&r.jsxs("span",{className:"text-[10px] text-amber-400 font-bold flex items-center gap-1",children:[" ",r.jsx(nr,{className:"w-3 h-3"})," Job Rated"," "]})," "]})," ",r.jsxs("h3",{className:"text-base sm:text-lg font-black text-white tracking-tight mt-0.5",children:[" ",d?"Safety Guarantee & Direct Hiring Warning":"Customer Trust & 100% Accountability Guarantee"," "]})," "]})," "]})," ",r.jsxs("button",{onClick:e,className:"p-1.5 text-slate-400 hover:text-white rounded-xl transition hover:bg-slate-800",title:"Close",children:[" ",r.jsx(Fn,{className:"w-5 h-5"})," "]})," "]})," "," ",r.jsxs("div",{className:"p-5 sm:p-6 overflow-y-auto space-y-4 text-slate-700 text-xs flex-1",children:[" "," ",r.jsxs("div",{className:"bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-3",children:[" ",r.jsxs("div",{className:"w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5",children:[" ",r.jsx(Oc,{className:"w-5 h-5 text-white"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("h4",{className:"text-sm font-black text-amber-950 uppercase tracking-wide",children:[" ","Warning: Never Hire or Work Directly Outside the App"," "]})," ",r.jsxs("p",{className:"text-xs text-amber-900 mt-1 leading-relaxed font-medium",children:[" ","If you again hire or engage with"," ",n?r.jsx("span",{className:"font-black text-amber-950",children:n}):"workers"," ",r.jsx("strong",{children:"directly in private without booking through our official Kaamzo App"}),":"," "]})," "]})," "]})," ",r.jsxs("div",{className:"bg-white/80 border border-amber-200 rounded-xl p-3 space-y-1.5 text-[11px] text-amber-900 ml-0 sm:ml-11",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"})," ",r.jsxs("span",{children:[r.jsx("strong",{children:"No Damage Liability:"})," We are"," ",r.jsx("strong",{children:"NOT responsible"})," for any damage to you, your family, or your home/property."]})," "]})," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"})," ",r.jsxs("span",{children:[r.jsx("strong",{children:"No Arrival Protection:"})," If the worker arrives or fails to show up, we cannot enforce arrival or accountability."]})," "]})," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"})," ",r.jsxs("span",{children:[r.jsx("strong",{children:"No Refund or Escrow:"})," Any cash paid privately outside the app is completely at your own risk."]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-3",children:[" ",r.jsxs("div",{className:"w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5",children:[" ",r.jsx(Os,{className:"w-5 h-5 text-white"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("h4",{className:"text-sm font-black text-amber-950 uppercase tracking-wide",children:[" ","When You Book Through Our App, We Are 100% Accountable"," "]})," ",r.jsxs("p",{className:"text-xs text-amber-900 mt-0.5 leading-relaxed font-medium",children:[" ","Every booking created on the Kaamzo platform is fully covered by our comprehensive legal & financial protection shield:"," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1",children:[" "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsx("span",{children:"Total App Accountability"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","We are accountable for whether the worker arrives on time, completes work properly, and adheres to safety standards."," "]})," "]})," "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(_2,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsx("span",{children:"100% Instant Refund"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","If the worker does not arrive or fails to start, 100% of your prepaid money is instantly refunded with zero deduction."," "]})," "]})," "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(bK,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsx("span",{children:"Govt. Aadhaar Card on File"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","We hold the worker's verified Govt. Aadhaar card on file (",o,") to legally track & identify them at all times."," "]})," "]})," "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(Bu,{className:"w-4 h-4 text-purple-600 shrink-0"})," ",r.jsx("span",{children:"Prepaid Escrow Vault"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","Your funds stay locked in the safe Kaamzo Escrow Vault and are only released after you confirm total job satisfaction."," "]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"p-3 bg-slate-900 text-white rounded-xl flex items-center justify-between gap-2 text-[11px]",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx(mo,{className:"w-4 h-4 text-amber-400 animate-pulse shrink-0"})," ",r.jsxs("span",{className:"font-medium text-slate-300",children:[" ","Always book via"," ",r.jsx("span",{className:"text-amber-400 font-bold",children:"Kaamzo App"})," for guaranteed safety, Aadhaar tracking & refunds."," "]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0",children:[" ",r.jsxs("button",{onClick:e,className:"px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-200/60 text-slate-700 text-xs font-bold transition",children:[" ","Close"," "]})," ",r.jsxs("button",{onClick:u,className:"flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-md",children:[" ",r.jsx(nr,{className:"w-4 h-4 text-slate-950"})," ",r.jsx("span",{children:"I Understand & Accept App Protection"})," ",r.jsx(Qi,{className:"w-4 h-4"})," "]})," "]})," "]})," "]})},Poe=()=>null,Roe=()=>{const[s,e]=L.useState(!0);L.useEffect(()=>{localStorage.getItem("kaamzo_cookie_consent")||e(!1)},[]);const t=()=>{localStorage.setItem("kaamzo_cookie_consent","true"),e(!0)};return s?null:r.jsx("div",{role:"region","aria-label":"Cookie and Privacy Consent",className:"fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 dark:bg-[#161616]/95 backdrop-blur-md border-t border-slate-800 text-white px-4 py-3.5 shadow-2xl animate-in slide-in-from-bottom-4",children:r.jsxs("div",{className:"max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3",children:[r.jsxs("div",{className:"flex items-center gap-3 text-xs sm:text-sm text-slate-300",children:[r.jsx(Os,{className:"w-5 h-5 text-amber-400 shrink-0"}),r.jsxs("p",{children:["We use essential cookies and local storage to keep your daily wage connections secure, fast, and reliable. By using Kaamzo, you agree to our"," ",r.jsxs("a",{href:"https://kaamzo-terms.vercel.app/",target:"_blank",rel:"noopener noreferrer",className:"text-amber-400 hover:text-amber-300 font-bold underline transition inline-flex items-center gap-0.5",children:[r.jsx("span",{children:"Terms of Service & Privacy Standards"}),r.jsx("span",{className:"text-[10px]",children:""})]}),"."]})]}),r.jsxs("div",{className:"flex items-center gap-2.5 shrink-0",children:[r.jsx("button",{onClick:t,className:"px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl text-xs transition shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400",children:"Accept & Continue"}),r.jsx("button",{onClick:t,className:"p-1.5 text-slate-400 hover:text-white rounded-lg transition","aria-label":"Close cookie banner",children:r.jsx(Fn,{className:"w-4 h-4"})})]})]})})},Loe=()=>{const[s,e]=L.useState(!1);L.useEffect(()=>{const n=()=>{window.scrollY>300?e(!0):e(!1)};return window.addEventListener("scroll",n),()=>window.removeEventListener("scroll",n)},[]);const t=()=>{window.scrollTo({top:0,behavior:"smooth"})};return s?r.jsx("button",{onClick:t,"aria-label":"Scroll back to top",className:"fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 p-3 bg-amber-400 hover:bg-amber-300 dark:bg-amber-400 dark:hover:bg-amber-300 text-slate-950 rounded-2xl shadow-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500",children:r.jsx(OJ,{className:"w-5 h-5 font-bold"})}):null},Ooe=()=>{const[s,e]=L.useState(0);return L.useEffect(()=>{const t=()=>{const n=document.documentElement.scrollHeight-document.documentElement.clientHeight;if(n>0){const a=window.scrollY/n*100;e(a)}};return window.addEventListener("scroll",t),()=>window.removeEventListener("scroll",t)},[]),r.jsx("div",{className:"fixed top-0 left-0 right-0 h-1 z-50 bg-transparent pointer-events-none",children:r.jsx("div",{className:"h-full bg-amber-400 transition-all duration-75 ease-out shadow-xs",style:{width:`${s}%`}})})},Moe=()=>{const[s,e]=L.useState(!1),{openGlobalChat:t,currentRole:n}=Qo();return r.jsxs("div",{className:"fixed bottom-20 md:bottom-6 left-4 md:left-6 z-30",children:[s&&r.jsxs("div",{className:"absolute bottom-14 left-0 mb-2 w-72 bg-white dark:bg-[#242424] rounded-2xl shadow-2xl border border-slate-200 dark:border-[#383838] p-4 text-xs animate-in fade-in slide-in-from-bottom-2",children:[r.jsxs("div",{className:"flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#333333] mb-3",children:[r.jsxs("span",{className:"font-bold text-slate-900 dark:text-white flex items-center gap-1.5",children:[r.jsx(j5,{className:"w-4 h-4 text-amber-500"}),"Kaamzo Support & Help"]}),r.jsx("button",{onClick:()=>e(!1),className:"text-slate-400 hover:text-slate-700 dark:hover:text-white",children:r.jsx(Fn,{className:"w-4 h-4"})})]}),r.jsx("p",{className:"text-slate-600 dark:text-slate-300 mb-3",children:"Need help finding daily wage work or hiring workers instantly? Our support team is active 24/7."}),r.jsxs("div",{className:"space-y-2",children:[r.jsxs("button",{onClick:()=>{e(!1),t(null,{name:"Kaamzo Helpline",phone:"+91 95922 21100",role:"admin"},n==="worker"?"worker":"customer")},className:"w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl flex items-center justify-center gap-2 transition",children:[r.jsx(A0,{className:"w-4 h-4"}),"Chat with Helpline"]}),r.jsxs("a",{href:"tel:919592221100",className:"w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#2E2E2E] dark:hover:bg-[#383838] text-slate-800 dark:text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2 transition",children:[r.jsx(Xi,{className:"w-4 h-4 text-amber-500"}),"Call Toll-Free: +91 95922 21100"]})]})]}),r.jsxs("button",{onClick:()=>e(!s),"aria-label":"Open support and contact options",className:"flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-amber-400 hover:bg-slate-800 dark:hover:bg-amber-300 text-white dark:text-slate-950 rounded-full shadow-2xl transition transform hover:scale-105 font-bold text-xs focus:outline-none focus:ring-2 focus:ring-amber-500",children:[r.jsx(A0,{className:"w-4 h-4 text-amber-400 dark:text-slate-950"}),r.jsx("span",{className:"hidden sm:inline",children:"Help & Support"})]})]})},Voe=()=>r.jsx("a",{href:"#main-content",className:"sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-amber-400 focus:text-slate-950 focus:font-bold focus:rounded-xl focus:shadow-xl",children:"Skip to main content"});function Uoe(){try{const s=new URLSearchParams(window.location.search),e=["utm_source","utm_medium","utm_campaign","utm_term","utm_content"];let t=!1;const n={};e.forEach(a=>{const o=s.get(a);o&&(n[a]=o,t=!0)}),t&&sessionStorage.setItem("kaamzo_utm",JSON.stringify(n))}catch(s){console.warn("Failed to capture UTM parameters:",s)}}class Goe extends Es.Component{constructor(e){super(e),this.handleReset=()=>{this.setState({hasError:!1,error:null,errorInfo:null}),window.location.reload()},this.handleClearAndHome=()=>{this.setState({hasError:!1,error:null,errorInfo:null});try{window.location.href=window.location.pathname}catch{window.location.reload()}},this.state={hasError:!1,error:null,errorInfo:null}}static getDerivedStateFromError(e){return{hasError:!0,error:e,errorInfo:null}}componentDidCatch(e,t){console.error("Uncaught React error caught by ErrorBoundary:",e,t),this.setState({errorInfo:t})}render(){return this.state.hasError?r.jsxs("div",{className:"min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4",children:[" ",r.jsxs("div",{className:"max-w-lg w-full bg-slate-800 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 text-center",children:[" ",r.jsxs("div",{className:"w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-inner",children:[" ",r.jsx(Oc,{className:"w-8 h-8"})," "]})," ",r.jsxs("div",{className:"space-y-2",children:[" ",r.jsxs("h2",{className:"text-xl font-black text-white",children:[" ",this.props.fallbackTitle||"A Display Error Occurred"," "]})," ",r.jsxs("p",{className:"text-xs text-slate-300",children:[" ","The interface encountered an unexpected state. Your work and verification data are preserved."," "]})," "]})," ",this.state.error&&r.jsxs("div",{className:"bg-slate-950/80 rounded-2xl p-3 text-left border border-slate-800 text-[11px] font-mono text-amber-300 max-h-32 overflow-y-auto",children:[" ",r.jsxs("p",{className:"font-bold text-amber-400",children:["Error:",this.state.error.message]})," "]})," ",r.jsxs("div",{className:"flex flex-col sm:flex-row gap-2 pt-2",children:[" ",r.jsxs("button",{type:"button",onClick:this.handleReset,className:"flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer",children:[" ",r.jsx(uc,{className:"w-4 h-4"})," ",r.jsx("span",{children:"Reload Interface"})," "]})," ",r.jsxs("button",{type:"button",onClick:this.handleClearAndHome,className:"px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer",children:[" ",r.jsx(ET,{className:"w-4 h-4"})," ",r.jsx("span",{children:"Home"})," "]})," "]})," "]})," "]}):this.props.children}}const Hoe=()=>{var Z;const{currentRole:s,setCurrentRole:e,notification:t,setNotification:n,activeCall:a,startCall:o,endCall:c,activeGpsJob:u,closeGpsRadar:d,activeUpiPaymentJob:x,closeUpiPayment:f,activeMultiChannelJob:p,activeMultiChannelWorker:B,closeMultiChannelModal:g,openMultiChannelModal:w,openGpsRadar:N,activeShortlistJob:v,closeTop5Shortlist:_,acceptJobByWorker:M,releasePaymentByCustomer:P,currentWorker:I,currentCustomer:z,workers:W,chatNotifications:F,dismissChatNotification:T,activeGlobalChat:k,openGlobalChat:G,closeGlobalChat:S,isSubscriptionPromoOpen:j,promoInitialRole:O,closeSubscriptionPromo:re,isProtectionModalOpen:ve,protectionModalData:ge,closeProtectionModal:be,isDarkMode:ie}=Qo(),[je,he]=Es.useState(!1);const __useRedesign=!!(window.__KZ_REDESIGN__&&window.__KZ_REDESIGN__.MainApp&&s!=="admin"&&s!=="pitch_deck");return L.useEffect(()=>{const $=()=>{he(!0)};return window.addEventListener("gmp-quota-exceeded",$),()=>{window.removeEventListener("gmp-quota-exceeded",$)}},[]),L.useEffect(()=>{Uoe()},[]),L.useEffect(()=>{const $=()=>{var de;const se=window.location.pathname.toLowerCase(),U=window.location.hash.toLowerCase(),pe=(de=new URLSearchParams(window.location.search).get("app"))==null?void 0:de.toLowerCase();pe==="customer"||pe==="employer"||se.includes("customer")||se.includes("employer")||U.includes("customer")||U.includes("employer")?e("customer"):pe==="worker"||se.includes("worker")||se.startsWith("/jobs")||U.includes("worker")?e("worker"):pe==="admin"||se.includes("admin")||U.includes("admin")?e("admin"):(pe==="pitch"||se.includes("pitch")||se.includes("investor")||U.includes("investor")||U.includes("pitch"))&&e("pitch_deck")};const bp=()=>{const de=new URLSearchParams(window.location.search).get("app"),se=window.location.pathname.toLowerCase(),pe=de?de.toLowerCase():"",U=window.location.hash.toLowerCase();(se==="/"||se===""||se.startsWith("/register"))&&!pe&&!U?e("select_role"):$()};return $(),window.addEventListener("popstate",bp),window.addEventListener("hashchange",bp),()=>{window.removeEventListener("popstate",bp),window.removeEventListener("hashchange",bp)}},[e]),r.jsxs("div",{className:__useRedesign?"relative w-full min-h-screen flex flex-col transition-colors duration-200 overflow-x-clip":`relative w-full min-h-screen ${ie?"bg-[#121212] text-white":"bg-[#FAF7F2] text-[#111827]"} flex flex-col font-sans transition-colors duration-200 overflow-x-hidden`,children:[r.jsx(Voe,{}),!__useRedesign&&r.jsx(Ooe,{}),!__useRedesign&&s!=="select_role"&&r.jsx(Poe,{}),je&&r.jsx("div",{className:"bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs md:text-sm text-center sticky top-0 z-50 shadow-sm",children:r.jsxs("span",{children:["Google Maps Platform quota reached. If you are the app owner, visit"," ",r.jsx("a",{href:"https://developers.google.com/maps/ai/ai-studio?utm_campaign=gmp_mcp_codeassist_v1_aistudio#quota_exceeded_errors",target:"_blank",rel:"noopener noreferrer",className:"underline font-semibold text-amber-950 hover:text-amber-800",children:"maps developer site"})," ","for instructions to update your account."]})}),t&&r.jsxs("div",{className:"bg-slate-900 text-white px-4 py-2 text-xs font-semibold flex items-center justify-between shadow-md sticky top-0 z-50 border-b border-slate-700 animate-in slide-in-from-top-2",children:[r.jsxs("div",{className:"flex items-center gap-2 max-w-4xl mx-auto flex-1",children:[r.jsx(ag,{className:"w-4 h-4 text-amber-400 shrink-0"}),r.jsx("span",{children:t})]}),r.jsx("button",{onClick:()=>n(null),className:"text-slate-400 hover:text-white px-2 py-0.5 rounded text-[11px]",children:"Dismiss"})]}),r.jsx(Soe,{notifications:F,onDismiss:T,onOpenChat:$=>{T($.id),G($.job||null,$.targetPerson||{name:$.senderName,phone:$.senderPhone,role:$.senderRole},s==="worker"?"worker":"customer")}}),!__useRedesign&&s!=="select_role"&&s!=="pitch_deck"&&r.jsx(iQ,{}),r.jsx("main",{id:"main-content",className:"flex-1 flex flex-col",children:__useRedesign?r.jsx(window.__KZ_REDESIGN__.MainApp,{}):(s==="pitch_deck"?r.jsx("div",{className:"p-3 sm:p-6 lg:p-8 flex items-center justify-center flex-1",children:r.jsx(Eoe,{})}):r.jsx(voe,{}))}),r.jsx(woe,{callSession:a,onEndCall:c}),(k==null?void 0:k.isOpen)&&r.jsx(u9,{isOpen:k.isOpen,onClose:S,job:k.job,targetPerson:k.targetPerson,currentUserRole:k.role||(s==="worker"?"worker":"customer"),currentUserName:(k.role||s)==="worker"?(I==null?void 0:I.name)||"Worker":(z==null?void 0:z.name)||"Employer",currentUserPhone:(k.role||s)==="worker"?(I==null?void 0:I.phone)||"+91 98101 55678":(z==null?void 0:z.phone)||"+91 99100 88221",onStartCall:(Z=k.targetPerson)!=null&&Z.phone?()=>{var $;o({name:s==="worker"?(I==null?void 0:I.name)||"Worker":(z==null?void 0:z.name)||"Employer",role:s==="worker"?"worker":"customer",phone:s==="worker"?(I==null?void 0:I.phone)||"":(z==null?void 0:z.phone)||""},{name:k.targetPerson.name||"Contact",role:k.role==="worker"?"customer":"worker",phone:k.targetPerson.phone||""},(($=k.job)==null?void 0:$.title)||"Kaamzo Direct Work Chat")}:void 0,onOpenRadar:k.job?()=>{N(k.job)}:void 0}),u&&(()=>{const $=W.find(ne=>ne.id===u.assignedWorkerId||ne.name===u.assignedWorkerName),se=($==null?void 0:$.gpsLocation)||u.workerGps||(I==null?void 0:I.gpsLocation),U=u.jobGps||(z==null?void 0:z.gpsLocation);return r.jsx(_oe,{isOpen:!!u,onClose:d,workerName:u.assignedWorkerName||($==null?void 0:$.name)||(I==null?void 0:I.name)||"Worker",workerTrade:u.trade,jobTitle:u.title,jobAddress:u.locationAddress,workerGps:se,jobGps:U,initialDistanceKm:u.distanceKm||1.2,isWorkerPerspective:s==="worker"})})(),x&&r.jsx(zT,{isOpen:!!x,onClose:f,amount:x.workerPayout,totalWage:x.dailyWage,platformFee:x.platformFee,workerName:x.assignedWorkerName||"Worker",workerTrade:x.trade,workerUpiId:x.assignedWorkerUpi||"worker@upi",workerPhone:x.assignedWorkerPhone||"+91 98101 55678",jobTitle:x.title,onPaymentSuccess:($,se,U,ne,pe)=>{const de=typeof U=="number"&&U>=1?U:5,Te=ne||`Rated ${de} stars for work on ${x.title||"Job"}`;P(x.id,de,Te,$,se,pe),f()}}),p&&r.jsx(koe,{isOpen:!!p,onClose:g,job:p,targetWorker:B,onAcceptJob:$=>{M($),g(),N($)}}),v&&r.jsx(joe,{isOpen:!!v,onClose:_,job:v,onOpenMultiChannel:($,se)=>{_(),w($,se)},onOpenRadar:$=>{N($)}}),j&&r.jsx(Toe,{isOpen:j,onClose:re,initialRole:O||(s==="worker"?"worker":"customer"),allowRoleSwitch:!1}),ve&&r.jsx(Ioe,{isOpen:ve,onClose:be,variant:(ge==null?void 0:ge.variant)||"post_rating",workerName:ge==null?void 0:ge.workerName,workerTrade:ge==null?void 0:ge.workerTrade,workerAadhaarMasked:ge==null?void 0:ge.workerAadhaarMasked,refundAmount:ge==null?void 0:ge.refundAmount}),!__useRedesign&&s!=="select_role"&&r.jsx("footer",{className:"h-14 bg-white dark:bg-[#1C1C1C] border-t border-slate-200 dark:border-[#383838] flex items-center px-4 sm:px-6 lg:px-8 text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0 transition-colors",children:r.jsxs("div",{className:"max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0",children:[r.jsxs("p",{children:["",new Date().getFullYear()," Kaamzo Technologies India. All rights reserved."]}),r.jsxs("div",{className:"flex items-center gap-4 text-xs",children:[r.jsx("button",{onClick:()=>e("pitch_deck"),className:"text-slate-400 hover:text-amber-700 dark:hover:text-[#FCD33F] transition cursor-pointer",children:"Investor Pitch"}),r.jsxs("a",{href:"https://kaamzo-terms.vercel.app/",target:"_blank",rel:"noopener noreferrer",className:"text-amber-600 hover:text-amber-700 dark:text-[#FCD33F] font-bold transition inline-flex items-center gap-1",children:[r.jsx("span",{children:"Terms of Service"}),r.jsx("span",{className:"text-[10px]",children:""})]})]})]})}),r.jsx(rQ,{}),!__useRedesign&&r.jsx(Roe,{}),!__useRedesign&&r.jsx(Loe,{}),!__useRedesign&&r.jsx(Moe,{})]})};function zoe(){return r.jsx(Goe,{children:r.jsx(AJ,{children:r.jsx(Hoe,{})})})}window.gm_authFailure=()=>{window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"))};const qoe=console.error;console.error=(...s)=>{qoe.apply(console,s);const e=s.map(t=>String(t)).join(" ");(e.includes("OverQuotaMapError")||e.includes("QuotaExceededError"))&&window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"))};DO.createRoot(document.getElementById("root")).render(r.jsx(L.StrictMode,{children:r.jsx(zoe,{})}));if("serviceWorker"in navigator&&window.location.protocol.startsWith("http"))try{CO({immediate:!0,onRegisterError(s){console.debug("ServiceWorker registration deferred:",s)}})}catch(s){console.debug("ServiceWorker not initialized:",s)}export{br as _,Woe as c,E7 as g};
+${pe()}`,"mail"),className:"py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-700",title:"Copy email text",children:[he==="mail"?r.jsx(nn,{className:"w-3.5 h-3.5 text-amber-400"}):r.jsx(zc,{className:"w-3.5 h-3.5"}),r.jsx("span",{children:he==="mail"?"Copied":"Copy"})]})]})]})]}),(d==="all"||d==="push")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-purple-500/30 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold",children:r.jsx(ag,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"In-App & Device Push Notification"}),r.jsx("span",{className:"px-1.5 py-0.2 bg-purple-500/20 text-purple-300 text-[10px] rounded border border-purple-500/40",children:ge?"Live on Radar":"Active"})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Device notification shade + Worker radar beacon"})]})]}),r.jsxs("button",{onClick:Te,className:"px-2 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Trigger desktop/phone notification",children:[r.jsx(ag,{className:"w-3 h-3"}),r.jsx("span",{children:"Trigger Notification"})]})]}),r.jsxs("div",{className:"bg-slate-900/90 p-3 rounded-2xl border border-purple-900/50 shadow-lg space-y-1.5",children:[r.jsxs("div",{className:"flex items-center justify-between text-[10px] text-purple-300 font-bold",children:[r.jsxs("div",{className:"flex items-center gap-1.5",children:[r.jsx("div",{className:"w-4 h-4 rounded bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-black",children:"D"}),r.jsx("span",{children:"Kaamzo Worker Radar • Now"})]}),r.jsx("span",{className:"text-slate-500",children:"Just now"})]}),r.jsxs("h5",{className:"font-bold text-white text-xs",children:["New Hyperlocal Job:",t.trade," (₹",t.dailyWage,"/day)"]}),r.jsxs("p",{className:"text-[11px] text-slate-300",children:[t.customerName," needs a verified ",t.trade," in ",t.area||t.locationAddress," (~",t.distanceKm||1.2," km away). Tap to accept."]})]})]}),(d==="all"||d==="voice")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30 space-y-3",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold",children:r.jsx(C_,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"Automated Voice Call (IVR with Audio TTS)"}),r.jsx("span",{className:`px-1.5 py-0.2 text-[10px] rounded border ${f==="connected"?"bg-amber-500/20 text-amber-300 border-amber-500/40":f==="ringing"?"bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse":"bg-slate-800 text-slate-300 border-slate-700"}`,children:f==="connected"?`Connected (${B}s)`:f})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Accommodates workers without smartphones"})]})]}),r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsxs("button",{onClick:_t,className:"px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Direct Phone Call",children:[r.jsx(Xi,{className:"w-3 h-3"}),r.jsx("span",{children:"Call Phone"})]}),r.jsxs("button",{onClick:Se,className:"px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition",title:"Play synthesized voice audio",children:[r.jsx(sh,{className:"w-3 h-3"}),r.jsx("span",{children:"Replay Audio"})]})]})]}),r.jsxs("div",{className:"bg-slate-900 p-3.5 rounded-xl border border-amber-900/40 space-y-3",children:[r.jsx("div",{className:"flex items-center justify-between text-xs",children:r.jsxs("div",{className:"space-y-0.5 w-full",children:[r.jsxs("p",{className:"text-slate-400 text-[11px]",children:["IVR Spoken Prompt (",o.toUpperCase(),"):"]}),r.jsxs("p",{className:"text-slate-100 italic bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] leading-relaxed",children:['"',de(),'"']})]})}),r.jsxs("div",{className:"space-y-1.5",children:[r.jsx("span",{className:"text-[10px] font-bold text-slate-400 uppercase tracking-wider block",children:"Simulate Worker Dialpad Input:"}),r.jsxs("div",{className:"grid grid-cols-2 gap-2",children:[r.jsxs("button",{onClick:()=>He("1"),className:"py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95",children:[r.jsx("span",{className:"w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-black",children:"1"}),r.jsx("span",{children:"Press [1] Accept Work"})]}),r.jsxs("button",{onClick:()=>He("2"),className:"py-2 px-3 bg-slate-800 hover:bg-amber-900/50 text-slate-300 hover:text-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition border border-slate-700 active:scale-95",children:[r.jsx("span",{className:"w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs font-black",children:"2"}),r.jsx("span",{children:"Press [2] Decline"})]})]})]})]})]}),(d==="all"||d==="sms")&&r.jsxs("div",{className:"bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30 space-y-2.5",children:[r.jsxs("div",{className:"flex items-center justify-between",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsx("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold",children:r.jsx(ic,{className:"w-4 h-4"})}),r.jsxs("div",{children:[r.jsxs("h4",{className:"text-xs font-bold text-white flex items-center gap-1.5",children:[r.jsx("span",{children:"GSM SMS (Basic Feature Phones)"}),r.jsx("span",{className:"px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[10px] rounded border border-amber-500/40",children:re?"Delivered to SIM":"Queued"})]}),r.jsx("span",{className:"text-[10px] text-slate-400",children:"Carrier GSM Network • 160 Chars"})]})]}),r.jsx("span",{className:"text-[10px] font-mono text-amber-400",children:"SIM Slot 1"})]}),r.jsxs("div",{className:"bg-slate-900 p-3 rounded-xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2",children:[r.jsxs("div",{className:"flex justify-between text-[10px] text-slate-500 border-b border-slate-800 pb-1",children:[r.jsx("span",{children:"From: KAAMZO-GOVT"}),r.jsx("span",{children:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})})]}),r.jsx("p",{className:"text-slate-100 leading-relaxed py-1",children:U()}),r.jsxs("div",{className:"flex flex-wrap justify-between items-center gap-2 text-[10px] text-slate-500 pt-1",children:[r.jsxs("div",{className:"flex items-center gap-2",children:[r.jsxs("button",{onClick:dt,className:"px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg font-bold transition flex items-center gap-1",children:[r.jsx(Ti,{className:"w-3 h-3"}),r.jsx("span",{children:"Open Native SMS App"})]}),r.jsxs("button",{onClick:()=>at(U(),"sms"),className:"px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold transition flex items-center gap-1",children:[he==="sms"?r.jsx(nn,{className:"w-3 h-3 text-amber-400"}):r.jsx(zc,{className:"w-3 h-3"}),r.jsx("span",{children:he==="sms"?"Copied":"Copy"})]})]}),r.jsx("button",{onClick:()=>{Ae("success"),c(`SMS Response: ${n.name} replied YES via SMS!`),a&&a(t.id,n.id)},className:"px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 rounded-lg font-bold transition",children:'Simulate SMS Reply "YES"'})]})]})]})]}),r.jsxs("div",{className:"bg-slate-950 p-3.5 px-4 border-t border-slate-800 flex items-center justify-between text-xs shrink-0",children:[r.jsx("div",{className:"text-slate-400 text-[11px] hidden sm:block",children:r.jsx("span",{children:"Dispatched across WhatsApp, Gmail/Mail, GSM SMS, App Push & IVR"})}),r.jsxs("div",{className:"flex items-center gap-2 w-full sm:w-auto justify-end",children:[r.jsx("button",{onClick:()=>{yf(),e()},className:"px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition",children:"Close Dispatcher"}),r.jsxs("button",{onClick:()=>{a&&a(t.id,n.id),Ae("success"),c(`Job successfully assigned to ${n.name}!`),yf(),e()},className:"px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl transition flex items-center gap-1.5 shadow-md active:scale-95",children:[r.jsx(nr,{className:"w-4 h-4"}),r.jsx("span",{children:"Direct Assign to Worker"})]})]})]})]})})},joe=({isOpen:s,onClose:e,job:t,onOpenMultiChannel:n,onOpenRadar:a,onOpenChat:o})=>{var F,T;const{workers:c,currentCustomer:u,currentCity:d,currentLanguage:x,startCall:f,showNotification:p,acceptJobByWorker:B}=Qo(),[g,w]=L.useState(10),[N,v]=L.useState(!1);if(!s||!t)return null;const _=((F=t.jobGps)==null?void 0:F.lat)||(u==null?void 0:u.gpsLocation.lat)||d.lat,M=((T=t.jobGps)==null?void 0:T.lng)||(u==null?void 0:u.gpsLocation.lng)||d.lng,I=Ew(c,{trade:t.trade,lat:_,lng:M,maxRadiusKm:g,language:x}).slice(0,5),z=k=>{Ae("success"),B(t.id),p(`Hired ${k.name}! Start OTP generated: ${t.otpCode}`),e()},W=async()=>{if(v(!0),Ae("incoming_job"),p(`Multi-Channel Alert blasted to Top ${I.length} verified ${t.trade}s via WhatsApp, Mail, SMS & Radar!`),typeof window<"u"&&"Notification"in window&&Notification.permission==="granted")try{new Notification("4-Channel Alert Broadcasted",{body:`Sent instant job notifications to ${I.length} nearby ${t.trade}s.`,icon:"/icon.png"})}catch(k){console.debug("Notification note:",k)}if(I.length>0){try{const k=I[0].worker;fetch("/api/send-alert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workerName:k.name,workerPhone:k.phone,workerEmail:k.email||"bhavnoorsinghkochar@gmail.com",customerName:t.customerName,jobTitle:t.title,trade:t.trade,dailyWage:t.dailyWage,area:t.area||t.locationAddress,distanceKm:t.distanceKm,durationDays:t.durationDays||1,channels:["whatsapp","email","mail","sms","push","voice"]})}).catch(G=>console.debug("Blast API note:",G))}catch(k){console.debug("Blast dispatch note:",k)}setTimeout(()=>{v(!1),n(t,I[0].worker)},700)}else v(!1)};return r.jsxs("div",{className:"fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200 select-none",children:[" ",r.jsxs("div",{className:"bg-white text-slate-900 w-full max-w-3xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]",children:[" "," ",r.jsxs("div",{className:"bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 text-white p-4 sm:p-5 shrink-0 flex items-center justify-between border-b border-amber-500/30",children:[" ",r.jsxs("div",{className:"flex items-center gap-3",children:[" ",r.jsxs("div",{className:"w-11 h-11 rounded-2xl bg-white/20 text-amber-300 flex items-center justify-center font-black border border-white/30 shadow-inner",children:[" ",r.jsx(Yn,{className:"w-6 h-6 animate-pulse"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black uppercase rounded-full tracking-wide",children:" AI Matching Engine "})," ",r.jsxs("span",{className:"text-xs text-amber-100 font-medium flex items-center gap-1",children:[" ",r.jsx(na,{className:"w-3 h-3 text-amber-300"})," Strict 10km Hyperlocal Radius "]})," "]})," ",r.jsxs("h3",{className:"text-lg font-black text-white flex items-center gap-2 mt-0.5",children:[" ",r.jsxs("span",{children:["Top-5 Shortlisted ",t.trade,"s"]})," ",r.jsxs("span",{className:"text-xs font-normal text-amber-200",children:["(",t.title,")"]})," "]})," "]})," "]})," ",r.jsxs("button",{onClick:e,className:"p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition",children:[" ",r.jsx(Fn,{className:"w-5 h-5"})," "]})," "]})," "," ",r.jsxs("div",{className:"bg-slate-50 p-3 px-4 sm:px-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs",children:[" "," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("span",{className:"font-bold text-slate-700 flex items-center gap-1",children:[" ",r.jsx(vT,{className:"w-3.5 h-3.5 text-amber-600"})," Radius:"]})," ",r.jsxs("div",{className:"flex bg-white p-0.5 rounded-xl border border-slate-300 shadow-xs font-bold text-[11px]",children:[" ",[3,5,10].map(k=>r.jsxs("button",{onClick:()=>{w(k),Ae("click")},className:`px-2.5 py-1 rounded-lg transition ${g===k?"bg-amber-600 text-white":"text-slate-600 hover:text-slate-900"}`,children:[" ",k===10?"Strict 10 km":`${k} km`," "]},k))," "]})," ",r.jsxs("span",{className:"text-[11px] text-slate-500 font-medium hidden sm:inline",children:[" (",I.length," matches found within ",g,"km) "]})," "]})," "," ",r.jsxs("button",{onClick:W,disabled:N||I.length===0,className:"px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm",children:[" ",r.jsx(Pm,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Blast Multi-Channel Alerts to Top-5"})," "]})," "]})," "," ",r.jsxs("div",{className:"flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5",children:[" ",I.length===0?r.jsxs("div",{className:"bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-2",children:[" ",r.jsx(Oc,{className:"w-8 h-8 text-amber-500 mx-auto"})," ",r.jsxs("h4",{className:"font-bold text-amber-900 text-sm",children:["No workers found within ",g," km"]})," ",r.jsxs("p",{className:"text-xs text-amber-700",children:[" Expand radius to strict 10km or switch city to discover verified ",t.trade,"s nearby. "]})," ",r.jsx("button",{onClick:()=>w(10),className:"px-3 py-1.5 bg-amber-500 text-slate-950 rounded-xl text-xs font-bold transition mt-2",children:" Reset to Strict 10km Radius "})," "]}):I.map((k,G)=>{const S=k.worker,j=G===0;return r.jsxs("div",{className:`rounded-2xl p-4 transition-all duration-200 border relative ${j?"bg-amber-50/70 border-amber-300 shadow-sm ring-1 ring-amber-400/40":"bg-white border-slate-200 hover:border-amber-200 shadow-xs"}`,children:[" "," ",r.jsxs("div",{className:"flex items-start justify-between gap-3",children:[" ",r.jsxs("div",{className:"flex items-center gap-3",children:[" ",r.jsxs("div",{className:"relative",children:[" ",r.jsxs("div",{className:`w-11 h-11 rounded-2xl font-black flex items-center justify-center text-sm shadow-sm ${j?"bg-amber-600 text-white":"bg-slate-900 text-amber-400"}`,children:[" ",S.name.charAt(0)," "]})," ",r.jsxs("span",{className:`absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black border ${j?"bg-amber-400 text-slate-950 border-white":"bg-slate-800 text-slate-200 border-white"}`,children:[" #",k.rank," "]})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("h4",{className:"font-black text-slate-900 text-sm flex items-center gap-1.5",children:[" ",r.jsx("span",{children:S.name})," ",S.isVerified&&r.jsxs("span",{title:"Govt Aadhaar Verified",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-600"})," "]})," "]})," ",r.jsxs("span",{className:"px-2 py-0.2 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full border border-amber-300",children:[" ",k.matchScore,"% AI Match "]})," "]})," ",r.jsxs("p",{className:"text-xs text-slate-500 flex items-center gap-2 mt-0.5",children:[" ",r.jsx("span",{className:"font-bold text-slate-700",children:S.primaryTrade})," ",r.jsx("span",{children:"•"})," ",r.jsxs("span",{className:"flex items-center gap-1 text-slate-600",children:[" ",r.jsx(na,{className:"w-3 h-3 text-slate-400"})," ",S.location.area," (",k.distanceKm," km away) "]})," ",r.jsx("span",{children:"•"})," ",r.jsxs("span",{className:"text-amber-600 font-bold",children:["~",k.etaMinutes,"m ETA"]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"text-right shrink-0",children:[" ",r.jsxs("span",{className:"text-base font-black text-slate-900",children:["₹",S.dailyRate]})," ",r.jsx("span",{className:"text-[10px] text-slate-500 block",children:"per day"})," ",r.jsx("span",{className:"text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 mt-0.5 block",children:" Prepaid Escrow "})," ",r.jsxs("span",{className:"text-[11px] font-bold text-amber-600 flex items-center justify-end gap-1 mt-0.5",children:[" ★ ",S.rating," (",S.reviewCount,") "]})," "]})," "]})," "," ",r.jsxs("div",{className:"mt-3 bg-white/80 p-2.5 rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 text-slate-700",children:[" ",r.jsx(Yn,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsxs("span",{className:"text-[11px] font-medium leading-tight",children:[" ",r.jsx("b",{className:"text-slate-900",children:"AI Match Breakdown:"})," ",k.aiReasoning," "]})," "]})," ",k.isWithin10Km&&r.jsx("span",{className:"px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-black uppercase rounded shrink-0",children:" Strict 10km Zone "})," "]})," "," ",r.jsxs("div",{className:"mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs",children:[" "," ",r.jsxs("button",{onClick:()=>z(S),className:"py-2 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm",children:[" ",r.jsx(nr,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Hire Now"})," "]})," "," ",r.jsxs("button",{onClick:()=>{o&&o(t,S)},className:"py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs",title:"Open Quick Chat with Candidate",children:[" ",r.jsx(ac,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Chat"})," "]})," "," ",r.jsxs("button",{onClick:()=>{n(t,S)},className:"py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl border border-amber-200 transition flex items-center justify-center gap-1.5",title:"Send WhatsApp, Mail, SMS & IVR Alert",children:[" ",r.jsx(Pm,{className:"w-3.5 h-3.5 text-amber-600"})," ",r.jsx("span",{children:"4-Channel"})," "]})," "," ",r.jsxs("button",{onClick:()=>f({name:(u==null?void 0:u.name)||"Employer",role:"customer",phone:(u==null?void 0:u.phone)||"+91 99100 88221"},{name:S.name,role:"worker",phone:S.phone},t.title),className:"py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl border border-amber-200 transition flex items-center justify-center gap-1.5",children:[" ",r.jsx(Xi,{className:"w-3.5 h-3.5 text-amber-600"})," ",r.jsx("span",{children:"Call"})," "]})," "," ",r.jsxs("button",{onClick:()=>{a({...t,assignedWorkerName:S.name,assignedWorkerPhone:S.phone,distanceKm:k.distanceKm}),e()},className:"py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-200 transition flex items-center justify-center gap-1.5",children:[" ",r.jsx(mo,{className:"w-3.5 h-3.5 text-amber-600"})," ",r.jsx("span",{children:"Radar"})," "]})," "]})," "]},S.id)})," "]})," "," ",r.jsxs("div",{className:"bg-slate-50 p-3 px-5 border-t border-slate-200 flex items-center justify-between text-xs shrink-0",children:[" ",r.jsx("span",{className:"text-slate-500 text-[11px]",children:" AI shortlisting dynamically prioritizes proximity, verified skills, and fast availability. "})," ",r.jsx("button",{onClick:e,className:"px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition",children:" Close Shortlist "})," "]})," "]})," "]})},Soe=({notifications:s,onDismiss:e,onOpenChat:t})=>!s||s.length===0?null:r.jsxs("div",{id:"global-chat-notifications-container",className:"fixed top-3 right-3 sm:right-6 sm:top-5 z-[9999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-[calc(100vw-24px)] sm:w-auto pointer-events-none",children:[" ",s.map(n=>r.jsx(Foe,{item:n,onDismiss:()=>e(n.id),onOpenChat:()=>t(n)},n.id))," "]}),Foe=({item:s,onDismiss:e,onOpenChat:t})=>{const[n,a]=L.useState(100),[o,c]=L.useState(!1),u=6500,d=50;L.useEffect(()=>{if(o)return;const f=d/u*100,p=setInterval(()=>{a(B=>B<=f?(clearInterval(p),e(),0):B-f)},d);return()=>clearInterval(p)},[o,e]);const x=s.senderRole==="worker";return s.isSender,r.jsxs("div",{id:`chat-popup-${s.id}`,onMouseEnter:()=>c(!0),onMouseLeave:()=>c(!1),className:"pointer-events-auto bg-slate-900/95 backdrop-blur-md text-white border border-slate-700/80 shadow-2xl rounded-2xl p-3.5 sm:p-4 transition-all duration-300 transform translate-y-0 animate-in slide-in-from-top-4 hover:shadow-amber-500/10 hover:border-amber-500/50 flex flex-col gap-2.5 relative overflow-hidden",children:[" "," ",r.jsxs("div",{className:"flex items-center justify-between gap-2",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 min-w-0",children:[" ",r.jsxs("div",{className:"w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/20 border border-amber-500/40 text-amber-400",children:[" ",r.jsx(ac,{className:"w-4 h-4 animate-pulse"})," "]})," ",r.jsxs("div",{className:"min-w-0",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 flex-wrap",children:[" ",r.jsxs("span",{className:"text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-md border bg-amber-950/80 border-amber-700/60 text-amber-300",children:[" ",x?"Worker Message":"Employer Message"," "]})," ",r.jsxs("span",{className:"text-[11px] text-slate-400 font-medium",children:[" ",s.timestamp||"Just now"," "]})," "]})," ",r.jsxs("p",{className:"text-xs font-bold text-slate-100 truncate mt-1",children:[" ","From:"," ",r.jsx("span",{className:"text-amber-300",children:s.senderName})," ",r.jsxs("span",{className:"text-slate-400 font-normal",children:["(",x?"Skilled Worker":"Work Requester",")"]})," "]})," "]})," "]})," "," ",r.jsxs("button",{type:"button",onClick:f=>{f.stopPropagation(),Ae("click"),e()},className:"p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0",title:"Dismiss notification",children:[" ",r.jsx(Fn,{className:"w-4 h-4"})," "]})," "]})," "," ",r.jsxs("div",{onClick:()=>{Ae("click"),t()},className:"bg-slate-950/80 rounded-xl p-2.5 border border-slate-800 text-xs text-slate-200 cursor-pointer hover:border-slate-700 hover:bg-slate-950 transition group",children:[" ",r.jsxs("p",{className:"line-clamp-2 leading-relaxed font-normal text-slate-200 group-hover:text-white",children:['"',s.text,'"'," "]})," ",s.jobTitle&&r.jsxs("div",{className:"flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-800/80 text-[10px] text-slate-400",children:[" ",r.jsx(p0,{className:"w-3 h-3 text-amber-400 shrink-0"})," ",r.jsx("span",{className:"truncate",children:s.jobTitle})," "]})," "]})," "," ",r.jsxs("div",{className:"flex items-center justify-between gap-2 pt-0.5",children:[" ",r.jsxs("span",{className:"text-[10px] text-slate-400 flex items-center gap-1",children:[" ",r.jsx(Xg,{className:"w-3 h-3 text-amber-400"})," ",r.jsx("span",{children:"Real-time Kaamzo Chat"})," "]})," ",r.jsxs("button",{type:"button",onClick:()=>{Ae("click"),t()},className:"px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]",children:[" ",r.jsx("span",{children:"Open & Reply"})," ",r.jsx(Qi,{className:"w-3.5 h-3.5"})," "]})," "]})," "," ",r.jsxs("div",{className:"absolute bottom-0 left-0 right-0 h-1 bg-slate-800",children:[" ",r.jsx("div",{className:"h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-75",style:{width:`${n}%`}})," "]})," "]})},Toe=({isOpen:s,onClose:e,initialRole:t="customer",allowRoleSwitch:n=!1})=>{const{currentWorker:a,currentCustomer:o,subscribeCustomerPremium:c,subscribeWorkerPremium:u}=Qo(),[d,x]=L.useState(t),[f,p]=L.useState(3),[B,g]=L.useState(!1),[w,N]=L.useState(!1),[v,_]=L.useState(!1),[M,P]=L.useState(!1),[I,z]=L.useState("");if(L.useEffect(()=>{if(s){x(t),p(3),g(!1),P(!1);const T=setInterval(()=>{p(k=>k<=1?(clearInterval(T),g(!0),0):k-1)},1e3);return()=>clearInterval(T)}},[s,t]),!s)return null;const W=async()=>{N(!0),Ae("click");try{c((o==null?void 0:o.id)||"cust-1","UPI").success&&(P(!0),z("₹15,000 Customer Gold Subscription Activated! Money credited to Admin Account. Worker wages will now be automatically disbursed by Admin directly into worker wallets!"),Ae("success"))}finally{N(!1)}},F=async()=>{N(!0),Ae("click");try{u((a==null?void 0:a.id)||"w-1","UPI").success&&(P(!0),z("Worker VIP Pass & Instant Aadhaar Verification Activated! You are now Govt. Aadhaar Verified with 6 Zero-Commission Jobs and top radar priority!"),Ae("success"))}finally{N(!1)}};return r.jsxs("div",{className:"fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300",children:[" ",r.jsxs("div",{className:"bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border-2 border-amber-400/60 relative flex flex-col max-h-[92vh]",children:[" "," ",r.jsxs("div",{className:"bg-slate-950/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between shrink-0",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("span",{className:"flex h-2 w-2 relative",children:[" ",r.jsx("span",{className:"animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"})," ",r.jsx("span",{className:"relative inline-flex rounded-full h-2 w-2 bg-amber-500"})," "]})," ",r.jsxs("div",{className:"flex items-center gap-1.5 bg-amber-600/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md",children:[" ",r.jsx(dY,{className:"w-3 h-3 fill-amber-300"})," ",r.jsx("span",{children:"Membership Feature Spotlight"})," "]})," "]})," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("button",{onClick:()=>_(!v),className:"p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition text-xs",title:"Toggle Audio",children:[" ",v?r.jsx(_T,{className:"w-3.5 h-3.5"}):r.jsx(sh,{className:"w-3.5 h-3.5 text-amber-400"})," "]})," ",B?r.jsxs("button",{onClick:e,className:"flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-1 rounded-xl border border-slate-700 transition",children:[" ",r.jsx("span",{children:"Skip Ad"})," ",r.jsx(Qi,{className:"w-3.5 h-3.5"})," "]}):r.jsxs("span",{className:"text-[11px] font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800",children:[" ","Skip in ",f,"s"," "]})," "]})," "]})," "," ",n?r.jsxs("div",{className:"p-4 bg-slate-900/60 border-b border-slate-800/80 flex gap-2",children:[" ",r.jsxs("button",{onClick:()=>{x("customer"),Ae("click")},className:`flex-1 py-2 px-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${d==="customer"?"bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20":"bg-slate-800/70 text-slate-400 hover:text-white"}`,children:[" ",r.jsx(Kf,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Customer Gold Plan (₹15,000)"})," "]})," ",r.jsxs("button",{onClick:()=>{x("worker"),Ae("click")},className:`flex-1 py-2 px-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 ${d==="worker"?"bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20":"bg-slate-800/70 text-slate-400 hover:text-white"}`,children:[" ",r.jsx(Os,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"Worker VIP & Aadhaar (₹2,000)"})," "]})," "]}):r.jsxs("div",{className:"px-5 py-3 bg-slate-900/80 border-b border-slate-800/80 flex items-center justify-between",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",d==="customer"?r.jsxs(r.Fragment,{children:[" ",r.jsxs("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center",children:[" ",r.jsx(Kf,{className:"w-4 h-4"})," "]})," ",r.jsxs("div",{children:[" ",r.jsx("h4",{className:"text-xs font-black text-white",children:"Customer Exclusive Membership"})," ",r.jsx("p",{className:"text-[10px] text-amber-400",children:"1 Month Free Service & Admin Automated Worker Payouts"})," "]})," "]}):r.jsxs(r.Fragment,{children:[" ",r.jsxs("div",{className:"w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center",children:[" ",r.jsx(Os,{className:"w-4 h-4"})," "]})," ",r.jsxs("div",{children:[" ",r.jsx("h4",{className:"text-xs font-black text-white",children:"Worker VIP Pass & Verification"})," ",r.jsx("p",{className:"text-[10px] text-amber-400",children:"Instant Govt. Aadhaar Verified Gold Badge + 0% Commission"})," "]})," "]})," "]})," ",r.jsxs("span",{className:"text-[10px] font-mono uppercase bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700 font-bold",children:[" ",d==="customer"?"Customer Special":"Worker Special"," "]})," "]})," "," ",r.jsxs("div",{className:"p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 custom-scrollbar",children:[" ",M?r.jsxs("div",{className:"text-center py-6 space-y-4 animate-in zoom-in-95",children:[" ",r.jsxs("div",{className:"w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400 text-amber-400 mx-auto flex items-center justify-center shadow-lg",children:[" ",r.jsx(nr,{className:"w-8 h-8"})," "]})," ",r.jsx("h3",{className:"text-xl font-black text-white",children:"Membership Activated!"})," ",r.jsxs("p",{className:"text-xs text-amber-300 font-medium px-4",children:[" ",I," "]})," ",r.jsxs("button",{onClick:e,className:"w-full py-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-sm rounded-2xl transition shadow-lg mt-4 cursor-pointer",children:[" ","Continue to Platform"," "]})," "]}):d==="customer"?r.jsxs("div",{className:"space-y-4 animate-in fade-in",children:[" "," ",r.jsxs("div",{className:"bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-5 relative overflow-hidden",children:[" ",r.jsxs("div",{className:"flex items-start justify-between",children:[" ",r.jsxs("div",{className:"space-y-1",children:[" ",r.jsxs("span",{className:"text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-md inline-block",children:[" ","YouTube-Style Channel Membership"," "]})," ",r.jsxs("h3",{className:"text-2xl font-black text-amber-300 leading-tight",children:[" ","Kaamzo Gold Club"," "]})," ",r.jsxs("p",{className:"text-xs text-slate-300",children:[" ","All-inclusive 1 Month Free Service with Automated Admin Payouts"," "]})," "]})," ",r.jsxs("div",{className:"text-right",children:[" ",r.jsx("div",{className:"text-3xl font-black text-white font-mono",children:"₹15,000"})," ",r.jsx("span",{className:"text-[10px] text-amber-400 font-bold block",children:"1 Month Free Plan"})," "]})," "]})," ",r.jsxs("div",{className:"mt-4 pt-3 border-t border-amber-400/30 bg-amber-950/40 p-3 rounded-2xl border border-amber-500/30",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 text-xs text-amber-200 font-bold",children:[" ",r.jsx(_d,{className:"w-4 h-4 text-amber-400 shrink-0"})," ",r.jsx("span",{children:"Admin Treasury Auto-Disburses Worker Wages Directly to Worker Wallets!"})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"space-y-2 text-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(nr,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"Admin Automated Wallet Transfers:"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","When you hire or book a worker, the platform Admin directly transfers the worker's earnings straight into their wallet automatically."," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Cx,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"1 Month 100% Free Booking (0% Surcharge):"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","Post unlimited jobs with zero platform commission fees for 30 full days."," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"Free Verified Aadhaar KYC Dossiers:"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","Instant access to official verified worker performance dossiers and police verification badges."," "]})," "]})," "]})," "]})," "," ",r.jsxs("button",{onClick:W,disabled:w,className:"w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:opacity-90 disabled:opacity-50 text-slate-950 font-black text-sm rounded-2xl transition shadow-xl flex items-center justify-center gap-2 cursor-pointer",children:[" ",r.jsx(Kf,{className:"w-4 h-4"})," ",r.jsx("span",{children:w?"Processing ₹15,000 Plan...":"Join Gold Club (₹15,000 / Month)"})," ",r.jsx(Qi,{className:"w-4 h-4"})," "]})," "]}):r.jsxs("div",{className:"space-y-4 animate-in fade-in",children:[" "," ",r.jsxs("div",{className:"bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-5 relative overflow-hidden",children:[" ",r.jsxs("div",{className:"flex items-start justify-between",children:[" ",r.jsxs("div",{className:"space-y-1",children:[" ",r.jsxs("span",{className:"text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-md inline-block",children:[" ","FAST-TRACK VERIFICATION & VIP"," "]})," ",r.jsxs("h3",{className:"text-2xl font-black text-amber-300 leading-tight",children:[" ","Worker VIP Pass"," "]})," ",r.jsxs("p",{className:"text-xs text-slate-300",children:[" ","Instant Govt Aadhaar Verification + 6 Zero-Commission Jobs"," "]})," "]})," ",r.jsxs("div",{className:"text-right",children:[" ",r.jsx("div",{className:"text-3xl font-black text-white font-mono",children:"₹2,000"})," ",r.jsx("span",{className:"text-[10px] text-amber-400 font-bold block",children:"6 Jobs Pass"})," "]})," "]})," ",r.jsxs("div",{className:"mt-4 pt-3 border-t border-amber-400/30 bg-amber-950/40 p-3 rounded-2xl border border-amber-500/30",children:[" ",r.jsxs("div",{className:"flex items-center gap-2 text-xs text-amber-200 font-bold",children:[" ",r.jsx(zY,{className:"w-4 h-4 text-amber-400 shrink-0"})," ",r.jsx("span",{children:"Includes Instant Govt. Aadhaar Card Verification — Skip the Admin Approval Queue!"})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"space-y-2 text-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-amber-950/40 p-3 rounded-2xl border border-amber-500/40",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-amber-300",children:"Instant Aadhaar KYC Verification:"})," ",r.jsxs("p",{className:"text-slate-300 text-[11px]",children:[" ",'Your profile is instantly upgraded to "Aadhaar Verified" with an official verified gold badge, attracting 3x more direct customer bookings.'," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Cx,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"0% Platform Commission (Keep 100%):"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","The 20% platform cut is waived for 6 jobs. If the daily wage is ₹900, you keep the full ₹900 in your wallet."," "]})," "]})," "]})," ",r.jsxs("div",{className:"flex items-start gap-2.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700",children:[" ",r.jsx(Kf,{className:"w-4 h-4 text-amber-400 shrink-0 mt-0.5"})," ",r.jsxs("div",{children:[" ",r.jsx("strong",{className:"text-white",children:"Top 5 Radar Priority Ranking:"})," ",r.jsxs("p",{className:"text-slate-400 text-[11px]",children:[" ","Your profile appears at the top of customer search and direct auto-hiring rankings."," "]})," "]})," "]})," "]})," "," ",r.jsxs("button",{onClick:F,disabled:w,className:"w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:opacity-90 disabled:opacity-50 text-slate-950 font-black text-sm rounded-2xl transition shadow-xl flex items-center justify-center gap-2 cursor-pointer",children:[" ",r.jsx(Os,{className:"w-4 h-4"})," ",r.jsx("span",{children:w?"Activating VIP Pass...":"Activate VIP Pass & Aadhaar (₹2,000)"})," ",r.jsx(Qi,{className:"w-4 h-4"})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"bg-slate-950 px-4 py-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 shrink-0",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-400 font-bold",children:[" ",r.jsx(Yn,{className:"w-3.5 h-3.5"})," ",r.jsx("span",{children:"YouTube-Style Ad Promotion"})," "]})," ",r.jsxs("button",{onClick:e,className:"text-slate-400 hover:text-white underline transition",children:[" ","Close & Go to App"," "]})," "]})," "]})," "]})},Ioe=({isOpen:s,onClose:e,variant:t="post_rating",workerName:n,workerTrade:a,workerAadhaarMasked:o="XXXX-XXXX-9901",refundAmount:c})=>{if(!s)return null;const u=()=>{Ae("success"),e()},d=t==="post_rating";return r.jsxs("div",{className:"fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200 select-none",children:[" ",r.jsxs("div",{className:"bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[92vh]",children:[" "," ",r.jsxs("div",{className:"bg-linear-to-r from-slate-950 via-slate-900 to-amber-950 text-white p-5 flex items-center justify-between shrink-0 border-b border-amber-500/20",children:[" ",r.jsxs("div",{className:"flex items-center gap-3",children:[" ",r.jsxs("div",{className:"w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0",children:[" ",r.jsx(qd,{className:"w-6 h-6 text-amber-400 animate-pulse"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsxs("span",{className:"px-2.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded-full uppercase tracking-wider",children:[" ","Important Security Advisory"," "]})," ",d&&r.jsxs("span",{className:"text-[10px] text-amber-400 font-bold flex items-center gap-1",children:[" ",r.jsx(nr,{className:"w-3 h-3"})," Job Rated"," "]})," "]})," ",r.jsxs("h3",{className:"text-base sm:text-lg font-black text-white tracking-tight mt-0.5",children:[" ",d?"Safety Guarantee & Direct Hiring Warning":"Customer Trust & 100% Accountability Guarantee"," "]})," "]})," "]})," ",r.jsxs("button",{onClick:e,className:"p-1.5 text-slate-400 hover:text-white rounded-xl transition hover:bg-slate-800",title:"Close",children:[" ",r.jsx(Fn,{className:"w-5 h-5"})," "]})," "]})," "," ",r.jsxs("div",{className:"p-5 sm:p-6 overflow-y-auto space-y-4 text-slate-700 text-xs flex-1",children:[" "," ",r.jsxs("div",{className:"bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-3",children:[" ",r.jsxs("div",{className:"w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5",children:[" ",r.jsx(Oc,{className:"w-5 h-5 text-white"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("h4",{className:"text-sm font-black text-amber-950 uppercase tracking-wide",children:[" ","Warning: Never Hire or Work Directly Outside the App"," "]})," ",r.jsxs("p",{className:"text-xs text-amber-900 mt-1 leading-relaxed font-medium",children:[" ","If you again hire or engage with"," ",n?r.jsx("span",{className:"font-black text-amber-950",children:n}):"workers"," ",r.jsx("strong",{children:"directly in private without booking through our official Kaamzo App"}),":"," "]})," "]})," "]})," ",r.jsxs("div",{className:"bg-white/80 border border-amber-200 rounded-xl p-3 space-y-1.5 text-[11px] text-amber-900 ml-0 sm:ml-11",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"})," ",r.jsxs("span",{children:[r.jsx("strong",{children:"No Damage Liability:"})," We are"," ",r.jsx("strong",{children:"NOT responsible"})," for any damage to you, your family, or your home/property."]})," "]})," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"})," ",r.jsxs("span",{children:[r.jsx("strong",{children:"No Arrival Protection:"})," If the worker arrives or fails to show up, we cannot enforce arrival or accountability."]})," "]})," ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"})," ",r.jsxs("span",{children:[r.jsx("strong",{children:"No Refund or Escrow:"})," Any cash paid privately outside the app is completely at your own risk."]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs",children:[" ",r.jsxs("div",{className:"flex items-start gap-3",children:[" ",r.jsxs("div",{className:"w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5",children:[" ",r.jsx(Os,{className:"w-5 h-5 text-white"})," "]})," ",r.jsxs("div",{children:[" ",r.jsxs("h4",{className:"text-sm font-black text-amber-950 uppercase tracking-wide",children:[" ","When You Book Through Our App, We Are 100% Accountable"," "]})," ",r.jsxs("p",{className:"text-xs text-amber-900 mt-0.5 leading-relaxed font-medium",children:[" ","Every booking created on the Kaamzo platform is fully covered by our comprehensive legal & financial protection shield:"," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1",children:[" "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(Os,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsx("span",{children:"Total App Accountability"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","We are accountable for whether the worker arrives on time, completes work properly, and adheres to safety standards."," "]})," "]})," "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(_2,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsx("span",{children:"100% Instant Refund"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","If the worker does not arrive or fails to start, 100% of your prepaid money is instantly refunded with zero deduction."," "]})," "]})," "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(bK,{className:"w-4 h-4 text-amber-600 shrink-0"})," ",r.jsx("span",{children:"Govt. Aadhaar Card on File"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","We hold the worker's verified Govt. Aadhaar card on file (",o,") to legally track & identify them at all times."," "]})," "]})," "," ",r.jsxs("div",{className:"bg-white rounded-xl p-3 border border-amber-200 space-y-1",children:[" ",r.jsxs("div",{className:"flex items-center gap-1.5 text-amber-900 font-black text-xs",children:[" ",r.jsx(Bu,{className:"w-4 h-4 text-purple-600 shrink-0"})," ",r.jsx("span",{children:"Prepaid Escrow Vault"})," "]})," ",r.jsxs("p",{className:"text-[11px] text-slate-600 leading-snug",children:[" ","Your funds stay locked in the safe Kaamzo Escrow Vault and are only released after you confirm total job satisfaction."," "]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"p-3 bg-slate-900 text-white rounded-xl flex items-center justify-between gap-2 text-[11px]",children:[" ",r.jsxs("div",{className:"flex items-center gap-2",children:[" ",r.jsx(mo,{className:"w-4 h-4 text-amber-400 animate-pulse shrink-0"})," ",r.jsxs("span",{className:"font-medium text-slate-300",children:[" ","Always book via"," ",r.jsx("span",{className:"text-amber-400 font-bold",children:"Kaamzo App"})," for guaranteed safety, Aadhaar tracking & refunds."," "]})," "]})," "]})," "]})," "," ",r.jsxs("div",{className:"p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0",children:[" ",r.jsxs("button",{onClick:e,className:"px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-200/60 text-slate-700 text-xs font-bold transition",children:[" ","Close"," "]})," ",r.jsxs("button",{onClick:u,className:"flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-md",children:[" ",r.jsx(nr,{className:"w-4 h-4 text-slate-950"})," ",r.jsx("span",{children:"I Understand & Accept App Protection"})," ",r.jsx(Qi,{className:"w-4 h-4"})," "]})," "]})," "]})," "]})},Poe=()=>null,Roe=()=>{const[s,e]=L.useState(!0);L.useEffect(()=>{localStorage.getItem("kaamzo_cookie_consent")||e(!1)},[]);const t=()=>{localStorage.setItem("kaamzo_cookie_consent","true"),e(!0)};return s?null:r.jsx("div",{role:"region","aria-label":"Cookie and Privacy Consent",className:"fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 dark:bg-[#161616]/95 backdrop-blur-md border-t border-slate-800 text-white px-4 py-3.5 shadow-2xl animate-in slide-in-from-bottom-4",children:r.jsxs("div",{className:"max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3",children:[r.jsxs("div",{className:"flex items-center gap-3 text-xs sm:text-sm text-slate-300",children:[r.jsx(Os,{className:"w-5 h-5 text-amber-400 shrink-0"}),r.jsxs("p",{children:["We use essential cookies and local storage to keep your daily wage connections secure, fast, and reliable. By using Kaamzo, you agree to our"," ",r.jsxs("a",{href:"https://kaamzo-terms.vercel.app/",target:"_blank",rel:"noopener noreferrer",className:"text-amber-400 hover:text-amber-300 font-bold underline transition inline-flex items-center gap-0.5",children:[r.jsx("span",{children:"Terms of Service & Privacy Standards"}),r.jsx("span",{className:"text-[10px]",children:""})]}),"."]})]}),r.jsxs("div",{className:"flex items-center gap-2.5 shrink-0",children:[r.jsx("button",{onClick:t,className:"px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl text-xs transition shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400",children:"Accept & Continue"}),r.jsx("button",{onClick:t,className:"p-1.5 text-slate-400 hover:text-white rounded-lg transition","aria-label":"Close cookie banner",children:r.jsx(Fn,{className:"w-4 h-4"})})]})]})})},Loe=()=>{const[s,e]=L.useState(!1);L.useEffect(()=>{const n=()=>{window.scrollY>300?e(!0):e(!1)};return window.addEventListener("scroll",n),()=>window.removeEventListener("scroll",n)},[]);const t=()=>{window.scrollTo({top:0,behavior:"smooth"})};return s?r.jsx("button",{onClick:t,"aria-label":"Scroll back to top",className:"fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 p-3 bg-amber-400 hover:bg-amber-300 dark:bg-amber-400 dark:hover:bg-amber-300 text-slate-950 rounded-2xl shadow-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500",children:r.jsx(OJ,{className:"w-5 h-5 font-bold"})}):null},Ooe=()=>{const[s,e]=L.useState(0);return L.useEffect(()=>{const t=()=>{const n=document.documentElement.scrollHeight-document.documentElement.clientHeight;if(n>0){const a=window.scrollY/n*100;e(a)}};return window.addEventListener("scroll",t),()=>window.removeEventListener("scroll",t)},[]),r.jsx("div",{className:"fixed top-0 left-0 right-0 h-1 z-50 bg-transparent pointer-events-none",children:r.jsx("div",{className:"h-full bg-amber-400 transition-all duration-75 ease-out shadow-xs",style:{width:`${s}%`}})})},Moe=()=>{const[s,e]=L.useState(!1),{openGlobalChat:t,currentRole:n}=Qo();return r.jsxs("div",{className:"fixed bottom-20 md:bottom-6 left-4 md:left-6 z-30",children:[s&&r.jsxs("div",{className:"absolute bottom-14 left-0 mb-2 w-72 bg-white dark:bg-[#242424] rounded-2xl shadow-2xl border border-slate-200 dark:border-[#383838] p-4 text-xs animate-in fade-in slide-in-from-bottom-2",children:[r.jsxs("div",{className:"flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#333333] mb-3",children:[r.jsxs("span",{className:"font-bold text-slate-900 dark:text-white flex items-center gap-1.5",children:[r.jsx(j5,{className:"w-4 h-4 text-amber-500"}),"Kaamzo Support & Help"]}),r.jsx("button",{onClick:()=>e(!1),className:"text-slate-400 hover:text-slate-700 dark:hover:text-white",children:r.jsx(Fn,{className:"w-4 h-4"})})]}),r.jsx("p",{className:"text-slate-600 dark:text-slate-300 mb-3",children:"Need help finding daily wage work or hiring workers instantly? Our support team is active 24/7."}),r.jsxs("div",{className:"space-y-2",children:[r.jsxs("button",{onClick:()=>{e(!1),t(null,{name:"Kaamzo Helpline",phone:"+91 95922 21100",role:"admin"},n==="worker"?"worker":"customer")},className:"w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl flex items-center justify-center gap-2 transition",children:[r.jsx(A0,{className:"w-4 h-4"}),"Chat with Helpline"]}),r.jsxs("a",{href:"tel:919592221100",className:"w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#2E2E2E] dark:hover:bg-[#383838] text-slate-800 dark:text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2 transition",children:[r.jsx(Xi,{className:"w-4 h-4 text-amber-500"}),"Call Toll-Free: +91 95922 21100"]})]})]}),r.jsxs("button",{onClick:()=>e(!s),"aria-label":"Open support and contact options",className:"flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-amber-400 hover:bg-slate-800 dark:hover:bg-amber-300 text-white dark:text-slate-950 rounded-full shadow-2xl transition transform hover:scale-105 font-bold text-xs focus:outline-none focus:ring-2 focus:ring-amber-500",children:[r.jsx(A0,{className:"w-4 h-4 text-amber-400 dark:text-slate-950"}),r.jsx("span",{className:"hidden sm:inline",children:"Help & Support"})]})]})},Voe=()=>r.jsx("a",{href:"#main-content",className:"sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-amber-400 focus:text-slate-950 focus:font-bold focus:rounded-xl focus:shadow-xl",children:"Skip to main content"});function Uoe(){try{const s=new URLSearchParams(window.location.search),e=["utm_source","utm_medium","utm_campaign","utm_term","utm_content"];let t=!1;const n={};e.forEach(a=>{const o=s.get(a);o&&(n[a]=o,t=!0)}),t&&sessionStorage.setItem("kaamzo_utm",JSON.stringify(n))}catch(s){console.warn("Failed to capture UTM parameters:",s)}}class Goe extends Es.Component{constructor(e){super(e),this.handleReset=()=>{this.setState({hasError:!1,error:null,errorInfo:null}),window.location.reload()},this.handleClearAndHome=()=>{this.setState({hasError:!1,error:null,errorInfo:null});try{window.location.href=window.location.pathname}catch{window.location.reload()}},this.state={hasError:!1,error:null,errorInfo:null}}static getDerivedStateFromError(e){return{hasError:!0,error:e,errorInfo:null}}componentDidCatch(e,t){console.error("Uncaught React error caught by ErrorBoundary:",e,t),this.setState({errorInfo:t})}render(){return this.state.hasError?r.jsxs("div",{className:"min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4",children:[" ",r.jsxs("div",{className:"max-w-lg w-full bg-slate-800 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 text-center",children:[" ",r.jsxs("div",{className:"w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-inner",children:[" ",r.jsx(Oc,{className:"w-8 h-8"})," "]})," ",r.jsxs("div",{className:"space-y-2",children:[" ",r.jsxs("h2",{className:"text-xl font-black text-white",children:[" ",this.props.fallbackTitle||"A Display Error Occurred"," "]})," ",r.jsxs("p",{className:"text-xs text-slate-300",children:[" ","The interface encountered an unexpected state. Your work and verification data are preserved."," "]})," "]})," ",this.state.error&&r.jsxs("div",{className:"bg-slate-950/80 rounded-2xl p-3 text-left border border-slate-800 text-[11px] font-mono text-amber-300 max-h-32 overflow-y-auto",children:[" ",r.jsxs("p",{className:"font-bold text-amber-400",children:["Error:",this.state.error.message]})," "]})," ",r.jsxs("div",{className:"flex flex-col sm:flex-row gap-2 pt-2",children:[" ",r.jsxs("button",{type:"button",onClick:this.handleReset,className:"flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer",children:[" ",r.jsx(uc,{className:"w-4 h-4"})," ",r.jsx("span",{children:"Reload Interface"})," "]})," ",r.jsxs("button",{type:"button",onClick:this.handleClearAndHome,className:"px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer",children:[" ",r.jsx(ET,{className:"w-4 h-4"})," ",r.jsx("span",{children:"Home"})," "]})," "]})," "]})," "]}):this.props.children}}if(window.__KZ_CTX__)window.__KZ_CTX__.LegacyAdmin=yoe;const Hoe=()=>{var Z;const{currentRole:s,setCurrentRole:e,notification:t,setNotification:n,activeCall:a,startCall:o,endCall:c,activeGpsJob:u,closeGpsRadar:d,activeUpiPaymentJob:x,closeUpiPayment:f,activeMultiChannelJob:p,activeMultiChannelWorker:B,closeMultiChannelModal:g,openMultiChannelModal:w,openGpsRadar:N,activeShortlistJob:v,closeTop5Shortlist:_,acceptJobByWorker:M,releasePaymentByCustomer:P,currentWorker:I,currentCustomer:z,workers:W,chatNotifications:F,dismissChatNotification:T,activeGlobalChat:k,openGlobalChat:G,closeGlobalChat:S,isSubscriptionPromoOpen:j,promoInitialRole:O,closeSubscriptionPromo:re,isProtectionModalOpen:ve,protectionModalData:ge,closeProtectionModal:be,isDarkMode:ie}=Qo(),[je,he]=Es.useState(!1);const __useRedesign=!!(window.__KZ_REDESIGN__&&window.__KZ_REDESIGN__.MainApp&&s!=="pitch_deck");return L.useEffect(()=>{const $=()=>{he(!0)};return window.addEventListener("gmp-quota-exceeded",$),()=>{window.removeEventListener("gmp-quota-exceeded",$)}},[]),L.useEffect(()=>{Uoe()},[]),L.useEffect(()=>{const $=()=>{var de;const se=window.location.pathname.toLowerCase(),U=window.location.hash.toLowerCase(),pe=(de=new URLSearchParams(window.location.search).get("app"))==null?void 0:de.toLowerCase();pe==="customer"||pe==="employer"||se.includes("customer")||se.includes("employer")||U.includes("customer")||U.includes("employer")?e("customer"):pe==="worker"||se.includes("worker")||se.startsWith("/jobs")||U.includes("worker")?e("worker"):pe==="admin"||se.includes("admin")||U.includes("admin")?e("admin"):(pe==="pitch"||se.includes("pitch")||se.includes("investor")||U.includes("investor")||U.includes("pitch"))&&e("pitch_deck")};const bp=()=>{const de=new URLSearchParams(window.location.search).get("app"),se=window.location.pathname.toLowerCase(),pe=de?de.toLowerCase():"",U=window.location.hash.toLowerCase();(se==="/"||se===""||se.startsWith("/register"))&&!pe&&!U?e("select_role"):$()};return $(),window.addEventListener("popstate",bp),window.addEventListener("hashchange",bp),()=>{window.removeEventListener("popstate",bp),window.removeEventListener("hashchange",bp)}},[e]),r.jsxs("div",{className:__useRedesign?"relative w-full min-h-screen flex flex-col transition-colors duration-200 overflow-x-clip":`relative w-full min-h-screen ${ie?"bg-[#121212] text-white":"bg-[#FAF7F2] text-[#111827]"} flex flex-col font-sans transition-colors duration-200 overflow-x-hidden`,children:[r.jsx(Voe,{}),!__useRedesign&&r.jsx(Ooe,{}),!__useRedesign&&s!=="select_role"&&r.jsx(Poe,{}),je&&r.jsx("div",{className:"bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs md:text-sm text-center sticky top-0 z-50 shadow-sm",children:r.jsxs("span",{children:["Google Maps Platform quota reached. If you are the app owner, visit"," ",r.jsx("a",{href:"https://developers.google.com/maps/ai/ai-studio?utm_campaign=gmp_mcp_codeassist_v1_aistudio#quota_exceeded_errors",target:"_blank",rel:"noopener noreferrer",className:"underline font-semibold text-amber-950 hover:text-amber-800",children:"maps developer site"})," ","for instructions to update your account."]})}),t&&r.jsxs("div",{className:"bg-slate-900 text-white px-4 py-2 text-xs font-semibold flex items-center justify-between shadow-md sticky top-0 z-50 border-b border-slate-700 animate-in slide-in-from-top-2",children:[r.jsxs("div",{className:"flex items-center gap-2 max-w-4xl mx-auto flex-1",children:[r.jsx(ag,{className:"w-4 h-4 text-amber-400 shrink-0"}),r.jsx("span",{children:t})]}),r.jsx("button",{onClick:()=>n(null),className:"text-slate-400 hover:text-white px-2 py-0.5 rounded text-[11px]",children:"Dismiss"})]}),r.jsx(Soe,{notifications:F,onDismiss:T,onOpenChat:$=>{T($.id),G($.job||null,$.targetPerson||{name:$.senderName,phone:$.senderPhone,role:$.senderRole},s==="worker"?"worker":"customer")}}),!__useRedesign&&s!=="select_role"&&s!=="pitch_deck"&&r.jsx(iQ,{}),r.jsx("main",{id:"main-content",className:"flex-1 flex flex-col",children:__useRedesign?r.jsx(window.__KZ_REDESIGN__.MainApp,{}):(s==="pitch_deck"?r.jsx("div",{className:"p-3 sm:p-6 lg:p-8 flex items-center justify-center flex-1",children:r.jsx(Eoe,{})}):r.jsx(voe,{}))}),r.jsx(woe,{callSession:a,onEndCall:c}),(k==null?void 0:k.isOpen)&&r.jsx(u9,{isOpen:k.isOpen,onClose:S,job:k.job,targetPerson:k.targetPerson,currentUserRole:k.role||(s==="worker"?"worker":"customer"),currentUserName:(k.role||s)==="worker"?(I==null?void 0:I.name)||"Worker":(z==null?void 0:z.name)||"Employer",currentUserPhone:(k.role||s)==="worker"?(I==null?void 0:I.phone)||"+91 98101 55678":(z==null?void 0:z.phone)||"+91 99100 88221",onStartCall:(Z=k.targetPerson)!=null&&Z.phone?()=>{var $;o({name:s==="worker"?(I==null?void 0:I.name)||"Worker":(z==null?void 0:z.name)||"Employer",role:s==="worker"?"worker":"customer",phone:s==="worker"?(I==null?void 0:I.phone)||"":(z==null?void 0:z.phone)||""},{name:k.targetPerson.name||"Contact",role:k.role==="worker"?"customer":"worker",phone:k.targetPerson.phone||""},(($=k.job)==null?void 0:$.title)||"Kaamzo Direct Work Chat")}:void 0,onOpenRadar:k.job?()=>{N(k.job)}:void 0}),u&&(()=>{const $=W.find(ne=>ne.id===u.assignedWorkerId||ne.name===u.assignedWorkerName),se=($==null?void 0:$.gpsLocation)||u.workerGps||(I==null?void 0:I.gpsLocation),U=u.jobGps||(z==null?void 0:z.gpsLocation);return r.jsx(_oe,{isOpen:!!u,onClose:d,workerName:u.assignedWorkerName||($==null?void 0:$.name)||(I==null?void 0:I.name)||"Worker",workerTrade:u.trade,jobTitle:u.title,jobAddress:u.locationAddress,workerGps:se,jobGps:U,initialDistanceKm:u.distanceKm||1.2,isWorkerPerspective:s==="worker"})})(),x&&r.jsx(zT,{isOpen:!!x,onClose:f,amount:x.workerPayout,totalWage:x.dailyWage,platformFee:x.platformFee,workerName:x.assignedWorkerName||"Worker",workerTrade:x.trade,workerUpiId:x.assignedWorkerUpi||"worker@upi",workerPhone:x.assignedWorkerPhone||"+91 98101 55678",jobTitle:x.title,onPaymentSuccess:($,se,U,ne,pe)=>{const de=typeof U=="number"&&U>=1?U:5,Te=ne||`Rated ${de} stars for work on ${x.title||"Job"}`;P(x.id,de,Te,$,se,pe),f()}}),p&&r.jsx(koe,{isOpen:!!p,onClose:g,job:p,targetWorker:B,onAcceptJob:$=>{M($),g(),N($)}}),v&&r.jsx(joe,{isOpen:!!v,onClose:_,job:v,onOpenMultiChannel:($,se)=>{_(),w($,se)},onOpenRadar:$=>{N($)}}),j&&r.jsx(Toe,{isOpen:j,onClose:re,initialRole:O||(s==="worker"?"worker":"customer"),allowRoleSwitch:!1}),ve&&r.jsx(Ioe,{isOpen:ve,onClose:be,variant:(ge==null?void 0:ge.variant)||"post_rating",workerName:ge==null?void 0:ge.workerName,workerTrade:ge==null?void 0:ge.workerTrade,workerAadhaarMasked:ge==null?void 0:ge.workerAadhaarMasked,refundAmount:ge==null?void 0:ge.refundAmount}),!__useRedesign&&s!=="select_role"&&r.jsx("footer",{className:"h-14 bg-white dark:bg-[#1C1C1C] border-t border-slate-200 dark:border-[#383838] flex items-center px-4 sm:px-6 lg:px-8 text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0 transition-colors",children:r.jsxs("div",{className:"max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0",children:[r.jsxs("p",{children:["",new Date().getFullYear()," Kaamzo Technologies India. All rights reserved."]}),r.jsxs("div",{className:"flex items-center gap-4 text-xs",children:[r.jsx("button",{onClick:()=>e("pitch_deck"),className:"text-slate-400 hover:text-amber-700 dark:hover:text-[#FCD33F] transition cursor-pointer",children:"Investor Pitch"}),r.jsxs("a",{href:"https://kaamzo-terms.vercel.app/",target:"_blank",rel:"noopener noreferrer",className:"text-amber-600 hover:text-amber-700 dark:text-[#FCD33F] font-bold transition inline-flex items-center gap-1",children:[r.jsx("span",{children:"Terms of Service"}),r.jsx("span",{className:"text-[10px]",children:""})]})]})]})}),r.jsx(rQ,{}),!__useRedesign&&r.jsx(Roe,{}),!__useRedesign&&r.jsx(Loe,{}),!__useRedesign&&r.jsx(Moe,{})]})};function zoe(){return r.jsx(Goe,{children:r.jsx(AJ,{children:r.jsx(Hoe,{})})})}window.gm_authFailure=()=>{window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"))};const qoe=console.error;console.error=(...s)=>{qoe.apply(console,s);const e=s.map(t=>String(t)).join(" ");(e.includes("OverQuotaMapError")||e.includes("QuotaExceededError"))&&window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"))};DO.createRoot(document.getElementById("root")).render(r.jsx(L.StrictMode,{children:r.jsx(zoe,{})}));if("serviceWorker"in navigator&&window.location.protocol.startsWith("http"))try{CO({immediate:!0,onRegisterError(s){console.debug("ServiceWorker registration deferred:",s)}})}catch(s){console.debug("ServiceWorker not initialized:",s)}export{br as _,Woe as c,E7 as g};

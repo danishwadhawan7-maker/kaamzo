@@ -1569,10 +1569,6 @@
       "div",
       {
         style: {
-          position: "fixed",
-          bottom: "80px",
-          left: "20px",
-          zIndex: 70,
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
@@ -2117,7 +2113,9 @@
 
     // Determine view from pathname
     let ViewComp = null;
-    if (path === "/register") {
+    if (path === "/admin" || path.startsWith("/admin/") || app.currentRole === "admin") {
+      ViewComp = KZ.views.AdminPortal;
+    } else if (path === "/register") {
       ViewComp = KZ.views.RegisterPage;
     } else if (path === "/jobs") {
       ViewComp = KZ.views.JobsPage;
@@ -7914,5 +7912,309 @@
     else body = h(WorkerWorkHomeView, null);
 
     return h(WorkerShell, { path }, body);
+  };
+})();
+
+
+/* Part 5 — Admin Portal (/admin) with Kaamzo Theme Shell */
+(function () {
+  "use strict";
+  const KZ = window.__KZ_REDESIGN__;
+  const U = KZ.utils;
+  const C = KZ.components;
+  const { h, useApp, getCtx, navigate } = U;
+  const { TopUtilityBar, KaamzoFooter } = C;
+
+  KZ.views.AdminPortal = function AdminPortal() {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+    const ctx = getCtx();
+    const LegacyAdmin = ctx && ctx.LegacyAdmin;
+
+    const verifiedCount = (app.workers || []).filter((w) => w.isVerified).length;
+    const activeJobsCount = (app.jobs || []).filter((j) =>
+      ["broadcast", "accepted", "approved", "in_progress"].includes(j.status)
+    ).length;
+    const pendingKycCount = (app.verifications || []).filter((v) => v.status === "pending").length;
+    const openDisputesCount = (app.disputes || []).filter((d) => d.status !== "resolved").length;
+
+    return h(
+      "div",
+      {
+        style: {
+          fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+          background: isDark ? "#14120E" : "#FBF8F2",
+          color: isDark ? "#EDE6DA" : "#1C1913",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        },
+      },
+      h(TopUtilityBar, { compact: false }),
+
+      // Sticky Kaamzo Admin Header
+      h(
+        "header",
+        {
+          className: "kz-app-header " + (isDark ? "kz-sticky-header" : ""),
+          style: {
+            position: "sticky",
+            top: 0,
+            zIndex: 40,
+            background: isDark ? "rgba(20,18,14,0.92)" : "rgba(251,248,242,0.92)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            borderBottom: "1px solid " + (isDark ? "#2E2A22" : "#EFE7DA"),
+          },
+        },
+        h(
+          "div",
+          {
+            style: {
+              maxWidth: "1320px",
+              margin: "0 auto",
+              padding: "12px 24px",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "14px",
+            },
+          },
+          h(
+            "a",
+            {
+              href: "/",
+              onClick: (e) => {
+                e.preventDefault();
+                navigate("/", { role: "select_role" });
+              },
+              style: {
+                textDecoration: "none",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+                fontWeight: 800,
+                fontSize: "22px",
+                letterSpacing: "-0.4px",
+              },
+            },
+            "kaamzo",
+            h("span", { style: { color: "#E8930C" } }, ".")
+          ),
+          h(
+            "span",
+            {
+              style: {
+                padding: "6px 12px",
+                borderRadius: "999px",
+                background: "#FFF0BF",
+                color: "#6B4600",
+                fontSize: "11px",
+                fontWeight: 800,
+                letterSpacing: "0.8px",
+              },
+            },
+            "ADMIN PORTAL"
+          ),
+          h(
+            "nav",
+            {
+              "aria-label": "Admin",
+              className: "kz-tabs " + (isDark ? "kz-tab-track" : ""),
+              style: {
+                display: "flex",
+                gap: "4px",
+                padding: "5px",
+                borderRadius: "999px",
+                background: isDark ? "#1F1C17" : "#FFFFFF",
+                border: "1px solid " + (isDark ? "#2E2A22" : "#EFE7DA"),
+              },
+            },
+            [
+              { label: "Command Center", active: true, onClick: () => navigate("/admin", { role: "admin" }) },
+              { label: "Customer Portal", active: false, onClick: () => navigate("/customer", { role: "customer" }) },
+              { label: "Worker Portal", active: false, onClick: () => navigate("/worker", { role: "worker" }) },
+              { label: "10 km Jobs", active: false, onClick: () => navigate("/jobs", { role: "worker" }) },
+              { label: "← Home", active: false, onClick: () => navigate("/", { role: "select_role" }) },
+            ].map((item) =>
+              h(
+                "button",
+                {
+                  key: item.label,
+                  type: "button",
+                  onClick: item.onClick,
+                  style: {
+                    padding: "10px 16px",
+                    borderRadius: "999px",
+                    border: 0,
+                    background: item.active ? (isDark ? "#F5A524" : "#1C1913") : "transparent",
+                    color: item.active ? (isDark ? "#14120E" : "#FBF8F2") : isDark ? "#EDE6DA" : "#3D3830",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                  },
+                },
+                item.label
+              )
+            )
+          ),
+          app.currentAdmin &&
+            h(
+              "div",
+              { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "10px" } },
+              h(
+                "span",
+                {
+                  style: {
+                    padding: "6px 12px",
+                    borderRadius: "999px",
+                    background: "#E3F4E8",
+                    color: "#1D6B36",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                  },
+                },
+                "● " + (app.currentAdmin.email || "Admin Unlocked")
+              )
+            )
+        )
+      ),
+
+      // Main Container
+      h(
+        "main",
+        {
+          style: {
+            maxWidth: "1320px",
+            width: "100%",
+            margin: "0 auto",
+            padding: "28px 24px 80px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+            flex: 1,
+          },
+        },
+        // Dusk-to-Marigold Hero Banner
+        h(
+          "section",
+          {
+            style: {
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: "36px",
+              background: "linear-gradient(180deg, #2A2342 0%, #5E4260 55%, #C9805A 100%)",
+              color: "#FBF8F2",
+              padding: "36px 40px",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              gap: "24px",
+            },
+          },
+          h("div", {
+            "aria-hidden": "true",
+            style: {
+              position: "absolute",
+              right: "-60px",
+              top: "-60px",
+              width: "300px",
+              height: "300px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(245,165,36,0.38) 0%, rgba(245,165,36,0) 68%)",
+            },
+          }),
+          h(
+            "div",
+            { style: { position: "relative", display: "flex", flexDirection: "column", gap: "10px", maxWidth: "620px" } },
+            h(
+              "span",
+              {
+                style: {
+                  alignSelf: "flex-start",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "7px 14px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  letterSpacing: "0.6px",
+                },
+              },
+              h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#5BD68A" } }),
+              "KAAMZO OPERATIONS VAULT · 20% FEE & KYC CONSOLE"
+            ),
+            h(
+              "h1",
+              { style: { margin: 0, fontSize: "clamp(34px, 4.2vw, 54px)", lineHeight: 0.98, letterSpacing: "-1.6px", fontWeight: 800 } },
+              "Admin command ",
+              h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, color: "#F7C88E" } }, "center.")
+            ),
+            h(
+              "p",
+              { style: { margin: 0, fontSize: "15px", lineHeight: 1.5, color: "#EBD9C8" } },
+              "Review Aadhaar & Face-ID KYC applications, monitor live GPS jobs & escrow payouts, resolve disputes, and audit security logs."
+            )
+          ),
+          h(
+            "div",
+            {
+              style: {
+                position: "relative",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, minmax(120px, 1fr))",
+                gap: "10px",
+              },
+            },
+            [
+              { label: "VERIFIED WORKERS", val: verifiedCount, col: "#5BD68A" },
+              { label: "ACTIVE JOBS", val: activeJobsCount, col: "#F5A524" },
+              { label: "PENDING KYC", val: pendingKycCount, col: "#F7C88E" },
+              { label: "OPEN DISPUTES", val: openDisputesCount, col: "#FFB4B4" },
+            ].map((stat) =>
+              h(
+                "div",
+                {
+                  key: stat.label,
+                  style: {
+                    padding: "12px 16px",
+                    borderRadius: "20px",
+                    background: "rgba(28,25,19,0.55)",
+                    border: "1px solid rgba(255,255,255,0.16)",
+                  },
+                },
+                h("div", { style: { fontSize: "10px", fontWeight: 800, letterSpacing: "0.8px", color: "#EBD9C8" } }, stat.label),
+                h("div", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "30px", lineHeight: 1.1, color: stat.col } }, stat.val)
+              )
+            )
+          )
+        ),
+
+        // LegacyAdmin Content Wrapper (preserves 100% of SSO, 2FA OTP, PIN, KYC, Treasury, Security Vault)
+        h(
+          "div",
+          { className: "kz-admin-theme-scope" },
+          LegacyAdmin
+            ? h(LegacyAdmin, { isEmbedded: true })
+            : h(
+                "div",
+                {
+                  style: {
+                    padding: "40px",
+                    borderRadius: "28px",
+                    background: isDark ? "#1F1C17" : "#FFFFFF",
+                    border: "1px solid " + (isDark ? "#2E2A22" : "#EFE7DA"),
+                    textAlign: "center",
+                    fontWeight: 700,
+                  },
+                },
+                "Loading Admin Command Console…"
+              )
+        )
+      ),
+
+      h(KaamzoFooter, null)
+    );
   };
 })();
