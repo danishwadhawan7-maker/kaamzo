@@ -6758,7 +6758,7 @@
                   padding: "0 16px",
                   borderRadius: "999px",
                   border: 0,
-                  background: isOnline ? "#2E9E57" : "#6F685D",
+                  background: isOnline ? "#2E9E57" : "#E5484D",
                   color: "#FFFFFF",
                   fontWeight: 800,
                   fontSize: "13px",
