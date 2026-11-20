@@ -1920,15 +1920,180 @@
     );
   }
 
+  function LoginRequiredModal({ config, onClose }) {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+    const [ssoLoading, setSsoLoading] = useState(false);
+
+    if (!config) return null;
+
+    const handleGoogle = async () => {
+      setSsoLoading(true);
+      try {
+        const res = await app.signInWithGoogleSSO?.("customer");
+        if (res && res.loggedIn) {
+          app.showNotification?.("Signed in! You can now post your job.");
+          onClose();
+        } else {
+          onClose();
+        }
+      } catch (_) {
+        setSsoLoading(false);
+      }
+      setSsoLoading(false);
+    };
+
+    return h(
+      "div",
+      {
+        role: "dialog",
+        "aria-modal": "true",
+        "aria-labelledby": "kz-login-req-title",
+        style: {
+          position: "fixed",
+          inset: 0,
+          background: "rgba(28,25,19,0.62)",
+          backdropFilter: "blur(6px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+          zIndex: 130,
+        },
+        onClick: (e) => {
+          if (e.target === e.currentTarget) onClose();
+        },
+      },
+      h(
+        "div",
+        {
+          style: {
+            width: "100%",
+            maxWidth: "440px",
+            borderRadius: "28px",
+            background: isDark ? "#1F1C17" : "#FFFFFF",
+            color: isDark ? "#EDE6DA" : "#1C1913",
+            border: "1px solid " + (isDark ? "#2E2A22" : "#EFE7DA"),
+            boxShadow: "0 24px 56px rgba(28,25,19,0.28)",
+            padding: "26px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "14px",
+          },
+        },
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+          h(
+            "span",
+            { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "1px", color: isDark ? "#F5A524" : "#7A4E00" } },
+            "LOGIN REQUIRED"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: onClose,
+              "aria-label": "Close login popup",
+              style: { border: 0, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontSize: "18px", fontWeight: 800 },
+            },
+            "✕"
+          )
+        ),
+        h(
+          "h2",
+          { id: "kz-login-req-title", style: { margin: 0, fontSize: "28px", lineHeight: 1.08, letterSpacing: "-0.8px", fontWeight: 800 } },
+          "Login to ",
+          h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "post a job.")
+        ),
+        h(
+          "p",
+          { style: { margin: 0, fontSize: "14px", lineHeight: 1.55, color: isDark ? "#CFC6B8" : "#4A443A" } },
+          "Please sign in to your Customer account first. After logging in, you can broadcast jobs within 10 km, receive your 4-digit Start OTP, and pay via UPI escrow."
+        ),
+        h(
+          "button",
+          {
+            type: "button",
+            disabled: ssoLoading,
+            onClick: handleGoogle,
+            style: {
+              height: "52px",
+              borderRadius: "999px",
+              border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
+              background: isDark ? "#14120E" : "#FFFFFF",
+              color: isDark ? "#EDE6DA" : "#1C1913",
+              fontWeight: 800,
+              fontSize: "15px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+            },
+          },
+          h(
+            "svg",
+            { width: 18, height: 18, viewBox: "0 0 48 48", "aria-hidden": "true" },
+            h("path", { fill: "#EA4335", d: "M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z" }),
+            h("path", { fill: "#4285F4", d: "M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z" }),
+            h("path", { fill: "#FBBC05", d: "M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z" }),
+            h("path", { fill: "#34A853", d: "M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-10l-7.8 6C6.6 42.6 14.6 48 24 48z" })
+          ),
+          ssoLoading ? "Signing in with Google…" : "Continue with Google"
+        ),
+        h(
+          "button",
+          {
+            type: "button",
+            onClick: () => {
+              KZ.preferredRegisterRole = "customer";
+              onClose();
+              navigate("/register", { registerRole: "customer" });
+            },
+            style: {
+              height: "52px",
+              borderRadius: "999px",
+              border: 0,
+              background: "#F5A524",
+              color: "#1C1913",
+              fontWeight: 800,
+              fontSize: "15px",
+            },
+          },
+          "Sign in / Register as Customer →"
+        ),
+        h(
+          "button",
+          {
+            type: "button",
+            onClick: onClose,
+            style: {
+              border: 0,
+              background: "transparent",
+              color: isDark ? "#A49B8C" : "#6F685D",
+              fontWeight: 700,
+              fontSize: "13px",
+              padding: "4px",
+            },
+          },
+          "Cancel"
+        )
+      )
+    );
+  }
+
   KZ.MainApp = function MainApp() {
     const app = useApp();
     const { path } = useRoute();
     const [otpConfig, setOtpConfig] = useState(null);
+    const [loginPrompt, setLoginPrompt] = useState(null);
 
     useEffect(() => {
       KZ.openOtpModal = (cfg) => setOtpConfig(cfg);
+      KZ.openLoginPrompt = (cfg) => setLoginPrompt(cfg || { title: "Login to post a job" });
       return () => {
         KZ.openOtpModal = null;
+        KZ.openLoginPrompt = null;
       };
     }, []);
 
@@ -1970,7 +2135,8 @@
       },
       ViewComp ? h(ViewComp, { path, openOtpModal: (cfg) => setOtpConfig(cfg) }) : h(FallbackView, { path }),
       h(HelpAndSupportFloating, null),
-      otpConfig && h(GlobalOtpModal, { config: otpConfig, onClose: () => setOtpConfig(null) })
+      otpConfig && h(GlobalOtpModal, { config: otpConfig, onClose: () => setOtpConfig(null) }),
+      loginPrompt && h(LoginRequiredModal, { config: loginPrompt, onClose: () => setLoginPrompt(null) })
     );
   };
 })();
@@ -4772,6 +4938,10 @@
 
     const submitDirectHire = (e) => {
       e.preventDefault();
+      if (!cust) {
+        KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer" });
+        return;
+      }
       if (!hireWorker) return;
       const baseRate = Number(hireWorker.dailyRate) || getLiveTradeRate(hireWorker.primaryTrade, workers);
       const created = app.postJob?.({
@@ -5440,6 +5610,10 @@
 
     const handleSubmit = (e) => {
       e.preventDefault();
+      if (!cust) {
+        KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/post-a-job" });
+        return;
+      }
       if (!title.trim()) {
         app.showNotification?.("Please enter a short job title.");
         return;
@@ -5626,7 +5800,20 @@
           h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#CFC6B8" } }, h("span", null, `Worker payout (${days}d)`), h("b", { style: { color: "#FBF8F2" } }, formatInr(baseLabor))),
           h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#CFC6B8" } }, h("span", null, "Platform fee (+20%)"), h("b", { style: { color: "#FBF8F2" } }, formatInr(platformFee))),
           h("div", { style: { borderTop: "1px solid #3A342C", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, h("span", { style: { fontWeight: 700 } }, "Total Customer Escrow"), h("span", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "40px", color: "#F5A524" } }, formatInr(totalCustomer))),
-          h("button", { type: "submit", style: { height: "54px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "16px" } }, "Broadcast Job Now →"),
+          h(
+            "button",
+            {
+              type: "submit",
+              onClick: (e) => {
+                if (!cust) {
+                  e.preventDefault();
+                  KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/post-a-job" });
+                }
+              },
+              style: { height: "54px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "16px" },
+            },
+            "Broadcast Job Now →"
+          ),
           h("span", { style: { fontSize: "12px", color: "#CFC6B8", lineHeight: 1.5 } }, "Payment releases to worker UPI only after 4-digit start OTP and completion check.")
         )
       )
@@ -5775,6 +5962,10 @@
     const crewFee = Math.round(crewTotalBase * 0.2);
 
     const rebookPro = (item) => {
+      if (!cust) {
+        KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/crew-and-rebook" });
+        return;
+      }
       const r = Number(item.dailyWage) || getLiveTradeRate(item.trade, workers);
       const created = app.postJob?.({
         title: `Rebook ${item.assignedWorkerName} (${item.trade})`,
@@ -5793,6 +5984,10 @@
     };
 
     const postCrew = () => {
+      if (!cust) {
+        KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/crew-and-rebook" });
+        return;
+      }
       const summary = Object.entries(crewCounts)
         .filter(([, n]) => n > 0)
         .map(([tr, n]) => `${n}× ${tr}`)
