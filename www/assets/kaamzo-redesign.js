@@ -2772,29 +2772,28 @@
             minHeight: "900px",
             overflow: "hidden",
             color: "#1C1913",
-            background: "linear-gradient(180deg, #B9D3E8 0%, #D9E3EA 30%, #F6E2CF 58%, #F7C79C 72%, #F3B47C 100%)",
+            backgroundColor: "#DCEAF5",
+            backgroundImage: "url('/assets/kaamzo-hero-bg.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center bottom",
+            backgroundRepeat: "no-repeat",
           },
         },
-        h(
-          "div",
-          { style: { position: "absolute", left: 0, right: 0, bottom: 0, height: "520px" } },
-          h(HeroWorkSceneSvg, null),
-          h("div", {
-            "aria-hidden": "true",
-            style: {
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: "340px",
-              zIndex: 2,
-              pointerEvents: "none",
-              background: isDark
-                ? "linear-gradient(180deg, rgba(20,18,14,0) 0%, rgba(20,18,14,0.12) 22%, rgba(20,18,14,0.45) 50%, rgba(20,18,14,0.82) 76%, #14120E 100%)"
-                : "linear-gradient(180deg, rgba(251,248,242,0) 0%, rgba(251,248,242,0.06) 15%, rgba(251,248,242,0.2) 32%, rgba(251,248,242,0.45) 50%, rgba(251,248,242,0.72) 68%, rgba(251,248,242,0.92) 84%, #FBF8F2 100%)",
-            },
-          })
-        ),
+        h("div", {
+          "aria-hidden": "true",
+          style: {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "280px",
+            zIndex: 2,
+            pointerEvents: "none",
+            background: isDark
+              ? "linear-gradient(180deg, rgba(20,18,14,0) 0%, rgba(20,18,14,0.18) 32%, rgba(20,18,14,0.62) 70%, #14120E 100%)"
+              : "linear-gradient(180deg, rgba(251,248,242,0) 0%, rgba(251,248,242,0.12) 32%, rgba(251,248,242,0.58) 70%, #FBF8F2 100%)",
+          },
+        }),
         h("div", {
           "aria-hidden": "true",
           style: {
@@ -2802,10 +2801,11 @@
             left: "50%",
             top: "40px",
             width: "1200px",
-            height: "640px",
+            height: "560px",
             marginLeft: "-600px",
+            pointerEvents: "none",
             background:
-              "radial-gradient(ellipse at center, rgba(251,246,238,0.85) 0%, rgba(251,246,238,0.55) 40%, rgba(251,246,238,0) 70%)",
+              "radial-gradient(ellipse at center, rgba(251,246,238,0.56) 0%, rgba(251,246,238,0.22) 45%, rgba(251,246,238,0) 72%)",
           },
         }),
 
