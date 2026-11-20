@@ -1927,12 +1927,23 @@
 
     if (!config) return null;
 
+    const targetRole = config.role === "worker" ? "worker" : "customer";
+    const headingPrefix = config.headingPrefix || "Login to ";
+    const headingAccent = config.headingAccent || (targetRole === "worker" ? "go online." : "post a job.");
+    const bodyText =
+      config.body ||
+      (targetRole === "worker"
+        ? "Without logging in, you cannot go online or broadcast your 10 km GPS availability. Sign in or register as a Worker to start receiving live jobs."
+        : "Please sign in to your Customer account first. After logging in, you can broadcast jobs within 10 km, receive your 4-digit Start OTP, and pay via UPI escrow.");
+    const ctaLabel =
+      config.ctaLabel || (targetRole === "worker" ? "Sign in / Register as Worker →" : "Sign in / Register as Customer →");
+
     const handleGoogle = async () => {
       setSsoLoading(true);
       try {
-        const res = await app.signInWithGoogleSSO?.("customer");
+        const res = await app.signInWithGoogleSSO?.(targetRole);
         if (res && res.loggedIn) {
-          app.showNotification?.("Signed in! You can now post your job.");
+          app.showNotification?.(targetRole === "worker" ? "Signed in! You can now go online." : "Signed in! You can now post your job.");
           onClose();
         } else {
           onClose();
@@ -2003,13 +2014,13 @@
         h(
           "h2",
           { id: "kz-login-req-title", style: { margin: 0, fontSize: "28px", lineHeight: 1.08, letterSpacing: "-0.8px", fontWeight: 800 } },
-          "Login to ",
-          h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "post a job.")
+          headingPrefix,
+          h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, headingAccent)
         ),
         h(
           "p",
           { style: { margin: 0, fontSize: "14px", lineHeight: 1.55, color: isDark ? "#CFC6B8" : "#4A443A" } },
-          "Please sign in to your Customer account first. After logging in, you can broadcast jobs within 10 km, receive your 4-digit Start OTP, and pay via UPI escrow."
+          bodyText
         ),
         h(
           "button",
@@ -2046,9 +2057,9 @@
           {
             type: "button",
             onClick: () => {
-              KZ.preferredRegisterRole = "customer";
+              KZ.preferredRegisterRole = targetRole;
               onClose();
-              navigate("/register", { registerRole: "customer" });
+              navigate("/register", { registerRole: targetRole });
             },
             style: {
               height: "52px",
@@ -2060,7 +2071,7 @@
               fontSize: "15px",
             },
           },
-          "Sign in / Register as Customer →"
+          ctaLabel
         ),
         h(
           "button",
@@ -6549,7 +6560,7 @@
     const displayName = worker?.name || "Worker Account";
     const tradeName = worker ? getTradeMeta(worker.primaryTrade).name : "Electrician";
     const areaName = worker?.location?.area || app.currentCity?.name || "Ludhiana";
-    const isOnline = worker ? worker.isOnline !== false : true;
+    const isOnline = Boolean(worker && worker.isOnline);
     const walletBal = worker?.walletBalance || 0;
 
     const mainTabs = [
@@ -6730,8 +6741,17 @@
                 role: "switch",
                 "aria-checked": isOnline,
                 onClick: () => {
-                  if (worker) app.toggleWorkerStatus?.();
-                  else navigate("/register", { registerRole: "worker" });
+                  if (worker) {
+                    app.toggleWorkerStatus?.();
+                  } else {
+                    KZ.openLoginPrompt?.({
+                      role: "worker",
+                      headingPrefix: "Login to ",
+                      headingAccent: "go online.",
+                      body: "Without logging in, you cannot go online or broadcast your 10 km GPS availability. Sign in or register as a Worker to start receiving live jobs.",
+                      ctaLabel: "Sign in / Register as Worker →",
+                    });
+                  }
                 },
                 style: {
                   height: "44px",
