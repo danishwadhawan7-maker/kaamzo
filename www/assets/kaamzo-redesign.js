@@ -1867,6 +1867,209 @@
     );
   }
 
+  async function launchRazorpayCheckout(job, app) {
+    if (!job) return;
+    const fullAmount = (Number(job.dailyWage) || 850) * (Number(job.durationDays) || 1);
+    const cust = app.currentCustomer;
+
+    const loadScript = () =>
+      new Promise((resolve, reject) => {
+        if (window.Razorpay) return resolve(true);
+        const s = document.createElement("script");
+        s.src = "https://checkout.razorpay.com/v1/checkout.js";
+        s.async = true;
+        s.onload = () => resolve(true);
+        s.onerror = () => reject(new Error("Could not load Razorpay Checkout script."));
+        document.head.appendChild(s);
+      });
+
+    try {
+      await loadScript();
+      app.showNotification?.("Creating Razorpay test order…");
+      const orderResp = await fetch("/api/razorpay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "createOrder",
+          jobId: job.id,
+          amountInr: fullAmount,
+          customerName: cust?.name || job.customerName || "Customer",
+          customerPhone: cust?.phone || job.customerPhone || "+91 98101 00000",
+          customerEmail: cust?.email || "",
+          jobSnapshot: job,
+        }),
+      });
+      const orderData = await orderResp.json().catch(() => ({}));
+      if (!orderResp.ok || !orderData.success || !orderData.order) {
+        throw new Error(orderData.error || "Failed to initialize Razorpay order.");
+      }
+
+      const cleanContact = String(cust?.phone || job.customerPhone || "9810100000")
+        .replace(/[^0-9]/g, "")
+        .slice(-10);
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency || "INR",
+        name: "Kaamzo",
+        description: `${job.title || "Work Order"} · ${job.trade || "Service"}`,
+        order_id: orderData.order.id,
+        prefill: {
+          name: cust?.name || job.customerName || "Kaamzo Customer",
+          email: cust?.email || "customer@kaamzo.site",
+          contact: cleanContact || "9810100000",
+        },
+        notes: {
+          jobId: String(job.id),
+          workerId: String(job.assignedWorkerId || ""),
+          workerUpi: String(job.assignedWorkerUpi || ""),
+        },
+        theme: { color: "#F5A524" },
+        handler: async function (response) {
+          try {
+            app.showNotification?.("Verifying Razorpay signature & settling worker payout…");
+            const vResp = await fetch("/api/razorpay", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "verifyPayment",
+                jobId: job.id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                rating: 5,
+                review: "Paid via Razorpay Checkout (Test Mode)",
+                amountInr: fullAmount,
+                workerUpi: job.assignedWorkerUpi || "",
+                jobSnapshot: job,
+              }),
+            });
+            const vData = await vResp.json().catch(() => ({}));
+            if (!vResp.ok || !vData.verified) {
+              throw new Error(vData.error || "Signature verification failed.");
+            }
+            job.razorpayOrderId = response.razorpay_order_id;
+            job.razorpayPaymentId = response.razorpay_payment_id;
+            job.razorpayPayoutId = vData.payout?.id || job.razorpayPayoutId;
+            job.razorpayPayoutStatus = vData.payout?.status || "processed_test_mode";
+            job.paymentStatus = "paid_and_settled";
+            app.releasePaymentByCustomer?.(
+              job.id,
+              5,
+              `Paid via Razorpay Checkout (${response.razorpay_payment_id})`,
+              "RAZORPAY_CHECKOUT_UPI",
+              response.razorpay_payment_id,
+              ["Paid via Razorpay", "UPI Settled"]
+            );
+            app.showNotification?.(`Paid ₹${fullAmount}! Payment ID: ${response.razorpay_payment_id}`);
+          } catch (err) {
+            app.showNotification?.("Verification error: " + (err?.message || "Please retry"));
+          }
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (resp) {
+        const msg = resp?.error?.description || "Test payment declined or cancelled.";
+        app.showNotification?.("Razorpay payment failed: " + msg);
+      });
+      rzp.open();
+    } catch (err) {
+      app.showNotification?.("Razorpay error: " + (err?.message || "Unable to open checkout"));
+    }
+  }
+
+  function JobProgressPipeline({ job, isDark }) {
+    if (!job) return null;
+    const st = job.status || "broadcast";
+    let step = 1;
+    if (st === "accepted" || st === "approved" || st === "in_progress") step = 2;
+    else if (st === "completed_pending_payment") step = job.paymentStatus === "order_created" ? 4 : 3;
+    else if (st === "paid_and_closed" || job.isPaid) step = 5;
+
+    const stages = [
+      { n: 1, label: "Booked" },
+      { n: 2, label: "Assigned" },
+      { n: 3, label: "Completed & UPI" },
+      { n: 4, label: "Razorpay Pay" },
+      { n: 5, label: "Paid & Settled" },
+    ];
+
+    return h(
+      "div",
+      {
+        style: {
+          padding: "12px 14px",
+          borderRadius: "16px",
+          background: isDark ? "#27231C" : "#FBF8F2",
+          border: "1px solid " + (isDark ? "#3A342C" : "#EFE7DA"),
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+        },
+      },
+      h(
+        "div",
+        { style: { display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" } },
+        stages.map((s) => {
+          const done = step >= s.n;
+          return h(
+            "span",
+            {
+              key: s.n,
+              style: {
+                padding: "4px 10px",
+                borderRadius: "999px",
+                fontSize: "11px",
+                fontWeight: 800,
+                background:
+                  step === 5 && s.n === 5
+                    ? "#2E9E57"
+                    : done
+                    ? step === s.n
+                      ? "#F5A524"
+                      : "#E3F4E8"
+                    : isDark
+                    ? "#1F1C17"
+                    : "#EFE7DA",
+                color:
+                  step === 5 && s.n === 5
+                    ? "#FFFFFF"
+                    : done
+                    ? step === s.n
+                      ? "#1C1913"
+                      : "#1D6B36"
+                    : isDark
+                    ? "#A49B8C"
+                    : "#6F685D",
+              },
+            },
+            (done ? "✓ " : "") + s.label
+          );
+        })
+      ),
+      (job.assignedWorkerUpi || job.razorpayPaymentId || job.transactionRef) &&
+        h(
+          "div",
+          {
+            style: {
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "12px",
+              fontSize: "11px",
+              fontWeight: 700,
+              color: isDark ? "#CFC6B8" : "#4A443A",
+            },
+          },
+          job.assignedWorkerUpi && h("span", null, "Worker UPI: " + job.assignedWorkerUpi),
+          (job.razorpayPaymentId || (job.transactionRef && String(job.transactionRef).startsWith("pay_"))) &&
+            h("span", { style: { color: "#1D6B36" } }, "Razorpay ID: " + (job.razorpayPaymentId || job.transactionRef)),
+          job.razorpayOrderId && h("span", null, "Order: " + job.razorpayOrderId)
+        )
+    );
+  }
+
   // Export core toolkit + MainApp shell
   Object.assign(KZ.utils, {
     getCtx,
@@ -1894,6 +2097,7 @@
     normalizePathname,
     navigate,
     useRoute,
+    launchRazorpayCheckout,
   });
 
   Object.assign(KZ.components, {
@@ -1905,6 +2109,7 @@
     GlobalOtpModal,
     HelpAndSupportFloating,
     KaamzoFooter,
+    JobProgressPipeline,
   });
 
   function FallbackView({ path }) {
@@ -2089,18 +2294,286 @@
     );
   }
 
+  function CompleteJobUpiModal({ job, onClose }) {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+    const worker = app.currentWorker;
+    const savedUpi = worker?.upiId || job?.assignedWorkerUpi || "";
+    const [upiId, setUpiId] = useState(savedUpi);
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState("");
+
+    if (!job) return null;
+
+    const fullAmount = Math.max(
+      1,
+      Math.round(Number(job.dailyWage || 850) * Number(job.durationDays || 1))
+    );
+    const workerNet = Math.max(
+      1,
+      Math.round(Number(job.workerPayout || fullAmount * 0.8))
+    );
+
+    const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
+    const borderCol = isDark ? "#3A342C" : "#E5DCCB";
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const cleanUpi = String(upiId || "").trim().toLowerCase();
+      if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(cleanUpi)) {
+        setErr("Enter a valid UPI ID (e.g. raju@okaxis or success@razorpay).");
+        return;
+      }
+      setErr("");
+      setBusy(true);
+      try {
+        // Save UPI to worker profile immediately so it pre-fills next time
+        app.updateWorkerUpi?.(cleanUpi);
+        job.assignedWorkerUpi = cleanUpi;
+        job.workerUpi = cleanUpi;
+
+        // Mark completed locally (sets status = completed_pending_payment)
+        app.completeJobByWorker?.(job.id);
+
+        // Register RazorpayX Contact + UPI Fund Account & persist to MongoDB
+        const resp = await fetch("/api/razorpay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "markCompleted",
+            jobId: job.id,
+            upiId: cleanUpi,
+            workerId: worker?.id || job.assignedWorkerId,
+            workerName: worker?.name || job.assignedWorkerName || "Kaamzo Worker",
+            workerPhone: worker?.phone || job.assignedWorkerPhone || "",
+            jobSnapshot: Object.assign({}, job, {
+              status: "completed_pending_payment",
+              assignedWorkerUpi: cleanUpi,
+              workerUpi: cleanUpi,
+            }),
+          }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || !data.success) {
+          throw new Error(data.error || "Could not verify UPI payout account.");
+        }
+        job.razorpayContactId = data.fundAccount?.contactId || data.job?.razorpayContactId || job.razorpayContactId;
+        job.razorpayFundAccountId = data.fundAccount?.fundAccountId || data.job?.razorpayFundAccountId || job.razorpayFundAccountId;
+        job.razorpayPayoutMode = data.fundAccount?.mode || job.razorpayPayoutMode;
+
+        app.showNotification?.(
+          `Job marked completed! UPI (${cleanUpi}) saved & Pay Now enabled for customer.`
+        );
+        onClose();
+      } catch (e2) {
+        setErr(e2?.message || "Failed to save UPI & mark completed.");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    return h(
+      "div",
+      {
+        role: "dialog",
+        "aria-modal": "true",
+        style: {
+          position: "fixed",
+          inset: 0,
+          background: "rgba(28, 25, 19, 0.62)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+          zIndex: 135,
+          backdropFilter: "blur(6px)",
+        },
+        onClick: (e) => {
+          if (e.target === e.currentTarget && !busy) onClose();
+        },
+      },
+      h(
+        "form",
+        {
+          onSubmit: handleSubmit,
+          style: {
+            width: "100%",
+            maxWidth: "460px",
+            borderRadius: "28px",
+            background: cardBg,
+            color: isDark ? "#EDE6DA" : "#1C1913",
+            border: "1px solid " + borderCol,
+            padding: "26px",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "14px",
+          },
+        },
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
+          h(
+            "span",
+            {
+              style: {
+                padding: "4px 10px",
+                borderRadius: "999px",
+                background: "#E3F4E8",
+                color: "#1D6B36",
+                fontSize: "11px",
+                fontWeight: 800,
+              },
+            },
+            "RAZORPAYX UPI PAYOUT"
+          ),
+          h(
+            "span",
+            { style: { fontSize: "12px", fontWeight: 700, color: isDark ? "#A49B8C" : "#6F685D" } },
+            "Test Mode"
+          )
+        ),
+        h("h3", { style: { margin: 0, fontSize: "24px", fontWeight: 800, lineHeight: 1.15 } }, "Mark Completed & Enter UPI"),
+        h(
+          "div",
+          {
+            style: {
+              padding: "12px 14px",
+              borderRadius: "16px",
+              background: isDark ? "#27231C" : "#F7F2EA",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "12px",
+            },
+          },
+          h(
+            "div",
+            { style: { display: "flex", flexDirection: "column", gap: "2px" } },
+            h("b", { style: { fontSize: "14px" } }, job.title || "Work Order"),
+            h(
+              "span",
+              { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D" } },
+              `Customer pays ${formatInr(fullAmount)} · You receive ${formatInr(workerNet)}`
+            )
+          )
+        ),
+        h(
+          "label",
+          { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "13px", fontWeight: 700 } },
+          savedUpi ? "Saved Worker UPI ID (editable)" : "Your UPI ID for payout (saved for next time)",
+          h("input", {
+            type: "text",
+            required: true,
+            value: upiId,
+            onChange: (e) => setUpiId(e.target.value),
+            placeholder: "e.g. name@okaxis or success@razorpay",
+            style: {
+              height: "48px",
+              borderRadius: "14px",
+              border: "2px solid " + borderCol,
+              padding: "0 14px",
+              fontSize: "15px",
+              fontWeight: 700,
+              background: isDark ? "#14120E" : "#FBF8F2",
+              color: isDark ? "#EDE6DA" : "#1C1913",
+            },
+          })
+        ),
+        h(
+          "div",
+          { style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" } },
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => setUpiId("success@razorpay"),
+              style: {
+                padding: "6px 12px",
+                borderRadius: "999px",
+                border: "1px solid " + borderCol,
+                background: isDark ? "#27231C" : "#FFF7E3",
+                color: isDark ? "#F5A524" : "#7A4E00",
+                fontSize: "12px",
+                fontWeight: 800,
+                cursor: "pointer",
+              },
+            },
+            "Use test UPI: success@razorpay"
+          ),
+          h(
+            "span",
+            { style: { fontSize: "11px", color: isDark ? "#A49B8C" : "#6F685D" } },
+            "Saved automatically for next job"
+          )
+        ),
+        err &&
+          h(
+            "div",
+            { style: { padding: "10px 12px", borderRadius: "12px", background: "#FFE1E1", color: "#9B1C1C", fontSize: "13px", fontWeight: 700 } },
+            err
+          ),
+        h(
+          "div",
+          { style: { display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "4px" } },
+          h(
+            "button",
+            {
+              type: "button",
+              disabled: busy,
+              onClick: onClose,
+              style: {
+                height: "44px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: "1px solid " + borderCol,
+                background: "transparent",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+                fontWeight: 700,
+                fontSize: "13px",
+              },
+            },
+            "Cancel"
+          ),
+          h(
+            "button",
+            {
+              type: "submit",
+              disabled: busy,
+              style: {
+                height: "44px",
+                padding: "0 22px",
+                borderRadius: "999px",
+                border: 0,
+                background: "#2E9E57",
+                color: "#FFFFFF",
+                fontWeight: 800,
+                fontSize: "14px",
+                cursor: busy ? "wait" : "pointer",
+              },
+            },
+            busy ? "Saving UPI & Submitting…" : "Mark Completed →"
+          )
+        )
+      )
+    );
+  }
+
   KZ.MainApp = function MainApp() {
     const app = useApp();
     const { path } = useRoute();
     const [otpConfig, setOtpConfig] = useState(null);
     const [loginPrompt, setLoginPrompt] = useState(null);
+    const [completeJobModal, setCompleteJobModal] = useState(null);
 
     useEffect(() => {
       KZ.openOtpModal = (cfg) => setOtpConfig(cfg);
       KZ.openLoginPrompt = (cfg) => setLoginPrompt(cfg || { title: "Login to post a job" });
+      KZ.openCompleteJobModal = (job) => setCompleteJobModal(job || null);
       return () => {
         KZ.openOtpModal = null;
         KZ.openLoginPrompt = null;
+        KZ.openCompleteJobModal = null;
       };
     }, []);
 
@@ -2145,7 +2618,8 @@
       ViewComp ? h(ViewComp, { path, openOtpModal: (cfg) => setOtpConfig(cfg) }) : h(FallbackView, { path }),
       h(HelpAndSupportFloating, null),
       otpConfig && h(GlobalOtpModal, { config: otpConfig, onClose: () => setOtpConfig(null) }),
-      loginPrompt && h(LoginRequiredModal, { config: loginPrompt, onClose: () => setLoginPrompt(null) })
+      loginPrompt && h(LoginRequiredModal, { config: loginPrompt, onClose: () => setLoginPrompt(null) }),
+      completeJobModal && h(CompleteJobUpiModal, { job: completeJobModal, onClose: () => setCompleteJobModal(null) })
     );
   };
 })();
@@ -4531,8 +5005,9 @@
     haversineKm,
     formatInr,
     navigate,
+    launchRazorpayCheckout,
   } = U;
-  const { SvgIcon, TopUtilityBar, KaamzoFooter } = C;
+  const { SvgIcon, TopUtilityBar, KaamzoFooter, JobProgressPipeline } = C;
 
   const CUSTOMER_SUBNAV = [
     { path: "/customer", label: "Find workers" },
@@ -4896,6 +5371,22 @@
     const isDark = app.isDarkMode;
     const cust = app.currentCustomer;
     const workers = app.workers || [];
+    const jobs = app.jobs || [];
+
+    const myCustomerJobs = useMemo(() => {
+      if (!cust?.phone && !cust?.name) return jobs;
+      const cleanCPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
+      const filtered = jobs.filter((j) => {
+        const jPhone = String(j.customerPhone || "").replace(/[^0-9]/g, "").slice(-10);
+        return (cleanCPhone && jPhone === cleanCPhone) || (cust.name && j.customerName === cust.name);
+      });
+      return filtered.length > 0 ? filtered : jobs;
+    }, [jobs, cust?.phone, cust?.name]);
+
+    const pendingPayJobs = myCustomerJobs.filter((j) => j.status === "completed_pending_payment");
+    const trackableJobs = myCustomerJobs
+      .filter((j) => ["accepted", "approved", "in_progress", "paid_and_closed"].includes(j.status))
+      .slice(0, 3);
 
     const [query, setQuery] = useState(() => KZ.lastSearchQuery || "");
     const [selectedTrade, setSelectedTrade] = useState(() => KZ.lastSelectedTrade || "All");
@@ -5090,6 +5581,163 @@
           )
         )
       ),
+
+      // AUTO "PAY NOW" BANNER FOR COMPLETED JOBS (RAZORPAY CHECKOUT)
+      pendingPayJobs.length > 0 &&
+        h(
+          "section",
+          {
+            style: {
+              borderRadius: "28px",
+              background: isDark ? "#27231C" : "#FFF7E3",
+              border: "2px solid #F5A524",
+              padding: "22px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            },
+          },
+          h(
+            "div",
+            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" } },
+            h(
+              "div",
+              null,
+              h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "1px", color: "#9B4D00" } }, "ACTION REQUIRED · WORK COMPLETED"),
+              h("h2", { style: { margin: "4px 0 0", fontSize: "22px", fontWeight: 800, color: isDark ? "#FBF8F2" : "#1C1913" } }, `${pendingPayJobs.length} job${pendingPayJobs.length > 1 ? "s" : ""} ready for Razorpay UPI payment`)
+            ),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => navigate("/customer/my-bookings", { role: "customer" }),
+                style: { height: "38px", padding: "0 14px", borderRadius: "999px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "12px" },
+              },
+              "View all bookings →"
+            )
+          ),
+          pendingPayJobs.map((j) => {
+            const fullAmt = Math.max(1, Math.round(Number(j.dailyWage || 850) * Number(j.durationDays || 1)));
+            return h(
+              "div",
+              {
+                key: j.id,
+                style: {
+                  borderRadius: "20px",
+                  background: cardBg,
+                  border: "1px solid " + borderCol,
+                  padding: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                },
+              },
+              h(
+                "div",
+                { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px" } },
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+                  h("b", { style: { fontSize: "17px" } }, j.title),
+                  h(
+                    "span",
+                    { style: { fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A" } },
+                    `Worker: ${j.assignedWorkerName || "Assigned Worker"}${j.assignedWorkerUpi ? " · UPI: " + j.assignedWorkerUpi : ""}`
+                  )
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => launchRazorpayCheckout(j, app),
+                    style: {
+                      height: "46px",
+                      padding: "0 22px",
+                      borderRadius: "999px",
+                      border: 0,
+                      background: "#F5A524",
+                      color: "#1C1913",
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      boxShadow: "0 6px 18px rgba(245,165,36,0.35)",
+                    },
+                  },
+                  `Pay Now · ${formatInr(fullAmt)}`
+                )
+              ),
+              h(JobProgressPipeline, { job: j, isDark })
+            );
+          })
+        ),
+
+      // LIVE JOB STATUS STRIP ON DASHBOARD
+      trackableJobs.length > 0 &&
+        pendingPayJobs.length === 0 &&
+        h(
+          "section",
+          {
+            style: {
+              borderRadius: "28px",
+              background: cardBg,
+              border: "1px solid " + borderCol,
+              padding: "20px 22px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            },
+          },
+          h(
+            "div",
+            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" } },
+            h("h3", { style: { margin: 0, fontSize: "18px", fontWeight: 800 } }, "Recent Work Order Status"),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => navigate("/customer/my-bookings", { role: "customer" }),
+                style: { border: 0, background: "transparent", color: "#9B4D00", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+              },
+              "Open My Bookings →"
+            )
+          ),
+          trackableJobs.map((j) =>
+            h(
+              "div",
+              {
+                key: j.id,
+                style: {
+                  padding: "12px 14px",
+                  borderRadius: "16px",
+                  background: isDark ? "#27231C" : "#FBF8F2",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                },
+              },
+              h(
+                "div",
+                { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" } },
+                h("b", { style: { fontSize: "14px" } }, `${j.title} · ${j.assignedWorkerName || j.trade}`),
+                h(
+                  "span",
+                  {
+                    style: {
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      background: j.status === "paid_and_closed" ? "#E3F4E8" : "#FFF0BF",
+                      color: j.status === "paid_and_closed" ? "#1D6B36" : "#6B4600",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                    },
+                  },
+                  String(j.status || "").toUpperCase().replace(/_/g, " ")
+                )
+              ),
+              h(JobProgressPipeline, { job: j, isDark })
+            )
+          )
+        ),
 
       // TRADE FILTER PILLS
       h(
@@ -5436,12 +6084,13 @@
                       "div",
                       { style: { display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" } },
                       h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: tm.bg, color: tm.fg, fontSize: "12px", fontWeight: 800 } }, tm.name),
-                      h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#FFF0BF", color: "#6B4600", fontSize: "11px", fontWeight: 800 } }, String(j.status || "broadcast").toUpperCase().replace(/_/g, " ")),
-                      j.isEscrowPrepaid && h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "11px", fontWeight: 800 } }, "ESCROW FUNDED")
+                      h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: j.status === "paid_and_closed" ? "#E3F4E8" : j.status === "completed_pending_payment" ? "#FFE7B8" : "#FFF0BF", color: j.status === "paid_and_closed" ? "#1D6B36" : "#6B4600", fontSize: "11px", fontWeight: 800 } }, String(j.status || "broadcast").toUpperCase().replace(/_/g, " ")),
+                      j.isEscrowPrepaid && h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "11px", fontWeight: 800 } }, "ESCROW FUNDED"),
+                      j.razorpayPaymentId && h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#DCEBFF", color: "#123A6B", fontSize: "11px", fontWeight: 800 } }, "RZP: " + j.razorpayPaymentId)
                     ),
                     h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, j.title),
                     h("span", { style: { fontSize: "13px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${j.locationAddress || j.area} · ${j.durationDays || 1} day(s)`),
-                    j.assignedWorkerName && h("span", { style: { fontSize: "14px", fontWeight: 700, color: "#1D6B36" } }, `Assigned worker: ${j.assignedWorkerName} (${j.assignedWorkerPhone || ""})`)
+                    j.assignedWorkerName && h("span", { style: { fontSize: "14px", fontWeight: 700, color: "#1D6B36" } }, `Assigned worker: ${j.assignedWorkerName} (${j.assignedWorkerPhone || ""})${j.assignedWorkerUpi ? " · UPI: " + j.assignedWorkerUpi : ""}`)
                   ),
                   h(
                     "div",
@@ -5455,6 +6104,9 @@
                       )
                   )
                 ),
+
+                // 5-Step Live Status Pipeline
+                h(JobProgressPipeline, { job: j, isDark }),
 
                 // Pending worker wage counter-offers
                 pendingProposals.length > 0 &&
@@ -5518,15 +6170,36 @@
                       },
                       "Live ETA & Start Code"
                     ),
-                  (j.status === "completed_pending_payment" || j.status === "in_progress") &&
+                  j.status === "completed_pending_payment" &&
                     h(
                       "button",
                       {
                         type: "button",
-                        onClick: () => app.openUpiPayment?.(j),
-                        style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "13px" },
+                        onClick: () => launchRazorpayCheckout(j, app),
+                        style: {
+                          height: "42px",
+                          padding: "0 20px",
+                          borderRadius: "999px",
+                          border: 0,
+                          background: "#F5A524",
+                          color: "#1C1913",
+                          fontWeight: 800,
+                          fontSize: "13px",
+                          cursor: "pointer",
+                          boxShadow: "0 4px 14px rgba(245,165,36,0.35)",
+                        },
                       },
-                      "Pay & Release UPI"
+                      `Pay Now · ${formatInr((j.dailyWage || 850) * (j.durationDays || 1))}`
+                    ),
+                  j.status === "in_progress" &&
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () => launchRazorpayCheckout(j, app),
+                        style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+                      },
+                      "Pay with Razorpay UPI"
                     ),
                   j.status === "broadcast" &&
                     h(
@@ -5925,13 +6598,16 @@
               { style: { flex: "1 1 340px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
               h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#7A4E00" } }, "WORK ORDER #" + activeJob.id),
               h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, activeJob.title),
+              h(JobProgressPipeline, { job: activeJob, isDark }),
               h("div", { style: { padding: "14px", borderRadius: "18px", background: "#1C1913", color: "#FBF8F2", display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#CFC6B8" } }, "4-Digit Start OTP"), h("b", { style: { fontSize: "24px", letterSpacing: "3px", color: "#F5A524" } }, activeJob.otpCode || "—")),
               h("div", { style: { padding: "14px", borderRadius: "18px", background: "#E3F4E8", color: "#1D6B36", display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontSize: "13px", fontWeight: 700 } }, "Attendance clock"), h("b", { style: { fontSize: "18px" } }, fmtClock(elapsedSec))),
               h(
                 "div",
                 { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
                 h("button", { type: "button", onClick: () => app.dispatchJobStartOtp?.(activeJob), style: { height: "44px", padding: "0 16px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "13px" } }, "Resend Start OTP"),
-                h("button", { type: "button", onClick: () => app.openUpiPayment?.(activeJob), style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "13px" } }, "Release UPI Payment")
+                activeJob.status === "paid_and_closed"
+                  ? h("span", { style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", justifyContent: "center" } }, "✓ Paid via Razorpay")
+                  : h("button", { type: "button", onClick: () => launchRazorpayCheckout(activeJob, app), style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", border: 0, background: activeJob.status === "completed_pending_payment" ? "#F5A524" : "#2E9E57", color: activeJob.status === "completed_pending_payment" ? "#1C1913" : "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, `Pay Now · ${formatInr((activeJob.dailyWage || 850) * (activeJob.durationDays || 1))}`)
               )
             )
           )
@@ -6539,7 +7215,7 @@
     getJobDistanceKm,
     navigate,
   } = U;
-  const { SvgIcon, TopUtilityBar, KaamzoFooter } = C;
+  const { SvgIcon, TopUtilityBar, KaamzoFooter, JobProgressPipeline } = C;
 
   const WORKER_SUBNAV = [
     { path: "/worker", label: "Work" },
@@ -6975,13 +7651,13 @@
         });
     }, [jobs, skippedIds, workerTradeNorm, worker, areaFilter, filter, sortBy]);
 
-    // Active jobs for this worker
+    // Active & recently settled jobs for this worker
     const activeWorkerJobs = useMemo(() => {
       if (!worker) return [];
       return jobs.filter(
         (j) =>
           (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) &&
-          ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)
+          ["accepted", "approved", "in_progress", "completed_pending_payment", "paid_and_closed"].includes(j.status)
       );
     }, [jobs, worker]);
 
@@ -7396,6 +8072,7 @@
                       { key: aj.id, style: { padding: "14px", borderRadius: "18px", background: isDark ? "#27231C" : "#FBF8F2", display: "flex", flexDirection: "column", gap: "8px" } },
                       h("b", { style: { fontSize: "15px" } }, aj.title),
                       h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D" } }, aj.locationAddress || aj.area),
+                      h(JobProgressPipeline, { job: aj, isDark }),
                       (aj.status === "accepted" || aj.status === "approved") &&
                         h(
                           "div",
@@ -7418,15 +8095,27 @@
                             "Start Job"
                           )
                         ),
-                      aj.status === "in_progress" &&
+                      ["accepted", "approved", "in_progress"].includes(aj.status) &&
                         h(
                           "button",
                           {
                             type: "button",
-                            onClick: () => app.completeJobByWorker?.(aj.id),
-                            style: { height: "38px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "12px" },
+                            onClick: () => KZ.openCompleteJobModal?.(aj),
+                            style: { height: "38px", borderRadius: "999px", border: 0, background: aj.status === "in_progress" ? "#F5A524" : "#1C1913", color: aj.status === "in_progress" ? "#1C1913" : "#FBF8F2", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
                           },
-                          "Mark Work Done"
+                          "Mark Completed · Enter UPI"
+                        ),
+                      aj.status === "completed_pending_payment" &&
+                        h(
+                          "div",
+                          { style: { padding: "8px 10px", borderRadius: "10px", background: "#FFF0BF", color: "#6B4600", fontSize: "11px", fontWeight: 800 } },
+                          `Awaiting Customer Razorpay Pay (${aj.assignedWorkerUpi || worker?.upiId || "UPI saved"})`
+                        ),
+                      aj.status === "paid_and_closed" &&
+                        h(
+                          "div",
+                          { style: { padding: "8px 10px", borderRadius: "10px", background: "#E3F4E8", color: "#1D6B36", fontSize: "11px", fontWeight: 800 } },
+                          `✓ Paid via Razorpay${aj.razorpayPaymentId ? " · " + aj.razorpayPaymentId : ""}`
                         )
                     )
                   )
@@ -7535,6 +8224,15 @@
       .filter((j) => j.status === "broadcast" && (!tradeNorm || normalizeTrade(j.trade) === tradeNorm) && isJobWithin10Km(j, worker))
       .slice(0, 4);
 
+    const assignedWorkerJobs = useMemo(() => {
+      if (!worker) return [];
+      return jobs.filter(
+        (j) =>
+          (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) &&
+          ["accepted", "approved", "in_progress", "completed_pending_payment", "paid_and_closed"].includes(j.status)
+      );
+    }, [jobs, worker]);
+
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
 
@@ -7583,6 +8281,55 @@
           )
         )
       ),
+
+      // Assigned & Active Jobs (Mark Completed + Live Payout Status)
+      assignedWorkerJobs.length > 0 &&
+        h(
+          "section",
+          { style: { borderRadius: "30px", background: cardBg, border: "2px solid #F5A524", padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
+          h(
+            "div",
+            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" } },
+            h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, "Your Assigned & Active Jobs"),
+            h("button", { type: "button", onClick: () => navigate("/worker/live-job", { role: "worker" }), style: { height: "38px", padding: "0 16px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "12px" } }, "Open Live Job View →")
+          ),
+          assignedWorkerJobs.map((aj) =>
+            h(
+              "div",
+              { key: aj.id, style: { padding: "16px", borderRadius: "20px", background: isDark ? "#27231C" : "#FBF8F2", display: "flex", flexDirection: "column", gap: "12px" } },
+              h(
+                "div",
+                { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px" } },
+                h(
+                  "div",
+                  null,
+                  h("b", { style: { fontSize: "17px" } }, aj.title),
+                  h("div", { style: { fontSize: "13px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${aj.customerName || "Customer"} · ${aj.locationAddress || aj.area || "Ludhiana"}${aj.assignedWorkerUpi ? " · UPI: " + aj.assignedWorkerUpi : ""}`)
+                ),
+                h(
+                  "div",
+                  { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
+                  h("b", { style: { fontSize: "20px" } }, formatInr(aj.workerPayout || Math.round((aj.dailyWage || 850) * (aj.durationDays || 1) * 0.8))),
+                  ["accepted", "approved", "in_progress"].includes(aj.status) &&
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () => KZ.openCompleteJobModal?.(aj),
+                        style: { height: "42px", padding: "0 20px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+                      },
+                      "Mark Completed →"
+                    ),
+                  aj.status === "completed_pending_payment" &&
+                    h("span", { style: { padding: "8px 14px", borderRadius: "999px", background: "#FFF0BF", color: "#6B4600", fontSize: "12px", fontWeight: 800 } }, "Awaiting Customer Razorpay Pay"),
+                  aj.status === "paid_and_closed" &&
+                    h("span", { style: { padding: "8px 14px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "12px", fontWeight: 800 } }, "✓ Paid & Settled via Razorpay")
+                )
+              ),
+              h(JobProgressPipeline, { job: aj, isDark })
+            )
+          )
+        ),
 
       // Quick Jobs Preview
       h(
@@ -7828,9 +8575,9 @@
     const isDark = app.isDarkMode;
     const worker = app.currentWorker;
     const jobs = app.jobs || [];
-    const active = jobs.find(
-      (j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && ["accepted", "approved", "in_progress"].includes(j.status)
-    );
+    const active =
+      jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)) ||
+      jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && j.status === "paid_and_closed");
     const [otpCode, setOtpCode] = useState("");
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
@@ -7845,15 +8592,22 @@
             "div",
             { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "28px", display: "flex", flexDirection: "column", gap: "16px" } },
             h("b", { style: { fontSize: "24px" } }, active.title),
-            h("span", { style: { color: isDark ? "#CFC6B8" : "#4A443A" } }, `${active.customerName} · ${active.locationAddress || active.area}`),
-            active.status !== "in_progress"
-              ? h(
-                  "div",
-                  { style: { display: "flex", gap: "10px", flexWrap: "wrap" } },
-                  h("input", { type: "text", maxLength: 4, value: otpCode, onChange: (e) => setOtpCode(e.target.value), placeholder: "Enter 4-digit customer OTP", style: { width: "220px", height: "48px", borderRadius: "14px", border: "2px solid #E5DCCB", textAlign: "center", fontWeight: 800, fontSize: "18px", letterSpacing: "3px" } }),
-                  h("button", { type: "button", onClick: () => app.startJobWithOtp?.(active.id, otpCode), style: { height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800 } }, "Verify OTP & Start Job")
-                )
-              : h("button", { type: "button", onClick: () => app.completeJobByWorker?.(active.id), style: { alignSelf: "flex-start", height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800 } }, "Mark Work Completed →")
+            h("span", { style: { color: isDark ? "#CFC6B8" : "#4A443A" } }, `${active.customerName} · ${active.locationAddress || active.area}${active.assignedWorkerUpi ? " · UPI: " + active.assignedWorkerUpi : ""}`),
+            h(JobProgressPipeline, { job: active, isDark }),
+            (active.status === "accepted" || active.status === "approved") &&
+              h(
+                "div",
+                { style: { display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" } },
+                h("input", { type: "text", maxLength: 4, value: otpCode, onChange: (e) => setOtpCode(e.target.value), placeholder: "Enter 4-digit customer OTP", style: { width: "220px", height: "48px", borderRadius: "14px", border: "2px solid #E5DCCB", textAlign: "center", fontWeight: 800, fontSize: "18px", letterSpacing: "3px" } }),
+                h("button", { type: "button", onClick: () => app.startJobWithOtp?.(active.id, otpCode), style: { height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800 } }, "Verify OTP & Start Job"),
+                h("button", { type: "button", onClick: () => KZ.openCompleteJobModal?.(active), style: { height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, cursor: "pointer" } }, "Mark Completed · Enter UPI →")
+              ),
+            active.status === "in_progress" &&
+              h("button", { type: "button", onClick: () => KZ.openCompleteJobModal?.(active), style: { alignSelf: "flex-start", height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, cursor: "pointer" } }, "Mark Completed · Enter UPI →"),
+            active.status === "completed_pending_payment" &&
+              h("div", { style: { padding: "14px 18px", borderRadius: "16px", background: "#FFF0BF", color: "#6B4600", fontWeight: 800, fontSize: "14px" } }, `Job Completed! Waiting for customer Razorpay UPI payment to ${active.assignedWorkerUpi || worker?.upiId || "your UPI"}.`),
+            active.status === "paid_and_closed" &&
+              h("div", { style: { padding: "14px 18px", borderRadius: "16px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px" } }, `✓ Paid & Settled via Razorpay!${active.razorpayPaymentId ? " Payment ID: " + active.razorpayPaymentId : ""}`)
           )
     );
   }

@@ -8,6 +8,7 @@ const translateHandler = require("./api/translate");
 const estimateJobHandler = require("./api/estimate-job");
 const sendOtpHandler = require("./api/send-otp");
 const verifyOtpHandler = require("./api/verify-otp");
+const razorpayHandler = require("./api/razorpay");
 const adminSecurity = require("./admin-security");
 const { connectMongo, MODELS } = require("./lib/models");
 const { decryptDocumentFields } = require("./lib/encryption");
@@ -140,6 +141,7 @@ function parseBody(req) {
     let body = "";
     req.on("data", (chunk) => { body += chunk; });
     req.on("end", () => {
+      req.rawBody = body;
       try {
         resolve(JSON.parse(body || "{}"));
       } catch {
@@ -166,7 +168,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "https://www.kaamzo.site");
   }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Kaamzo-Admin-Token");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Kaamzo-Admin-Token, X-Razorpay-Signature");
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -189,6 +191,12 @@ const server = http.createServer(async (req, res) => {
       req.body = await parseBody(req);
     }
     return dbHandler(req, res, io);
+  }
+  if (pathname === "/api/razorpay" || pathname === "/api/razorpay-webhook") {
+    if (req.method === "POST" || req.method === "PUT") {
+      req.body = await parseBody(req);
+    }
+    return razorpayHandler(req, res);
   }
   if (pathname === "/api/estimate-job") {
     if (req.method === "POST") {
