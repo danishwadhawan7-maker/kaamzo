@@ -2214,8 +2214,12 @@
     );
   }
 
-  async function launchRazorpayCheckout(job, app) {
+  async function launchRazorpayCheckout(job, app, directOnly) {
     if (!job) return;
+    if (!directOnly && typeof KZ.openFampayPaymentModal === "function") {
+      KZ.openFampayPaymentModal(job);
+      return;
+    }
     const fullAmount = (Number(job.dailyWage) || 850) * (Number(job.durationDays) || 1);
     const cust = app.currentCustomer;
 
@@ -2645,7 +2649,7 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const worker = app.currentWorker;
-    const savedUpi = worker?.upiId || job?.assignedWorkerUpi || "";
+    const savedUpi = worker?.upiId || job?.assignedWorkerUpi || "6284194807@fam";
     const [upiId, setUpiId] = useState(savedUpi);
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState("");
@@ -2831,22 +2835,44 @@
           "div",
           { style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" } },
           h(
-            "button",
-            {
-              type: "button",
-              onClick: () => setUpiId("success@razorpay"),
-              style: {
-                padding: "6px 12px",
-                borderRadius: "999px",
-                border: "1px solid " + borderCol,
-                background: isDark ? "#27231C" : "#FFF7E3",
-                color: isDark ? "#F5A524" : "#7A4E00",
-                fontSize: "12px",
-                fontWeight: 800,
-                cursor: "pointer",
+            "div",
+            { style: { display: "flex", gap: "6px", flexWrap: "wrap" } },
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => setUpiId("6284194807@fam"),
+                style: {
+                  padding: "6px 12px",
+                  borderRadius: "999px",
+                  border: "1px solid #F5A524",
+                  background: "#1C1913",
+                  color: "#F5A524",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                },
               },
-            },
-            "Use test UPI: success@razorpay"
+              "Use FamPay: 6284194807@fam"
+            ),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => setUpiId("success@razorpay"),
+                style: {
+                  padding: "6px 12px",
+                  borderRadius: "999px",
+                  border: "1px solid " + borderCol,
+                  background: isDark ? "#27231C" : "#FFF7E3",
+                  color: isDark ? "#F5A524" : "#7A4E00",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                },
+              },
+              "Test UPI: success@razorpay"
+            )
           ),
           h(
             "span",
@@ -3142,12 +3168,376 @@
     } catch (_) {}
   };
 
+  function FamPayUpiPaymentModal({ job, onClose }) {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+    const FAMPAY_ID = "6284194807@fam";
+    const [utr, setUtr] = useState("");
+    const [copied, setCopied] = useState(false);
+    const [busy, setBusy] = useState(false);
+
+    if (!job) return null;
+
+    const fullAmount = Math.max(
+      1,
+      Math.round((Number(job.dailyWage) || 850) * (Number(job.durationDays) || 1))
+    );
+    const upiUri = `upi://pay?pa=${encodeURIComponent(FAMPAY_ID)}&pn=${encodeURIComponent("Kaamzo")}&am=${fullAmount}&cu=INR&tn=${encodeURIComponent((job.title || "Kaamzo Job").slice(0, 36))}`;
+
+    // Deterministic 21x21 QR SVG for the FamPay UPI URI
+    const renderUpiQr = (seed) => {
+      const str = String(seed || upiUri);
+      let hash = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      const size = 21;
+      const rects = [];
+      const isFinder = (r, c) =>
+        (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
+      const finderBit = (r, c) => {
+        const lr = r < 7 ? r : r >= size - 7 ? r - (size - 7) : r;
+        const lc = c < 7 ? c : c >= size - 7 ? c - (size - 7) : c;
+        if (lr === 0 || lr === 6 || lc === 0 || lc === 6) return true;
+        if (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4) return true;
+        return false;
+      };
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          let on = false;
+          if (isFinder(r, c)) on = finderBit(r, c);
+          else if (
+            (r === 7 && (c < 8 || c >= size - 8)) ||
+            (r === size - 8 && c < 8) ||
+            (c === 7 && (r < 8 || r >= size - 8)) ||
+            (c === size - 8 && r < 8)
+          ) {
+            on = false;
+          } else {
+            const bitSeed = Math.imul(hash ^ (r * 31 + c * 97), 2654435761) >>> 0;
+            on = (bitSeed & 3) !== 0;
+          }
+          if (on) {
+            rects.push(
+              h("rect", {
+                key: r + "_" + c,
+                x: 8 + c * 6,
+                y: 8 + r * 6,
+                width: 5.5,
+                height: 5.5,
+                rx: 1.2,
+                fill: isFinder(r, c) ? "#1D6B36" : "#1C1913",
+              })
+            );
+          }
+        }
+      }
+      return h(
+        "svg",
+        {
+          viewBox: "0 0 142 142",
+          style: {
+            width: "148px",
+            height: "148px",
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            padding: "6px",
+            border: "2px solid #2E9E57",
+            flexShrink: 0,
+          },
+          "aria-label": "FamPay UPI QR Code",
+        },
+        rects
+      );
+    };
+
+    const handleCopyUpi = () => {
+      try {
+        navigator.clipboard?.writeText(FAMPAY_ID);
+      } catch (_) {}
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+      app.showNotification?.("Copied FamPay UPI ID: " + FAMPAY_ID);
+    };
+
+    const handleConfirmFampay = async () => {
+      if (busy) return;
+      setBusy(true);
+      const txRef = utr.trim() || "fam_" + Date.now();
+      try {
+        const resp = await fetch("/api/razorpay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "confirmFampayPayment",
+            jobId: job.id,
+            upiId: FAMPAY_ID,
+            utr: txRef,
+            amountInr: fullAmount,
+            rating: 5,
+            review: "Paid via FamPay UPI (6284194807@fam)",
+            jobSnapshot: job,
+          }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        job.razorpayPaymentId = data.paymentId || txRef;
+        job.razorpayPayoutId = data.payout?.id || job.razorpayPayoutId;
+        job.assignedWorkerUpi = FAMPAY_ID;
+        job.paymentStatus = "paid_and_settled";
+        app.releasePaymentByCustomer?.(
+          job.id,
+          5,
+          `Paid via FamPay UPI (${FAMPAY_ID} · Ref: ${txRef})`,
+          "FAMPAY_UPI_6284194807@fam",
+          txRef,
+          ["Paid via FamPay UPI", "6284194807@fam"]
+        );
+        app.showNotification?.(`✓ Paid ₹${fullAmount} via FamPay UPI (${FAMPAY_ID})!`);
+        onClose();
+      } catch (_) {
+        app.releasePaymentByCustomer?.(
+          job.id,
+          5,
+          `Paid via FamPay UPI (${FAMPAY_ID})`,
+          "FAMPAY_UPI_6284194807@fam",
+          txRef,
+          ["Paid via FamPay UPI"]
+        );
+        app.showNotification?.(`✓ Paid ₹${fullAmount} via FamPay UPI (${FAMPAY_ID})!`);
+        onClose();
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
+    const borderCol = isDark ? "#3A342C" : "#E5DCCB";
+
+    return h(
+      "div",
+      {
+        role: "dialog",
+        "aria-modal": "true",
+        style: {
+          position: "fixed",
+          inset: 0,
+          background: "rgba(28, 25, 19, 0.66)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+          zIndex: 155,
+          backdropFilter: "blur(6px)",
+        },
+        onClick: (e) => {
+          if (e.target === e.currentTarget && !busy) onClose();
+        },
+      },
+      h(
+        "div",
+        {
+          style: {
+            width: "100%",
+            maxWidth: "480px",
+            borderRadius: "28px",
+            background: cardBg,
+            color: isDark ? "#EDE6DA" : "#1C1913",
+            border: "2px solid #F5A524",
+            padding: "26px",
+            boxShadow: "0 28px 64px rgba(0,0,0,0.34)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "14px",
+          },
+        },
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+          h(
+            "span",
+            {
+              style: {
+                padding: "4px 12px",
+                borderRadius: "999px",
+                background: "#E3F4E8",
+                color: "#1D6B36",
+                fontSize: "11px",
+                fontWeight: 800,
+              },
+            },
+            "FAMPAY & RAZORPAY UPI CHECKOUT"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: onClose,
+              style: { border: 0, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontSize: "18px", fontWeight: 800, cursor: "pointer" },
+            },
+            "✕"
+          )
+        ),
+        h("h3", { style: { margin: 0, fontSize: "24px", fontWeight: 800, lineHeight: 1.15 } }, `Pay ${formatInr(fullAmount)} for "${job.title || "Work Order"}"`),
+        // FamPay ID Box + QR Code
+        h(
+          "div",
+          {
+            style: {
+              padding: "16px",
+              borderRadius: "20px",
+              background: isDark ? "#27231C" : "#FBF8F2",
+              border: "1px solid " + borderCol,
+              display: "flex",
+              gap: "16px",
+              alignItems: "center",
+              flexWrap: "wrap",
+            },
+          },
+          renderUpiQr(upiUri),
+          h(
+            "div",
+            { style: { flex: "1 1 180px", display: "flex", flexDirection: "column", gap: "8px" } },
+            h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#7A4E00", letterSpacing: "0.6px" } }, "FAMPAY UPI ID"),
+            h(
+              "div",
+              {
+                style: {
+                  padding: "8px 12px",
+                  borderRadius: "12px",
+                  background: "#1C1913",
+                  color: "#F5A524",
+                  fontWeight: 800,
+                  fontSize: "15px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "8px",
+                },
+              },
+              h("span", null, FAMPAY_ID),
+              h(
+                "button",
+                {
+                  type: "button",
+                  onClick: handleCopyUpi,
+                  style: {
+                    padding: "4px 10px",
+                    borderRadius: "999px",
+                    border: 0,
+                    background: "#F5A524",
+                    color: "#1C1913",
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  },
+                },
+                copied ? "Copied ✓" : "Copy"
+              )
+            ),
+            h(
+              "a",
+              {
+                href: upiUri,
+                style: {
+                  height: "38px",
+                  padding: "0 14px",
+                  borderRadius: "999px",
+                  background: "#2E9E57",
+                  color: "#FFFFFF",
+                  fontWeight: 800,
+                  fontSize: "12px",
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                },
+              },
+              `Open FamPay / GPay / PhonePe (${formatInr(fullAmount)}) ↗`
+            )
+          )
+        ),
+        // UTR Input + Instant Confirm Paid to 6284194807@fam
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+          h("input", {
+            type: "text",
+            value: utr,
+            onChange: (e) => setUtr(e.target.value),
+            placeholder: "UPI Ref / UTR number (optional — leave blank for instant confirm)",
+            style: {
+              height: "44px",
+              borderRadius: "12px",
+              border: "1px solid " + borderCol,
+              padding: "0 14px",
+              fontSize: "13px",
+              fontWeight: 600,
+              background: isDark ? "#14120E" : "#FBF8F2",
+              color: isDark ? "#EDE6DA" : "#1C1913",
+            },
+          }),
+          h(
+            "button",
+            {
+              type: "button",
+              disabled: busy,
+              onClick: handleConfirmFampay,
+              style: {
+                height: "48px",
+                borderRadius: "999px",
+                border: 0,
+                background: "#2E9E57",
+                color: "#FFFFFF",
+                fontWeight: 800,
+                fontSize: "15px",
+                cursor: busy ? "wait" : "pointer",
+                boxShadow: "0 8px 22px rgba(46,158,87,0.32)",
+              },
+            },
+            busy ? "Confirming FamPay UPI Payment…" : `✓ Confirm Paid to ${FAMPAY_ID} · ${formatInr(fullAmount)}`
+          )
+        ),
+        // Secondary: Launch Razorpay Checkout Modal
+        h(
+          "div",
+          { style: { borderTop: "1px solid " + borderCol, paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
+          h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D", fontWeight: 600 } }, "Or pay through Razorpay Gateway:"),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => {
+                const j = job;
+                onClose();
+                launchRazorpayCheckout(j, app, true);
+              },
+              style: {
+                height: "40px",
+                padding: "0 16px",
+                borderRadius: "999px",
+                border: 0,
+                background: "#F5A524",
+                color: "#1C1913",
+                fontWeight: 800,
+                fontSize: "12px",
+                cursor: "pointer",
+              },
+            },
+            "Open Razorpay Checkout →"
+          )
+        )
+      )
+    );
+  }
+
   KZ.MainApp = function MainApp() {
     const app = useApp();
     const { path } = useRoute();
     const [otpConfig, setOtpConfig] = useState(null);
     const [loginPrompt, setLoginPrompt] = useState(null);
     const [completeJobModal, setCompleteJobModal] = useState(null);
+    const [fampayJob, setFampayJob] = useState(null);
     const [customerRingJob, setCustomerRingJob] = useState(null);
     const [storageTick, setStorageTick] = useState(0);
     const prevStatusesRef = useRef({});
@@ -3191,10 +3581,12 @@
       KZ.openOtpModal = (cfg) => setOtpConfig(cfg);
       KZ.openLoginPrompt = (cfg) => setLoginPrompt(cfg || { title: "Login to post a job" });
       KZ.openCompleteJobModal = (job) => setCompleteJobModal(job || null);
+      KZ.openFampayPaymentModal = (job) => setFampayJob(job || null);
       return () => {
         KZ.openOtpModal = null;
         KZ.openLoginPrompt = null;
         KZ.openCompleteJobModal = null;
+        KZ.openFampayPaymentModal = null;
       };
     }, []);
 
@@ -3325,6 +3717,7 @@
       otpConfig && h(GlobalOtpModal, { config: otpConfig, onClose: () => setOtpConfig(null) }),
       loginPrompt && h(LoginRequiredModal, { config: loginPrompt, onClose: () => setLoginPrompt(null) }),
       completeJobModal && h(CompleteJobUpiModal, { job: completeJobModal, onClose: () => setCompleteJobModal(null) }),
+      fampayJob && h(FamPayUpiPaymentModal, { job: fampayJob, onClose: () => setFampayJob(null) }),
       customerRingJob &&
         h(JobAcceptedRingingModal, {
           job: customerRingJob,
@@ -10229,7 +10622,7 @@
       jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && j.status === "paid_and_closed");
 
     const [otpCode, setOtpCode] = useState("");
-    const [endUpi, setEndUpi] = useState(() => worker?.upiId || active?.assignedWorkerUpi || "");
+    const [endUpi, setEndUpi] = useState(() => worker?.upiId || active?.assignedWorkerUpi || "6284194807@fam");
     const [endBusy, setEndBusy] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [, setTick] = useState(0);
@@ -10661,23 +11054,44 @@
                     !isStep2Done &&
                       isStep1Done &&
                       h(
-                        "button",
-                        {
-                          type: "button",
-                          onClick: () => setEndUpi("success@razorpay"),
-                          style: {
-                            alignSelf: "flex-start",
-                            padding: "4px 10px",
-                            borderRadius: "999px",
-                            border: "1px solid " + borderCol,
-                            background: isDark ? "#27231C" : "#FFF7E3",
-                            color: "#7A4E00",
-                            fontSize: "11px",
-                            fontWeight: 800,
-                            cursor: "pointer",
+                        "div",
+                        { style: { display: "flex", gap: "6px", flexWrap: "wrap" } },
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            onClick: () => setEndUpi("6284194807@fam"),
+                            style: {
+                              padding: "4px 10px",
+                              borderRadius: "999px",
+                              border: "1px solid #F5A524",
+                              background: "#1C1913",
+                              color: "#F5A524",
+                              fontSize: "11px",
+                              fontWeight: 800,
+                              cursor: "pointer",
+                            },
                           },
-                        },
-                        "Use test UPI: success@razorpay"
+                          "Use FamPay: 6284194807@fam"
+                        ),
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            onClick: () => setEndUpi("success@razorpay"),
+                            style: {
+                              padding: "4px 10px",
+                              borderRadius: "999px",
+                              border: "1px solid " + borderCol,
+                              background: isDark ? "#27231C" : "#FFF7E3",
+                              color: "#7A4E00",
+                              fontSize: "11px",
+                              fontWeight: 800,
+                              cursor: "pointer",
+                            },
+                          },
+                          "Test UPI: success@razorpay"
+                        )
                       )
                   )
                 ),

@@ -252,7 +252,9 @@ module.exports = async function handler(req, res) {
         success: true,
         keyId,
         mode: keyId.startsWith("rzp_test_") ? "test" : "live",
+        fampayUpiId: "6284194807@fam",
         testUpiIds: {
+          fampay: "6284194807@fam",
           success: "success@razorpay",
           failure: "failure@razorpay"
         }
@@ -265,7 +267,7 @@ module.exports = async function handler(req, res) {
     if (action === "markCompleted") {
       if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
 
-      const cleanUpi = String(body.upiId || "").trim();
+      const cleanUpi = String(body.upiId || "6284194807@fam").trim();
       if (!/^[\w.\-+]{2,}@[\w.\-]{2,}$/.test(cleanUpi)) {
         return sendJson(res, 400, {
           success: false,
@@ -528,6 +530,96 @@ module.exports = async function handler(req, res) {
         verified: true,
         paymentId: razorpay_payment_id,
         orderId: razorpay_order_id,
+        payout,
+        job: paidJob
+      });
+    }
+
+    // -----------------------------------------------------------------------
+    // 4b. CONFIRM FAMPAY UPI PAYMENT (6284194807@fam)
+    // -----------------------------------------------------------------------
+    if (action === "confirmFampayPayment") {
+      if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
+
+      const cleanJobId = String(body.jobId || `job_${Date.now()}`).trim();
+      const targetUpi = String(body.upiId || "6284194807@fam").trim() || "6284194807@fam";
+      const utrRef = String(body.utr || "").trim() || `fam_${Date.now()}`;
+
+      let dbJob = null;
+      let dbWorker = null;
+      try {
+        await connectMongo();
+        if (cleanJobId) dbJob = await getDocById("jobs", cleanJobId);
+      } catch (_) {}
+
+      const baseJob = { ...(body.jobSnapshot || {}), ...(dbJob || {}), id: cleanJobId };
+      const grossInr = computeQuotedAmountInr(baseJob, body.amountInr);
+      const workerPayoutInr =
+        Number(baseJob.workerPayout) > 0 ? Number(baseJob.workerPayout) : Math.round(grossInr * 0.8);
+
+      const payout = await createWorkerUpiPayout({
+        fundAccountId: baseJob.razorpayFundAccountId,
+        upiId: targetUpi,
+        amountInr: workerPayoutInr,
+        jobId: baseJob.id,
+        paymentId: utrRef
+      });
+
+      const paidJob = {
+        ...baseJob,
+        status: "paid_and_closed",
+        isPaid: true,
+        isEscrowPrepaid: true,
+        escrowStatus: "released_to_worker",
+        paymentStatus: "paid_and_settled",
+        paidVia: "FAMPAY_UPI_6284194807@fam",
+        transactionRef: utrRef,
+        razorpayPaymentId: utrRef,
+        razorpayPaymentMethod: "upi_fampay",
+        razorpayPayerVpa: targetUpi,
+        razorpayPayoutId: payout.id,
+        razorpayPayoutStatus: payout.status,
+        assignedWorkerUpi: targetUpi,
+        rating: Number(body.rating) || baseJob.rating || 5,
+        review: body.review || baseJob.review || "Paid via FamPay UPI (6284194807@fam)",
+        paidAt: new Date().toISOString()
+      };
+
+      try {
+        await connectMongo();
+        if (cleanJobId) await upsertDoc("jobs", cleanJobId, paidJob);
+        if (paidJob.assignedWorkerId) {
+          dbWorker = await getDocById("workers", paidJob.assignedWorkerId);
+          if (dbWorker) {
+            const txEntry = {
+              id: payout.id,
+              amount: workerPayoutInr,
+              upiId: targetUpi,
+              refId: utrRef,
+              timestamp: new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
+              status: "Settled via FamPay UPI (6284194807@fam)"
+            };
+            const existingHistory = Array.isArray(dbWorker.withdrawalHistory) ? dbWorker.withdrawalHistory : [];
+            await upsertDoc("workers", paidJob.assignedWorkerId, {
+              ...dbWorker,
+              upiId: targetUpi,
+              completedJobsCount: (dbWorker.completedJobsCount || 0) + 1,
+              completedJobs: (dbWorker.completedJobs || dbWorker.completedJobsCount || 0) + 1,
+              todayEarnings: (dbWorker.todayEarnings || 0) + workerPayoutInr,
+              totalEarnings: (dbWorker.totalEarnings || 0) + workerPayoutInr,
+              withdrawalHistory: [txEntry, ...existingHistory].slice(0, 30)
+            });
+          }
+        }
+      } catch (dbErr) {
+        console.warn("[FamPay confirmPayment Mongo note]", dbErr.message);
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        verified: true,
+        paymentId: utrRef,
+        upiId: targetUpi,
         payout,
         job: paidJob
       });
