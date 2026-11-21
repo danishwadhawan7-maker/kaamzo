@@ -3398,7 +3398,7 @@
         qr.addData(str);
         qr.make();
         const count = qr.getModuleCount();
-        const quiet = 3;
+        const quiet = 4;
         const total = count + quiet * 2;
         const rects = [];
         const isFinderModule = (r, c) =>
@@ -3505,17 +3505,15 @@
       Math.round((Number(job.dailyWage) || 850) * (Number(job.durationDays) || 1))
     );
     const amFixed = fullAmount.toFixed(2);
-    const cleanJobRef = "KZ" + String(job.id || Date.now()).replace(/[^A-Za-z0-9]/g, "").slice(-14);
-    const txNote = `Kaamzo ${(job.title || job.trade || "Job").slice(0, 26)} #${job.id || ""}`.trim();
+    const txNote = `Kaamzo ${(job.title || job.trade || "Job").slice(0, 24)}`.trim();
 
-    // Official NPCI UPI 2.0 Specification Query String for Real Money Transfer to 6284194807@fam
+    // Standard NPCI UPI P2P/VPA Query String (no &tr= so GPay/PhonePe/Paytm/FamPay never reject unsigned merchant ref)
     const upiQuery =
-      `pa=${encodeURIComponent(FAMPAY_ID)}` +
-      `&pn=${encodeURIComponent("Kaamzo Services")}` +
+      `pa=${FAMPAY_ID}` +
+      `&pn=${encodeURIComponent("Kaamzo")}` +
       `&am=${amFixed}` +
       `&cu=INR` +
-      `&tn=${encodeURIComponent(txNote)}` +
-      `&tr=${encodeURIComponent(cleanJobRef)}`;
+      `&tn=${encodeURIComponent(txNote)}`;
 
     const upiUri = `upi://pay?${upiQuery}`;
     const gpayUri = `tez://upi/pay?${upiQuery}`;
