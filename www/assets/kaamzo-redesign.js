@@ -11994,15 +11994,15 @@
 
     const handleStartViaQr = async (givenCode) => {
       if (!active) return false;
-      const raw = String(givenCode !== undefined ? givenCode : otpCode || startOtp).trim();
+      const raw = String(givenCode !== undefined ? givenCode : otpCode || "").trim();
       let cleanCode = raw;
       if (raw.startsWith("KAAMZO_START:") || raw.startsWith("KAAMZO-START:")) {
         const parts = raw.split(":");
-        cleanCode = parts[2] || parts[1] || startOtp;
+        cleanCode = parts[2] || parts[1] || "";
       }
-      if (cleanCode && cleanCode !== startOtp && raw !== startOtp) {
-        app.showNotification?.(`Invalid Start Code. Expected #${startOtp} from customer's Start QR.`);
-        setCamError(`QR / OTP did not match this job's Start Code (#${startOtp}).`);
+      if (!cleanCode || (cleanCode !== startOtp && raw !== startOtp)) {
+        app.showNotification?.("Invalid Start OTP. Ask the customer for their 4-digit Start OTP or scan their Start QR.");
+        setCamError("Invalid Start Code. Please scan the customer's Start QR or enter the 4-digit Start OTP.");
         return false;
       }
       if (app.startJobWithOtp) {
@@ -12023,15 +12023,15 @@
 
     const handleEndViaQr = async (givenCode) => {
       if (!active || !isStep1Done || endBusy) return false;
-      const raw = String(givenCode !== undefined ? givenCode : endOtpInput || endOtp).trim();
+      const raw = String(givenCode !== undefined ? givenCode : endOtpInput || "").trim();
       let cleanCode = raw;
       if (raw.startsWith("KAAMZO_END:") || raw.startsWith("KAAMZO-END:")) {
         const parts = raw.split(":");
-        cleanCode = parts[2] || parts[1] || endOtp;
+        cleanCode = parts[2] || parts[1] || "";
       }
-      if (cleanCode && cleanCode !== endOtp && raw !== endOtp && !raw.startsWith("KAAMZO_END:" + active.id)) {
-        app.showNotification?.(`Invalid End Code. Expected #${endOtp} from customer's End QR.`);
-        setCamError(`End QR did not match this job's End Code (#${endOtp}).`);
+      if (!cleanCode || (cleanCode !== endOtp && raw !== endOtp && !raw.startsWith("KAAMZO_END:" + active.id))) {
+        app.showNotification?.("Invalid End OTP. Ask the customer for their 4-digit End OTP or scan their End QR.");
+        setCamError("Invalid End Code. Please scan the customer's End QR or enter the 4-digit End OTP.");
         return false;
       }
       const cleanUpi = String(endUpi || worker?.upiId || "6284194807@fam").trim().toLowerCase();
@@ -12551,25 +12551,17 @@
                   { style: { display: "flex", gap: "8px", flexWrap: "wrap" } },
                   h("input", {
                     type: "text",
+                    maxLength: 4,
                     value: manualScanCode,
                     onChange: (ev) => setManualScanCode(ev.target.value),
-                    placeholder: scannerMode === "start" ? `Enter 4-digit Start Code (#${startOtp})` : `Enter 4-digit End Code (#${endOtp})`,
+                    placeholder: scannerMode === "start" ? "Enter 4-digit Start OTP from customer" : "Enter 4-digit End OTP from customer",
                     style: { flex: 1, height: "42px", borderRadius: "12px", border: "1px solid #3A342C", background: "#27231C", color: "#FBF8F2", padding: "0 14px", fontWeight: 800 },
                   }),
                   h(
                     "button",
                     {
                       type: "button",
-                      onClick: () => setManualScanCode(scannerMode === "start" ? startOtp : endOtp),
-                      style: { height: "42px", padding: "0 14px", borderRadius: "12px", border: "1px solid #F5A524", background: "transparent", color: "#F5A524", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
-                    },
-                    `Auto-fill (#${scannerMode === "start" ? startOtp : endOtp})`
-                  ),
-                  h(
-                    "button",
-                    {
-                      type: "button",
-                      onClick: () => (scannerMode === "start" ? handleStartViaQr(manualScanCode || startOtp) : handleEndViaQr(manualScanCode || endOtp)),
+                      onClick: () => (scannerMode === "start" ? handleStartViaQr(manualScanCode) : handleEndViaQr(manualScanCode)),
                       style: { height: "42px", padding: "0 18px", borderRadius: "12px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
                     },
                     "Verify Now →"
@@ -12614,20 +12606,20 @@
                     },
                     isStep1Done ? "✓ STEP 1 COMPLETE" : "STEP 1 OF 2 · ARRIVAL AT SITE"
                   ),
-                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#1D6B36" } }, `Start Code: #${startOtp}`)
+                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#1D6B36" } }, "Ask Customer for Start OTP")
                 ),
                 h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "1 · QR for Starting the Job"),
                 h(
                   "div",
                   { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" } },
-                  renderDeterministicQrSvg(`KAAMZO_START:${active.id}:${startOtp}`, "#2E9E57"),
+                  renderDeterministicQrSvg(`KAAMZO_START:${active.id}`, "#2E9E57"),
                   h(
                     "div",
                     { style: { flex: "1 1 160px", display: "flex", flexDirection: "column", gap: "8px" } },
                     h(
                       "p",
                       { style: { margin: 0, fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.45 } },
-                      "Scan the customer's Start QR on arrival at the site (or verify the 4-digit Start OTP) to start the work timer."
+                      "Scan the customer's Start QR on arrival at the site (or enter the 4-digit Start OTP from customer) to start the work timer."
                     ),
                     !isStep1Done &&
                       h(
@@ -12638,7 +12630,7 @@
                           maxLength: 4,
                           value: otpCode,
                           onChange: (e) => setOtpCode(e.target.value),
-                          placeholder: `Start OTP (#${startOtp})`,
+                          placeholder: "Enter 4-digit Start OTP",
                           style: {
                             flex: 1,
                             minWidth: 0,
@@ -12651,16 +12643,7 @@
                             background: isDark ? "#14120E" : "#FBF8F2",
                             color: isDark ? "#EDE6DA" : "#1C1913",
                           },
-                        }),
-                        h(
-                          "button",
-                          {
-                            type: "button",
-                            onClick: () => setOtpCode(startOtp),
-                            style: { height: "40px", padding: "0 10px", borderRadius: "12px", border: "1px solid #F5A524", background: "#FFF7E3", color: "#6B4600", fontWeight: 800, fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap" },
-                          },
-                          `Auto-fill #${startOtp}`
-                        )
+                        })
                       ),
                     !isStep1Done &&
                       h(
@@ -12687,7 +12670,7 @@
                       "button",
                       {
                         type: "button",
-                        onClick: () => handleStartViaQr(otpCode || startOtp),
+                        onClick: () => handleStartViaQr(otpCode),
                         style: {
                           height: "46px",
                           borderRadius: "999px",
@@ -12699,7 +12682,7 @@
                           cursor: "pointer",
                         },
                       },
-                      "Scan / Verify Start QR & Begin Job →"
+                      "Scan / Verify Start OTP & Begin Job →"
                     )
               ),
 
@@ -12736,20 +12719,20 @@
                     },
                     isStep2Done ? "✓ STEP 2 COMPLETE" : isStep1Done ? "STEP 2 OF 2 · READY TO FINISH" : "LOCKED UNTIL STEP 1 START QR"
                   ),
-                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00" } }, `End Code: #${endOtp}`)
+                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00" } }, "Ask Customer for End OTP")
                 ),
                 h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "2 · QR for Ending the Job"),
                 h(
                   "div",
                   { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" } },
-                  renderDeterministicQrSvg(`KAAMZO_END:${active.id}:${endOtp}`, "#F5A524"),
+                  renderDeterministicQrSvg(`KAAMZO_END:${active.id}`, "#F5A524"),
                   h(
                     "div",
                     { style: { flex: "1 1 160px", display: "flex", flexDirection: "column", gap: "8px" } },
                     h(
                       "p",
                       { style: { margin: 0, fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.45 } },
-                      "After finishing the work, scan/verify this End QR and confirm your FamPay/UPI ID to unlock customer payment and leave this page."
+                      "After finishing the work, scan/verify the customer's End QR or enter the 4-digit End OTP and confirm your FamPay/UPI ID to unlock payment."
                     ),
                     !isStep2Done &&
                       h(
@@ -12761,7 +12744,7 @@
                           disabled: !isStep1Done,
                           value: endOtpInput,
                           onChange: (e) => setEndOtpInput(e.target.value),
-                          placeholder: `End OTP (#${endOtp})`,
+                          placeholder: "Enter 4-digit End OTP",
                           style: {
                             flex: 1,
                             minWidth: 0,
@@ -12774,17 +12757,7 @@
                             background: isDark ? "#14120E" : "#FBF8F2",
                             color: isDark ? "#EDE6DA" : "#1C1913",
                           },
-                        }),
-                        isStep1Done &&
-                          h(
-                            "button",
-                            {
-                              type: "button",
-                              onClick: () => setEndOtpInput(endOtp),
-                              style: { height: "40px", padding: "0 10px", borderRadius: "12px", border: "1px solid #F5A524", background: "#FFF7E3", color: "#6B4600", fontWeight: 800, fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap" },
-                            },
-                            `Auto-fill #${endOtp}`
-                          )
+                        })
                       ),
                     !isStep2Done &&
                       h("input", {
@@ -12864,7 +12837,7 @@
                       {
                         type: "button",
                         disabled: !isStep1Done || endBusy,
-                        onClick: () => handleEndViaQr(endOtpInput || endOtp),
+                        onClick: () => handleEndViaQr(endOtpInput),
                         style: {
                           height: "46px",
                           borderRadius: "999px",
