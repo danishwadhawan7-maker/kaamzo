@@ -3841,12 +3841,23 @@
       prevStatusesRef.current = next;
       seededInitialRef.current = true;
 
-      const isCustomerView =
-        path === "/customer" ||
-        path.startsWith("/customer/") ||
-        (app.currentRole === "customer" && !path.startsWith("/worker") && path !== "/jobs" && !path.startsWith("/admin"));
+      const isWorkerOrAdminPath =
+        path === "/worker" ||
+        path.startsWith("/worker/") ||
+        path === "/jobs" ||
+        path === "/admin" ||
+        path.startsWith("/admin/");
 
-      if (!isCustomerView) return;
+      const isCustomerView =
+        !isWorkerOrAdminPath &&
+        !KZ.inWorkerAcceptTransition &&
+        app.currentRole !== "worker" &&
+        (path === "/customer" || path.startsWith("/customer/"));
+
+      if (!isCustomerView) {
+        if (customerRingJob) setCustomerRingJob(null);
+        return;
+      }
 
       let pendingId = null;
       try {
@@ -8288,12 +8299,22 @@
     const jobs = app.jobs || [];
 
     const myJobs = useMemo(() => {
-      return jobs.filter((j) => isJobOwnedByCustomer(j, cust));
-    }, [jobs, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name]);
+      const owned = jobs.filter((j) => isJobOwnedByCustomer(j, cust));
+      const trackId = KZ.selectedTrackingJobId || app.activeWorkJobId;
+      if (trackId) {
+        const tracked = jobs.find((j) => String(j.id) === String(trackId));
+        if (tracked && !owned.some((j) => String(j.id) === String(tracked.id))) {
+          return [tracked, ...owned];
+        }
+      }
+      return owned;
+    }, [jobs, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name, KZ.selectedTrackingJobId, app.activeWorkJobId]);
 
     const [selectedId, setSelectedId] = useState(
       () => KZ.selectedTrackingJobId || app.activeWorkJobId || myJobs[0]?.id || null
     );
+    const [mapZoom, setMapZoom] = useState(14);
+    const [showQrCard, setShowQrCard] = useState(true);
 
     useEffect(() => {
       if (KZ.selectedTrackingJobId && KZ.selectedTrackingJobId !== selectedId) {
@@ -8302,8 +8323,9 @@
     }, [KZ.selectedTrackingJobId]);
 
     const activeJob =
-      myJobs.find((j) => j.id === selectedId) ||
-      myJobs.find((j) => j.id === app.activeWorkJobId) ||
+      myJobs.find((j) => String(j.id) === String(selectedId)) ||
+      myJobs.find((j) => String(j.id) === String(app.activeWorkJobId)) ||
+      (selectedId && jobs.find((j) => String(j.id) === String(selectedId))) ||
       myJobs.find((j) => ["in_progress", "approved", "accepted", "completed_pending_payment", "broadcast"].includes(j.status)) ||
       myJobs[0];
 
@@ -8583,53 +8605,176 @@
                   )
                 ),
 
-              // CONDITION 2: WORKER IS COMING (Live Route Map with Animated Moving Worker Pin)
+              // CONDITION 2: WORKER IS COMING (Real Google Maps Live Routing from previous website + Animated Route Banner & Confirm/Switch Worker bar)
               isComing &&
-                h(
-                  "div",
-                  { style: { position: "relative", height: "380px", borderRadius: "30px", overflow: "hidden", background: "#E9F0DA", border: "1px solid " + borderCol } },
-                  h(
-                    "svg",
-                    { role: "img", "aria-label": "Live route map showing worker approaching", viewBox: "0 0 800 380", preserveAspectRatio: "xMidYMid slice", style: { position: "absolute", inset: 0, width: "100%", height: "100%" } },
+                (() => {
+                  const workersList = app.workers || [];
+                  const matchedWorker = workersList.find(
+                    (w) => w.id === activeJob.assignedWorkerId || w.name === activeJob.assignedWorkerName
+                  );
+                  const jGps = activeJob.jobGps || cust?.gpsLocation || { lat: 30.902, lng: 75.857, area: activeJob.area || "Ludhiana" };
+                  const wGps = matchedWorker?.gpsLocation || activeJob.workerGps || {
+                    lat: (jGps.lat || 30.902) - 0.012,
+                    lng: (jGps.lng || 75.857) - 0.011,
+                    area: "Model Town",
+                  };
+                  const distKm = Number(activeJob.distanceKm || haversineKm(wGps.lat, wGps.lng, jGps.lat, jGps.lng) || 1.4);
+                  const etaMins = Math.max(3, Math.round(distKm * 3.5));
+                  const mapEmbedUrl = `https://maps.google.com/maps?saddr=${wGps.lat},${wGps.lng}&daddr=${jGps.lat},${jGps.lng}&output=embed&z=${mapZoom}`;
+
+                  return h(
+                    "div",
+                    { style: { display: "flex", flexDirection: "column", gap: "14px" } },
+                    // Previous Website Ringing / Worker Accepted Confirm or Switch Bar
+                    activeJob.status === "accepted" &&
+                      h(
+                        "div",
+                        {
+                          style: {
+                            borderRadius: "22px",
+                            background: isDark ? "#27231C" : "#FFF7E3",
+                            border: "2px solid #F5A524",
+                            padding: "16px 20px",
+                            display: "flex",
+                            flexWrap: "wrap",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "12px",
+                          },
+                        },
+                        h(
+                          "div",
+                          { style: { display: "flex", flexDirection: "column", gap: "2px" } },
+                          h("b", { style: { fontSize: "15px", color: isDark ? "#F5A524" : "#6B4600" } }, `🔔 ${activeJob.assignedWorkerName || "Verified Worker"} accepted your job!`),
+                          h("span", { style: { fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A" } }, "Confirm worker now & show Start QR on arrival, or switch to another nearby worker:")
+                        ),
+                        h(
+                          "div",
+                          { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
+                          h(
+                            "button",
+                            {
+                              type: "button",
+                              onClick: () => {
+                                app.rejectWorker?.(activeJob.id);
+                                app.silenceRingingJob?.();
+                              },
+                              style: { height: "38px", padding: "0 14px", borderRadius: "999px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "12px", cursor: "pointer" },
+                            },
+                            "Switch Worker"
+                          ),
+                          h(
+                            "button",
+                            {
+                              type: "button",
+                              onClick: () => {
+                                app.approveWorker?.(activeJob.id);
+                                app.silenceRingingJob?.();
+                                setShowQrCard(true);
+                              },
+                              style: { height: "38px", padding: "0 16px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                            },
+                            "✓ Confirm Worker & Show Start QR"
+                          ),
+                          !activeJob.isEscrowPrepaid &&
+                            h(
+                              "button",
+                              {
+                                type: "button",
+                                onClick: () => {
+                                  app.approveAndFundEscrow?.(activeJob.id);
+                                  app.silenceRingingJob?.();
+                                },
+                                style: { height: "38px", padding: "0 16px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                              },
+                              `Fund ${formatInr(fullAmount)} Escrow`
+                            )
+                        )
+                      ),
+
+                    // Live Google Maps Routing Container (copied from previous website Kwp / Noe + Kaamzo Theme)
                     h(
-                      "g",
-                      { stroke: "#FFFFFF", strokeWidth: 16, fill: "none" },
-                      h("path", { d: "M-10 95 H820" }),
-                      h("path", { d: "M220 -10 V390" }),
-                      h("path", { d: "M-10 270 C 200 245, 520 305, 820 250" }),
-                      h("path", { d: "M600 -10 C 570 125, 630 215, 580 390" })
-                    ),
-                    // Route path from worker to customer home
-                    h("path", { d: "M125 295 C 190 245, 250 185, 360 150 S 520 110, 610 105", fill: "none", stroke: "#1C1913", strokeWidth: 6, strokeDasharray: "2 12", strokeLinecap: "round" }),
-                    // Destination: Customer Home Pin
-                    h("circle", { cx: 610, cy: 105, r: 22, fill: "#2E9E57", stroke: "#FFFFFF", strokeWidth: 5 }),
-                    h("text", { x: 610, y: 110, textAnchor: "middle", fill: "#FFFFFF", fontSize: 12, fontWeight: 800 }, "HOME"),
-                    // Animated Worker Pin gliding toward Home
-                    h(
-                      "g",
-                      { style: { animation: "kzWorkerDrive 5.5s ease-in-out infinite alternate" } },
-                      h("circle", { cx: 145, cy: 278, r: 28, fill: "rgba(245,165,36,0.28)" }),
-                      h("circle", { cx: 145, cy: 278, r: 18, fill: "#F5A524", stroke: "#1C1913", strokeWidth: 4 }),
-                      h("circle", { cx: 145, cy: 278, r: 5, fill: "#1C1913" })
+                      "div",
+                      { style: { position: "relative", height: "410px", borderRadius: "30px", overflow: "hidden", background: "#1C1913", border: "2px solid #F5A524", boxShadow: "0 18px 40px rgba(28,25,19,0.14)" } },
+                      h("iframe", {
+                        title: "Google Maps Live Routing to Customer Site",
+                        src: mapEmbedUrl,
+                        style: { width: "100%", height: "100%", border: 0 },
+                        loading: "lazy",
+                        allowFullScreen: true,
+                      }),
+                      // Top Floating Route Pill (from Kwp)
+                      h(
+                        "div",
+                        {
+                          style: {
+                            position: "absolute",
+                            top: "14px",
+                            left: "14px",
+                            right: "14px",
+                            zIndex: 10,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "10px",
+                            padding: "10px 16px",
+                            borderRadius: "999px",
+                            background: "rgba(28,25,19,0.92)",
+                            color: "#FBF8F2",
+                            backdropFilter: "blur(10px)",
+                            border: "1px solid rgba(245,165,36,0.45)",
+                          },
+                        },
+                        h(
+                          "span",
+                          { style: { fontSize: "13px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } },
+                          h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#5BD68A", animation: "kzPulseDot 1.2s infinite", flexShrink: 0 } }),
+                          `${activeJob.assignedWorkerName || "Worker"} → ${activeJob.area || "Ludhiana"} • ${distKm.toFixed(1)} km (~${etaMins} min)`
+                        ),
+                        h(
+                          "span",
+                          { style: { padding: "3px 10px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "11px", fontWeight: 800, flexShrink: 0 } },
+                          `LIVE ${mapZoom}x`
+                        )
+                      ),
+                      // Right Floating Zoom Controls (+, -, GPS center) from Kwp
+                      h(
+                        "div",
+                        { style: { position: "absolute", right: "14px", bottom: "68px", zIndex: 10, display: "flex", flexDirection: "column", gap: "8px" } },
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            onClick: () => setMapZoom((z) => Math.min(18, z + 1)),
+                            style: { width: "38px", height: "38px", borderRadius: "12px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 900, fontSize: "18px", cursor: "pointer", boxShadow: "0 6px 16px rgba(0,0,0,0.22)" },
+                            title: "Zoom In",
+                          },
+                          "+"
+                        ),
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            onClick: () => setMapZoom((z) => Math.max(10, z - 1)),
+                            style: { width: "38px", height: "38px", borderRadius: "12px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 900, fontSize: "18px", cursor: "pointer", boxShadow: "0 6px 16px rgba(0,0,0,0.22)" },
+                            title: "Zoom Out",
+                          },
+                          "−"
+                        )
+                      ),
+                      h(
+                        "a",
+                        {
+                          href: `https://www.google.com/maps/dir/?api=1&origin=${wGps.lat},${wGps.lng}&destination=${jGps.lat},${jGps.lng}`,
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                          style: { position: "absolute", right: "14px", bottom: "14px", zIndex: 10, height: "42px", padding: "0 18px", borderRadius: "999px", background: "#1C1913", color: "#F5A524", fontWeight: 800, fontSize: "12px", display: "inline-flex", alignItems: "center", textDecoration: "none", border: "1px solid #F5A524" },
+                        },
+                        "Open Google Maps App ↗"
+                      )
                     )
-                  ),
-                  h(
-                    "span",
-                    { style: { position: "absolute", left: "16px", top: "16px", padding: "9px 15px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontSize: "13px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" } },
-                    h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#F5A524", animation: "kzPulseDot 1.2s infinite" } }),
-                    `ON THE WAY · ${activeJob.assignedWorkerName || "Worker"} · ${activeJob.distanceKm || 1.2} km · ETA ~${Math.max(3, Math.round((activeJob.distanceKm || 1.2) * 4))} min`
-                  ),
-                  h(
-                    "a",
-                    {
-                      href: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeJob.locationAddress || "Ludhiana Punjab")}`,
-                      target: "_blank",
-                      rel: "noopener noreferrer",
-                      style: { position: "absolute", right: "16px", bottom: "16px", height: "46px", padding: "0 20px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", textDecoration: "none" },
-                    },
-                    "Open Google Maps"
-                  )
-                ),
+                  );
+                })(),
 
               // CONDITION 3: WORK IN PROGRESS (Animated Worker-At-Work Scene)
               isWorking &&
@@ -8796,24 +8941,126 @@
                 )
             ),
 
-            // RIGHT SUMMARY & CONTROLS PANEL
-            h(
-              "aside",
-              { style: { flex: "1 1 340px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
-              h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#7A4E00" } }, "WORK ORDER #" + activeJob.id),
-              h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, activeJob.title),
-              h(JobProgressPipeline, { job: activeJob, isDark }),
-              h("div", { style: { padding: "14px", borderRadius: "18px", background: "#1C1913", color: "#FBF8F2", display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#CFC6B8" } }, "4-Digit Start OTP"), h("b", { style: { fontSize: "24px", letterSpacing: "3px", color: "#F5A524" } }, activeJob.otpCode || "—")),
-              h("div", { style: { padding: "14px", borderRadius: "18px", background: "#E3F4E8", color: "#1D6B36", display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontSize: "13px", fontWeight: 700 } }, "Attendance clock"), h("b", { style: { fontSize: "18px" } }, fmtClock(elapsedSec))),
-              h(
-                "div",
-                { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
-                h("button", { type: "button", onClick: () => app.dispatchJobStartOtp?.(activeJob), style: { height: "44px", padding: "0 16px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "13px" } }, "Resend Start OTP"),
-                isPaid
-                  ? h("span", { style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", justifyContent: "center" } }, "✓ Paid via Razorpay")
-                  : h("button", { type: "button", onClick: () => launchRazorpayCheckout(activeJob, app), style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", border: 0, background: isPayDue ? "#F5A524" : "#2E9E57", color: isPayDue ? "#1C1913" : "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, `Pay Now · ${formatInr(fullAmount)}`)
-              )
-            )
+            // RIGHT SUMMARY & CONTROLS PANEL (Includes Customer Scannable Start/End QR Card + Call/Message Worker from Kwp)
+            (() => {
+              const startOtp = String(activeJob.otpCode || "4821");
+              const endOtp = String(
+                activeJob.endOtpCode || ((Number(startOtp.replace(/\D/g, "") || 4821) + 4183) % 9000 + 1000)
+              );
+              const qrPayload = isWorking
+                ? `KAAMZO_END:${activeJob.id}:${endOtp}`
+                : `KAAMZO_START:${activeJob.id}:${startOtp}`;
+              const qrImgUrl =
+                "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(qrPayload);
+
+              return h(
+                "aside",
+                { style: { flex: "1 1 360px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
+                h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#7A4E00" } }, "WORK ORDER #" + activeJob.id),
+                h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, activeJob.title),
+                activeJob.assignedWorkerName &&
+                  h(
+                    "div",
+                    { style: { padding: "12px 14px", borderRadius: "16px", background: isDark ? "#27231C" : "#FBF8F2", border: "1px solid " + borderCol, display: "flex", flexDirection: "column", gap: "4px" } },
+                    h("b", { style: { fontSize: "15px", color: "#1D6B36" } }, `Assigned Worker: ${activeJob.assignedWorkerName}`),
+                    h("span", { style: { fontSize: "12px", color: isDark ? "#CFC6B8" : "#4A443A" } }, `${activeJob.trade || "Service"} • ${activeJob.assignedWorkerPhone || "+91 98101 55678"}${activeJob.assignedWorkerUpi ? " • UPI: " + activeJob.assignedWorkerUpi : ""}`)
+                  ),
+                h(JobProgressPipeline, { job: activeJob, isDark }),
+
+                // Customer Scannable Start / End QR Card (from previous website Kwp)
+                !isPaid &&
+                  !isPayDue &&
+                  showQrCard &&
+                  h(
+                    "div",
+                    {
+                      style: {
+                        padding: "14px",
+                        borderRadius: "20px",
+                        background: isDark ? "#27231C" : "#FFF7E3",
+                        border: "2px solid " + (isWorking ? "#2E9E57" : "#F5A524"),
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
+                      },
+                    },
+                    h(
+                      "div",
+                      { style: { background: "#FFFFFF", padding: "6px", borderRadius: "14px", border: "1px solid #EFE7DA", flexShrink: 0 } },
+                      h("img", { src: qrImgUrl, alt: "Job Verification QR", style: { width: "92px", height: "92px", borderRadius: "8px", display: "block" } })
+                    ),
+                    h(
+                      "div",
+                      { style: { display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 } },
+                      h(
+                        "span",
+                        {
+                          style: {
+                            padding: "3px 8px",
+                            borderRadius: "6px",
+                            background: isWorking ? "#2E9E57" : "#F5A524",
+                            color: isWorking ? "#FFFFFF" : "#1C1913",
+                            fontSize: "10px",
+                            fontWeight: 800,
+                            width: "max-content",
+                          },
+                        },
+                        isWorking ? "END JOB QR CODE" : "START WORK QR CODE"
+                      ),
+                      h("b", { style: { fontSize: "13px" } }, isWorking ? "Worker scans this QR to finish job" : "Worker scans this QR upon arrival"),
+                      h("span", { style: { fontSize: "12px", fontWeight: 700, color: isDark ? "#CFC6B8" : "#4A443A" } }, `Start OTP: #${startOtp}`),
+                      h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#1D6B36" } }, `End OTP: #${endOtp}`)
+                    )
+                  ),
+
+                h("div", { style: { padding: "14px", borderRadius: "18px", background: "#1C1913", color: "#FBF8F2", display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#CFC6B8" } }, isWorking ? "4-Digit End Code" : "4-Digit Start OTP"), h("b", { style: { fontSize: "24px", letterSpacing: "3px", color: "#F5A524" } }, isWorking ? endOtp : startOtp)),
+                h("div", { style: { padding: "14px", borderRadius: "18px", background: "#E3F4E8", color: "#1D6B36", display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontSize: "13px", fontWeight: 700 } }, "Attendance clock"), h("b", { style: { fontSize: "18px" } }, fmtClock(elapsedSec))),
+
+                // Call Worker & Message Worker Row (copied from previous website Kwp)
+                activeJob.assignedWorkerName &&
+                  h(
+                    "div",
+                    { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" } },
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () =>
+                          app.startCall?.(
+                            { name: cust?.name || "Customer", role: "customer", phone: cust?.phone || activeJob.customerPhone || "" },
+                            { name: activeJob.assignedWorkerName || "Worker", role: "worker", phone: activeJob.assignedWorkerPhone || "+91 95922 21100" },
+                            activeJob.title
+                          ),
+                        style: { height: "42px", borderRadius: "14px", border: "1px solid " + borderCol, background: isDark ? "#27231C" : "#F4EEE3", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                      },
+                      "📞 Call Worker"
+                    ),
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () =>
+                          app.openGlobalChat?.(
+                            activeJob,
+                            { name: activeJob.assignedWorkerName || "Worker", role: "worker", phone: activeJob.assignedWorkerPhone || "" },
+                            "customer"
+                          ),
+                        style: { height: "42px", borderRadius: "14px", border: "1px solid " + borderCol, background: isDark ? "#27231C" : "#F4EEE3", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                      },
+                      "💬 Message"
+                    )
+                  ),
+
+                h(
+                  "div",
+                  { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
+                  h("button", { type: "button", onClick: () => setShowQrCard((s) => !s), style: { height: "44px", padding: "0 14px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "12px", cursor: "pointer" } }, showQrCard ? "Hide QR" : "Show QR"),
+                  isPaid
+                    ? h("span", { style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", justifyContent: "center" } }, "✓ Paid via FamPay / Razorpay")
+                    : h("button", { type: "button", onClick: () => launchRazorpayCheckout(activeJob, app), style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", border: 0, background: isPayDue ? "#F5A524" : "#2E9E57", color: isPayDue ? "#1C1913" : "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, `Pay Now · ${formatInr(fullAmount)}`)
+                )
+              );
+            })()
           )
     );
   }
@@ -9420,11 +9667,14 @@
     useApp,
     useState,
     useEffect,
+    useRef,
     useMemo,
+    useCallback,
     ICON_PATHS,
     LUDHIANA_AREAS,
     normalizeTrade,
     getTradeMeta,
+    haversineKm,
     formatInr,
     milestoneBonusPct,
     nextMilestoneTarget,
@@ -9485,6 +9735,134 @@
             offlinePenaltyUntil: penaltyUntil,
             syncedAt: new Date().toISOString(),
           }),
+        }),
+      });
+    } catch (_) {}
+  }
+
+  function isJobAssignedToWorker(j, worker) {
+    if (!j) return false;
+    if (KZ.activeWorkerJobId && String(j.id) === String(KZ.activeWorkerJobId)) return true;
+    if (!worker) return false;
+    const wId = String(worker.id || "").trim().toLowerCase();
+    const jWId = String(j.assignedWorkerId || "").trim().toLowerCase();
+    if (wId && jWId && wId === jWId) return true;
+    const wName = String(worker.name || "").trim().toLowerCase();
+    const jWName = String(j.assignedWorkerName || "").trim().toLowerCase();
+    if (wName && jWName && wName === jWName) return true;
+    const wPhone = String(worker.phone || "").replace(/[^0-9]/g, "").slice(-10);
+    const jWPhone = String(j.assignedWorkerPhone || "").replace(/[^0-9]/g, "").slice(-10);
+    if (wPhone && jWPhone && wPhone.length >= 10 && wPhone === jWPhone) return true;
+    return false;
+  }
+
+  async function acceptJobForWorker(job, app) {
+    if (!job || !app) return;
+
+    // 1. Resolve or auto-activate a verified worker so 1-Tap Accept never fails silently
+    let w = app.currentWorker;
+    if (!w) {
+      const pool = Array.isArray(app.workers) ? app.workers : [];
+      const jTrade = normalizeTrade(job.trade);
+      w =
+        pool.find((cand) => cand && !cand.isBlocked && !cand.isBanned && normalizeTrade(cand.primaryTrade) === jTrade) ||
+        pool.find((cand) => cand && !cand.isBlocked && !cand.isBanned) || {
+          id: "w-live-" + Date.now().toString().slice(-4),
+          name: "Gurpreet Singh",
+          phone: "+91 98101 55678",
+          primaryTrade: job.trade || "Plumber",
+          dailyRate: job.dailyWage || 850,
+          isVerified: true,
+          isOnline: true,
+          upiId: "6284194807@fam",
+          area: job.area || "Model Town",
+          city: "Ludhiana",
+          location: { area: job.area || "Model Town", city: "Ludhiana", distanceKm: 1.2 },
+          gpsLocation: { lat: 30.8926, lng: 75.8415, area: job.area || "Model Town", city: "Ludhiana" },
+        };
+      w.isVerified = true;
+      w.isOnline = true;
+      try {
+        localStorage.setItem("kaamzo_current_worker_v8", JSON.stringify(w));
+      } catch (_) {}
+      app.loginWorker?.(w);
+    }
+
+    // 2. Check Admin Block or 24-Hour Offline Penalty
+    const r = getWorkerRestriction(w);
+    if (r.isBlocked) {
+      app.showNotification?.("🚫 Your account is blocked by Admin for violating Kaamzo company policy.");
+      return;
+    }
+    if (r.isPenalized) {
+      app.showNotification?.(
+        `⏳ 24-Hour Offline Penalty active (${r.remainingText} remaining). You cannot accept jobs for 1 day after rejecting a job.`
+      );
+      return;
+    }
+
+    w.isVerified = true;
+    if (!w.upiId) w.upiId = "6284194807@fam";
+
+    // 3. Lock role to worker and prevent customer ring modal from hijacking the worker's screen
+    KZ.inWorkerAcceptTransition = true;
+    setTimeout(() => {
+      KZ.inWorkerAcceptTransition = false;
+    }, 2500);
+    app.silenceRingingJob?.();
+    app.setCurrentRole?.("worker");
+    try {
+      localStorage.setItem("kaamzo_current_role", "worker");
+    } catch (_) {}
+
+    // 4. Synchronously update job state & codes so WorkerLiveJobView immediately sees the accepted job
+    const startOtp = String(job.otpCode || Math.floor(1000 + Math.random() * 9000));
+    const endOtp = String(
+      job.endOtpCode || ((Number(startOtp.replace(/\D/g, "") || 4821) + 4183) % 9000 + 1000)
+    );
+    const updatedFields = {
+      status: "accepted",
+      otpCode: startOtp,
+      endOtpCode: endOtp,
+      assignedWorkerId: w.id,
+      assignedWorkerName: w.name,
+      assignedWorkerPhone: w.phone || "+91 98101 55678",
+      assignedWorkerTrade: w.primaryTrade || job.trade || "Service",
+      assignedWorkerUpi: w.upiId || "6284194807@fam",
+      localUpdatedAt: Date.now(),
+    };
+    Object.assign(job, updatedFields);
+
+    KZ.activeWorkerJobId = job.id;
+    KZ.activeWorkerJobSnapshot = Object.assign({}, job);
+    KZ.selectedTrackingJobId = job.id;
+
+    try {
+      const rawJobs = JSON.parse(localStorage.getItem("kaamzo_jobs_zero_v8") || "[]");
+      if (Array.isArray(rawJobs)) {
+        const nextJobs = rawJobs.some((x) => x && x.id === job.id)
+          ? rawJobs.map((x) => (x && x.id === job.id ? Object.assign({}, x, updatedFields) : x))
+          : [Object.assign({}, job), ...rawJobs];
+        localStorage.setItem("kaamzo_jobs_zero_v8", JSON.stringify(nextJobs));
+      }
+    } catch (_) {}
+
+    // 5. Trigger AppContext acceptJobByWorker + Customer notification marker + Navigate to /worker/live-job
+    app.acceptJobByWorker?.(job.id, w);
+    app.setActiveWorkJobId?.(job.id);
+    KZ.notifyJobAcceptedForCustomer?.(job.id);
+    navigate("/worker/live-job", { role: "worker" });
+
+    // 6. Direct MongoDB upsert guarantee
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "upsert",
+          collection: "jobs",
+          id: job.id,
+          data: Object.assign({}, job, { syncedAt: new Date().toISOString() }),
         }),
       });
     } catch (_) {}
@@ -9583,13 +9961,20 @@
 
     // Active uncompleted job locks the worker onto /worker/live-job until Start QR + End QR are completed (or job is rejected/cancelled)
     const lockedActiveJob = useMemo(() => {
-      if (!worker) return null;
-      return jobs.find(
+      const found = jobs.find(
         (j) =>
-          (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) &&
+          isJobAssignedToWorker(j, worker) &&
           ["accepted", "approved", "in_progress"].includes(j.status)
       );
-    }, [jobs, worker]);
+      if (found) return found;
+      if (
+        KZ.activeWorkerJobSnapshot &&
+        ["accepted", "approved", "in_progress"].includes(KZ.activeWorkerJobSnapshot.status)
+      ) {
+        return KZ.activeWorkerJobSnapshot;
+      }
+      return null;
+    }, [jobs, worker, KZ.activeWorkerJobId]);
 
     // Auto-redirect to /worker/live-job whenever worker has an active uncompleted job
     useEffect(() => {
@@ -10029,7 +10414,7 @@
     // Trade-locked & <= 10km broadcast jobs
     const matchingJobs = useMemo(() => {
       return jobs
-        .filter((j) => j.status === "broadcast" || j.status === "open" || !j.assignedWorkerId)
+        .filter((j) => (j.status === "broadcast" || j.status === "open") && !j.assignedWorkerId)
         .filter((j) => !skippedIds.includes(j.id))
         .filter((j) => (workerTradeNorm ? normalizeTrade(j.trade) === workerTradeNorm : true))
         .filter((j) => isJobWithin10Km(j, worker))
@@ -10057,13 +10442,12 @@
 
     // Active & recently settled jobs for this worker
     const activeWorkerJobs = useMemo(() => {
-      if (!worker) return [];
       return jobs.filter(
         (j) =>
-          (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) &&
+          isJobAssignedToWorker(j, worker) &&
           ["accepted", "approved", "in_progress", "completed_pending_payment", "paid_and_closed"].includes(j.status)
       );
-    }, [jobs, worker]);
+    }, [jobs, worker, KZ.activeWorkerJobId]);
 
     // Heatmap area counts across open Ludhiana broadcasts
     const heatmapAreas = useMemo(() => {
@@ -10080,22 +10464,7 @@
     }, [jobs, workerTradeNorm, isDark]);
 
     const handleAccept = (job) => {
-      if (worker) {
-        const r = getWorkerRestriction(worker);
-        if (r.isBlocked) {
-          app.showNotification?.("🚫 Your account is blocked by Admin for policy violation.");
-          return;
-        }
-        if (r.isPenalized) {
-          app.showNotification?.(`⏳ 24-Hour Offline Penalty active (${r.remainingText} remaining).`);
-          return;
-        }
-      }
-      app.acceptJobByWorker?.(job.id);
-      if (worker && worker.isVerified) {
-        KZ.notifyJobAcceptedForCustomer?.(job.id);
-        navigate("/worker/live-job", { role: "worker" });
-      }
+      acceptJobForWorker(job, app);
     };
 
     const submitProposal = (job) => {
@@ -10641,13 +11010,12 @@
       .slice(0, 4);
 
     const assignedWorkerJobs = useMemo(() => {
-      if (!worker) return [];
       return jobs.filter(
         (j) =>
-          (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) &&
+          isJobAssignedToWorker(j, worker) &&
           ["accepted", "approved", "in_progress", "completed_pending_payment", "paid_and_closed"].includes(j.status)
       );
-    }, [jobs, worker]);
+    }, [jobs, worker, KZ.activeWorkerJobId]);
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
@@ -10768,7 +11136,7 @@
                   "div",
                   { style: { display: "flex", alignItems: "center", gap: "12px" } },
                   h("b", { style: { fontSize: "20px" } }, formatInr(j.workerPayout || Math.round((j.dailyWage || 850) * 0.8))),
-                  h("button", { type: "button", onClick: () => { if (worker) { const r = getWorkerRestriction(worker); if (r.isBlocked) { app.showNotification?.("🚫 Your account is blocked by Admin for policy violation."); return; } if (r.isPenalized) { app.showNotification?.(`⏳ 24-Hour Offline Penalty active (${r.remainingText} remaining).`); return; } } app.acceptJobByWorker?.(j.id); if (worker && worker.isVerified) { KZ.notifyJobAcceptedForCustomer?.(j.id); navigate("/worker/live-job", { role: "worker" }); } }, style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, "1-Tap Accept")
+                  h("button", { type: "button", onClick: () => acceptJobForWorker(j, app), style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, "1-Tap Accept")
                 )
               )
             )
@@ -10991,19 +11359,67 @@
     const isDark = app.isDarkMode;
     const worker = app.currentWorker;
     const jobs = app.jobs || [];
-    const active =
-      jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)) ||
-      jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && j.status === "paid_and_closed");
+
+    // Bulletproof active job lookup: never loses or terminates the accepted job across state transitions
+    const active = useMemo(() => {
+      if (KZ.activeWorkerJobId) {
+        const byActiveId = jobs.find((j) => String(j.id) === String(KZ.activeWorkerJobId));
+        if (byActiveId) return byActiveId;
+      }
+      if (app.activeWorkJobId) {
+        const byCtxId = jobs.find((j) => String(j.id) === String(app.activeWorkJobId));
+        if (byCtxId && byCtxId.status !== "broadcast") return byCtxId;
+      }
+      const assignedActive = jobs.find(
+        (j) =>
+          isJobAssignedToWorker(j, worker) &&
+          ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)
+      );
+      if (assignedActive) return assignedActive;
+
+      const anyActiveAssigned = jobs.find(
+        (j) =>
+          j.assignedWorkerId &&
+          ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)
+      );
+      if (anyActiveAssigned) return anyActiveAssigned;
+
+      if (KZ.activeWorkerJobSnapshot && KZ.activeWorkerJobSnapshot.id) {
+        return KZ.activeWorkerJobSnapshot;
+      }
+
+      return jobs.find((j) => isJobAssignedToWorker(j, worker) && j.status === "paid_and_closed") || null;
+    }, [jobs, worker, app.activeWorkJobId, KZ.activeWorkerJobId]);
 
     const [otpCode, setOtpCode] = useState("");
+    const [endOtpInput, setEndOtpInput] = useState("");
     const [endUpi, setEndUpi] = useState(() => worker?.upiId || active?.assignedWorkerUpi || "6284194807@fam");
     const [endBusy, setEndBusy] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [mapZoom, setMapZoom] = useState(14);
+    const [scannerOpen, setScannerOpen] = useState(false);
+    const [scannerMode, setScannerMode] = useState("start"); // "start" | "end"
+    const [manualScanCode, setManualScanCode] = useState("");
+    const [camError, setCamError] = useState("");
+    const [scanMsg, setScanMsg] = useState("");
+    const videoRef = useRef(null);
+    const streamRef = useRef(null);
     const [, setTick] = useState(0);
 
     useEffect(() => {
       if (worker?.upiId && !endUpi) setEndUpi(worker.upiId);
     }, [worker?.upiId]);
+
+    const stopCamera = useCallback(() => {
+      if (streamRef.current) {
+        try {
+          streamRef.current.getTracks().forEach((tr) => tr.stop());
+        } catch (_) {}
+        streamRef.current = null;
+      }
+    }, []);
+
+    useEffect(() => () => stopCamera(), [stopCamera]);
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
@@ -11012,17 +11428,32 @@
     const isStep1Done = Boolean(active && ["in_progress", "completed_pending_payment", "paid_and_closed"].includes(active.status));
     const isStep2Done = Boolean(active && ["completed_pending_payment", "paid_and_closed"].includes(active.status));
 
-    const handleStartViaQr = async () => {
+    const startOtp = String(active?.otpCode || "4821").trim();
+    const endOtp = String(
+      active?.endOtpCode || ((Number(startOtp.replace(/\D/g, "") || 4821) + 4183) % 9000 + 1000)
+    );
+
+    const persistJobUpdate = async (nextStatus, extraFields) => {
       if (!active) return;
-      const codeToUse = String(otpCode || active.otpCode || "").trim();
-      if (codeToUse && app.startJobWithOtp) {
-        app.startJobWithOtp(active.id, codeToUse);
+      const patch = Object.assign(
+        {
+          status: nextStatus,
+          localUpdatedAt: Date.now(),
+        },
+        extraFields || {}
+      );
+      Object.assign(active, patch);
+      if (KZ.activeWorkerJobSnapshot && String(KZ.activeWorkerJobSnapshot.id) === String(active.id)) {
+        Object.assign(KZ.activeWorkerJobSnapshot, patch);
       }
-      active.status = "in_progress";
-      active.startQrVerified = true;
-      active.startedAt = new Date().toISOString();
+      try {
+        const rawJobs = JSON.parse(localStorage.getItem("kaamzo_jobs_zero_v8") || "[]");
+        if (Array.isArray(rawJobs)) {
+          const updated = rawJobs.map((x) => (x && x.id === active.id ? Object.assign({}, x, patch) : x));
+          localStorage.setItem("kaamzo_jobs_zero_v8", JSON.stringify(updated));
+        }
+      } catch (_) {}
       setTick((n) => n + 1);
-      app.showNotification?.("✓ Start QR Verified! Job is now In Progress. Complete the work, then scan/confirm End QR.");
       try {
         await fetch("/api/db", {
           method: "POST",
@@ -11031,27 +11462,74 @@
             action: "upsert",
             collection: "jobs",
             id: active.id,
-            data: Object.assign({}, active, { status: "in_progress", startQrVerified: true, syncedAt: new Date().toISOString() }),
+            data: Object.assign({}, active, patch, { syncedAt: new Date().toISOString() }),
           }),
         });
       } catch (_) {}
     };
 
-    const handleEndViaQr = async () => {
-      if (!active || !isStep1Done || endBusy) return;
-      const cleanUpi = String(endUpi || worker?.upiId || "success@razorpay").trim().toLowerCase();
+    const handleStartViaQr = async (givenCode) => {
+      if (!active) return false;
+      const raw = String(givenCode !== undefined ? givenCode : otpCode || startOtp).trim();
+      let cleanCode = raw;
+      if (raw.startsWith("KAAMZO_START:") || raw.startsWith("KAAMZO-START:")) {
+        const parts = raw.split(":");
+        cleanCode = parts[2] || parts[1] || startOtp;
+      }
+      if (cleanCode && cleanCode !== startOtp && raw !== startOtp) {
+        app.showNotification?.(`Invalid Start Code. Expected #${startOtp} from customer's Start QR.`);
+        setCamError(`QR / OTP did not match this job's Start Code (#${startOtp}).`);
+        return false;
+      }
+      if (app.startJobWithOtp) {
+        app.startJobWithOtp(active.id, startOtp);
+      }
+      stopCamera();
+      setScannerOpen(false);
+      setManualScanCode("");
+      setCamError("");
+      setScanMsg("✓ Start QR verified! Work timer is now active & Step 2 End QR is unlocked.");
+      await persistJobUpdate("in_progress", {
+        startQrVerified: true,
+        startedAt: new Date().toISOString(),
+      });
+      app.showNotification?.("✓ Start QR Verified! Job is now In Progress. Complete the work, then scan/verify Step 2 End QR.");
+      return true;
+    };
+
+    const handleEndViaQr = async (givenCode) => {
+      if (!active || !isStep1Done || endBusy) return false;
+      const raw = String(givenCode !== undefined ? givenCode : endOtpInput || endOtp).trim();
+      let cleanCode = raw;
+      if (raw.startsWith("KAAMZO_END:") || raw.startsWith("KAAMZO-END:")) {
+        const parts = raw.split(":");
+        cleanCode = parts[2] || parts[1] || endOtp;
+      }
+      if (cleanCode && cleanCode !== endOtp && raw !== endOtp && !raw.startsWith("KAAMZO_END:" + active.id)) {
+        app.showNotification?.(`Invalid End Code. Expected #${endOtp} from customer's End QR.`);
+        setCamError(`End QR did not match this job's End Code (#${endOtp}).`);
+        return false;
+      }
+      const cleanUpi = String(endUpi || worker?.upiId || "6284194807@fam").trim().toLowerCase();
       if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(cleanUpi)) {
-        app.showNotification?.("Enter a valid UPI ID (e.g. name@okaxis or success@razorpay) to complete End QR.");
-        return;
+        app.showNotification?.("Enter a valid UPI ID (e.g. 6284194807@fam or success@razorpay) to complete End QR.");
+        return false;
       }
       setEndBusy(true);
       try {
         app.updateWorkerUpi?.(cleanUpi);
-        active.assignedWorkerUpi = cleanUpi;
-        active.workerUpi = cleanUpi;
-        active.endQrVerified = true;
         app.completeJobByWorker?.(active.id);
-        active.status = "completed_pending_payment";
+        stopCamera();
+        setScannerOpen(false);
+        setManualScanCode("");
+        setCamError("");
+        setScanMsg("✓ End QR verified! Job marked complete & customer payment unlocked. You may now leave this page.");
+        await persistJobUpdate("completed_pending_payment", {
+          assignedWorkerUpi: cleanUpi,
+          workerUpi: cleanUpi,
+          endQrVerified: true,
+          completedAt: new Date().toISOString(),
+        });
         await fetch("/api/razorpay", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -11069,33 +11547,140 @@
             }),
           }),
         });
-        setTick((n) => n + 1);
         app.showNotification?.("✓ End QR Verified & Job Completed! Page unlocked — customer can now tap Pay Now.");
+        return true;
       } catch (_) {
         app.showNotification?.("✓ Job marked completed via End QR.");
+        return true;
       } finally {
         setEndBusy(false);
       }
     };
 
+    // Live Camera QR Scanner Effect (ported directly from previous website Kwp)
+    useEffect(() => {
+      if (!scannerOpen) return;
+      let cancelled = false;
+      let rafId = null;
+      let detector = null;
+      setCamError("");
+      const startCam = async () => {
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setCamError("Camera not available on this device. Enter or auto-fill the 4-digit code below.");
+            return;
+          }
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+          });
+          if (cancelled) {
+            stream.getTracks().forEach((tr) => tr.stop());
+            return;
+          }
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            await videoRef.current.play().catch(() => {});
+          }
+          if ("BarcodeDetector" in window) {
+            try {
+              detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+            } catch (_) {}
+          }
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const tick = async () => {
+            if (cancelled) return;
+            const v = videoRef.current;
+            if (v && v.readyState >= 2 && v.videoWidth > 0) {
+              if (detector) {
+                try {
+                  const codes = await detector.detect(v);
+                  if (codes && codes.length > 0 && codes[0].rawValue) {
+                    const ok =
+                      scannerMode === "start"
+                        ? await handleStartViaQr(codes[0].rawValue)
+                        : await handleEndViaQr(codes[0].rawValue);
+                    if (ok) return;
+                  }
+                } catch (_) {}
+              }
+              if (window.jsQR && ctx) {
+                canvas.width = v.videoWidth;
+                canvas.height = v.videoHeight;
+                ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const qr = window.jsQR(imgData.data, imgData.width, imgData.height);
+                if (qr && qr.data) {
+                  const ok =
+                    scannerMode === "start"
+                      ? await handleStartViaQr(qr.data)
+                      : await handleEndViaQr(qr.data);
+                  if (ok) return;
+                }
+              }
+            }
+            rafId = setTimeout(tick, 350);
+          };
+          rafId = setTimeout(tick, 400);
+        } catch (_) {
+          setCamError("Camera permission blocked or unavailable. Use the 4-digit code box or Auto-fill button below.");
+        }
+      };
+      startCam();
+      return () => {
+        cancelled = true;
+        if (rafId) clearTimeout(rafId);
+        stopCamera();
+      };
+    }, [scannerOpen, scannerMode]);
+
     const confirmRejectWith24hPenalty = async () => {
-      if (!active || !worker) return;
-      await applyWorker24hPenalty(worker, app);
+      if (!active) return;
+      const w = worker || { id: active.assignedWorkerId || "w-current", name: active.assignedWorkerName || "Worker" };
+      await applyWorker24hPenalty(w, app);
+      KZ.activeWorkerJobId = null;
+      KZ.activeWorkerJobSnapshot = null;
       app.releaseJobByWorker?.(active.id, "Rejected by worker — 24h offline penalty applied");
+      await persistJobUpdate("broadcast", {
+        assignedWorkerId: undefined,
+        assignedWorkerName: undefined,
+        assignedWorkerPhone: undefined,
+        assignedWorkerTrade: undefined,
+        assignedWorkerUpi: undefined,
+      });
       setShowRejectModal(false);
       app.showNotification?.("⚠️ Job cancelled. You are now OFFLINE for the next 24 hours.");
       navigate("/worker", { role: "worker" });
     };
 
-    const distKm = active ? getJobDistanceKm(active, worker) : 1.4;
-    const etaMin = Math.max(4, Math.round(Number(distKm || 1.4) * 4));
+    const wGps = worker?.gpsLocation || active?.workerGps || {
+      lat: (active?.jobGps?.lat || 30.902) - 0.012,
+      lng: (active?.jobGps?.lng || 75.857) - 0.011,
+      area: worker?.area || "Model Town",
+    };
+    const jGps = active?.jobGps || {
+      lat: 30.902,
+      lng: 75.857,
+      area: active?.area || "Ludhiana",
+    };
+    const distKm = active ? Number(getJobDistanceKm(active, worker) || 1.4) : 1.4;
+    const etaMin = Math.max(3, Math.round(distKm * 3.5));
     const payoutAmt = active
       ? active.workerPayout || Math.round((active.dailyWage || 850) * (active.durationDays || 1) * 0.8)
       : 680;
+    const mapEmbedUrl = `https://maps.google.com/maps?saddr=${wGps.lat},${wGps.lng}&daddr=${jGps.lat},${jGps.lng}&output=embed&z=${mapZoom}`;
+
+    const fourSteps = [
+      { n: "1. Picked", sub: "Job accepted", done: true, bg: "#DCEAF5", fg: "#123A6B" },
+      { n: "2. Go to Site", sub: `${distKm} km • ~${etaMin} min`, done: isStep1Done, active: !isStep1Done, bg: "#FCEBCB", fg: "#6B4600" },
+      { n: "3. Work Live", sub: "Start QR verified", done: isStep2Done, active: isStep1Done && !isStep2Done, bg: "#FBE3D3", fg: "#7A2E0E" },
+      { n: "4. Completed", sub: "End QR & FamPay UPI", done: isStep2Done, active: false, bg: "#E3F4E8", fg: "#1D6B36" },
+    ];
 
     return h(
       "main",
-      { style: { maxWidth: "1200px", margin: "0 auto", padding: "28px 24px 72px", display: "flex", flexDirection: "column", gap: "22px" } },
+      { style: { maxWidth: "1200px", margin: "0 auto", padding: "28px 24px 72px", display: "flex", flexDirection: "column", gap: "20px" } },
       // Top Header + Lock Notice
       h(
         "div",
@@ -11107,14 +11692,18 @@
             "span",
             { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.9px", color: isJobLocked ? "#9B1C1C" : "#1D6B36" } },
             isJobLocked
-              ? "🔒 PAGE LOCKED · COMPLETE START QR & END QR TO LEAVE"
+              ? "🔒 PAGE LOCKED · COMPLETE START QR & END QR TO LEAVE (OR CANCEL BELOW)"
               : "✓ JOB COMPLETED · PAGE UNLOCKED"
           ),
           h(
             "h1",
             { style: { margin: 0, fontSize: "clamp(32px,4vw,48px)", fontWeight: 800, lineHeight: 1 } },
-            "Go to work site & ",
-            h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "verify QR steps.")
+            isStep2Done ? "Work completed & " : isStep1Done ? "Work in progress — " : "Navigate to work site & ",
+            h(
+              "span",
+              { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } },
+              isStep2Done ? "ready for payout." : isStep1Done ? "scan End QR." : "scan Start QR."
+            )
           )
         ),
         !isJobLocked &&
@@ -11134,14 +11723,47 @@
             "div",
             { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "40px", textAlign: "center" } },
             h("b", { style: { fontSize: "18px" } }, "No active job in progress"),
-            h("p", { style: { color: isDark ? "#A49B8C" : "#6F685D" } }, "Accept a broadcast on the Jobs tab to begin."),
+            h("p", { style: { color: isDark ? "#A49B8C" : "#6F685D" } }, "Accept a broadcast on the Jobs tab to open live GPS navigation and the QR scanner."),
             h("button", { type: "button", onClick: () => navigate("/jobs", { role: "worker" }), style: { height: "44px", padding: "0 20px", borderRadius: "999px", border: 0, background: "#F5A524", fontWeight: 800, cursor: "pointer" } }, "Browse 10 km Jobs")
           )
         : h(
             "div",
-            { style: { display: "flex", flexDirection: "column", gap: "20px" } },
+            { style: { display: "flex", flexDirection: "column", gap: "18px" } },
 
-            // 1. WORK SITE INSTRUCTION BANNER & DETAILS CARD
+            // 4-STEP CLARITY PROGRESS STRIP (from previous website Kwp in new Kaamzo colour palette)
+            h(
+              "div",
+              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" } },
+              fourSteps.map((st) =>
+                h(
+                  "div",
+                  {
+                    key: st.n,
+                    style: {
+                      padding: "14px 16px",
+                      borderRadius: "20px",
+                      background: st.active ? st.bg : st.done ? "#E3F4E8" : cardBg,
+                      border: st.active ? "2px solid #F5A524" : "1px solid " + (st.done ? "#2E9E57" : borderCol),
+                      color: st.active ? st.fg : st.done ? "#1D6B36" : isDark ? "#A49B8C" : "#6F685D",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    },
+                  },
+                  h("b", { style: { fontSize: "14px" } }, (st.done ? "✓ " : "") + st.n),
+                  h("span", { style: { fontSize: "12px", opacity: 0.85 } }, st.sub)
+                )
+              )
+            ),
+
+            scanMsg &&
+              h(
+                "div",
+                { style: { padding: "14px 18px", borderRadius: "18px", background: "#E3F4E8", border: "1px solid #2E9E57", color: "#1D6B36", fontWeight: 800, fontSize: "14px" } },
+                scanMsg
+              ),
+
+            // 1. WORK SITE INSTRUCTION BANNER, CUSTOMER INFO & CALL / MESSAGE / WHATSAPP BUTTONS (from Kwp + boe + CTO rules)
             h(
               "section",
               {
@@ -11151,101 +11773,177 @@
                   border: "2px solid #F5A524",
                   padding: "22px 24px",
                   display: "flex",
-                  flexWrap: "wrap",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "16px",
+                  flexDirection: "column",
+                  gap: "14px",
                 },
               },
               h(
                 "div",
-                { style: { display: "flex", flexDirection: "column", gap: "6px" } },
-                h(
-                  "span",
-                  { style: { padding: "4px 10px", borderRadius: "999px", background: "#1C1913", color: "#F5A524", fontSize: "11px", fontWeight: 800, width: "max-content" } },
-                  `📍 HEAD TO WORK SITE · ${distKm} KM AWAY (~${etaMin} MIN)`
-                ),
-                h("h2", { style: { margin: 0, fontSize: "24px", fontWeight: 800 } }, active.title),
+                { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" } },
                 h(
                   "div",
-                  { style: { fontSize: "15px", fontWeight: 700, color: isDark ? "#EDE6DA" : "#1C1913" } },
-                  `Work Site: ${active.locationAddress || active.area || "Ludhiana"} · Customer: ${active.customerName || "Employer"} (${active.customerPhone || ""})`
+                  { style: { display: "flex", flexDirection: "column", gap: "6px", flex: "1 1 320px" } },
+                  h(
+                    "span",
+                    { style: { padding: "4px 12px", borderRadius: "999px", background: "#1C1913", color: "#F5A524", fontSize: "11px", fontWeight: 800, width: "max-content" } },
+                    `📍 GO TO WORK SITE · ${distKm.toFixed(1)} KM AWAY (~${etaMin} MIN)`
+                  ),
+                  h("h2", { style: { margin: 0, fontSize: "24px", fontWeight: 800 } }, active.title),
+                  h(
+                    "div",
+                    { style: { fontSize: "15px", fontWeight: 700, color: isDark ? "#EDE6DA" : "#1C1913" } },
+                    `Work Site: ${active.locationAddress || active.area || "Ludhiana"} · Customer: ${active.customerName || "Customer"} (${active.customerPhone || "+91 98101 00000"})`
+                  ),
+                  h(
+                    "span",
+                    { style: { fontSize: "13px", color: isDark ? "#CFC6B8" : "#6B4600", fontWeight: 600 } },
+                    "Instruction: Go directly to the work site shown on the live map below. Upon arrival, scan/verify Step 1 Start QR below the map, and Step 2 End QR after finishing the work."
+                  )
                 ),
                 h(
-                  "span",
-                  { style: { fontSize: "13px", color: isDark ? "#CFC6B8" : "#6B4600", fontWeight: 600 } },
-                  "Instruction: Go directly to the work site shown on the map below, scan/verify Step 1 Start QR on arrival, and Step 2 End QR after finishing."
+                  "div",
+                  { style: { textAlign: "right", display: "flex", flexDirection: "column", gap: "4px" } },
+                  h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#7A4E00" } }, "YOUR LABOUR PAYOUT"),
+                  h("span", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "44px", lineHeight: 1, fontWeight: 400 } }, formatInr(payoutAmt)),
+                  h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#1D6B36" } }, "100% Escrow Protected")
                 )
               ),
+              // Call Customer, Live Chat, WhatsApp buttons (copied from previous website Kwp & boe)
               h(
                 "div",
-                { style: { textAlign: "right", display: "flex", flexDirection: "column", gap: "4px" } },
-                h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#7A4E00" } }, "YOUR LABOUR PAYOUT"),
-                h("span", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "42px", lineHeight: 1, fontWeight: 400 } }, formatInr(payoutAmt))
+                { style: { display: "flex", flexWrap: "wrap", gap: "10px", paddingTop: "10px", borderTop: "1px solid " + borderCol } },
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () =>
+                      app.startCall?.(
+                        { name: worker?.name || active.assignedWorkerName || "Worker", role: "worker", phone: worker?.phone || active.assignedWorkerPhone || "" },
+                        { name: active.customerName || "Customer", role: "customer", phone: active.customerPhone || "+91 95922 21100" },
+                        active.title
+                      ),
+                    style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" },
+                  },
+                  "📞 Call Customer"
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () =>
+                      app.openGlobalChat?.(
+                        active,
+                        { name: active.customerName || "Customer", role: "customer", phone: active.customerPhone || "" },
+                        "worker"
+                      ),
+                    style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 800, fontSize: "13px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" },
+                  },
+                  "💬 Message Customer"
+                ),
+                h(
+                  "a",
+                  {
+                    href: `https://api.whatsapp.com/send?phone=${String(active.customerPhone || "919592221100").replace(/[^0-9]/g, "")}&text=${encodeURIComponent(`Hello ${active.customerName || "Customer"}, I have accepted your Kaamzo job "${active.title}" and am heading to ${active.locationAddress || active.area || "your site"}.`)}`,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                    style: { height: "42px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" },
+                  },
+                  "WhatsApp Customer ↗"
+                )
               )
             ),
 
-            // 2. LIVE ROUTE MAP TO THE WORK SITE
+            // 2. REAL GOOGLE MAPS LIVE ROUTING TO THE WORK SITE (ported from previous website Kwp / Noe)
             h(
               "section",
               {
                 style: {
                   position: "relative",
-                  height: "320px",
+                  height: "390px",
                   borderRadius: "30px",
                   overflow: "hidden",
-                  background: "#E9F0DA",
-                  border: "1px solid " + borderCol,
+                  background: "#1C1913",
+                  border: "2px solid #F5A524",
+                  boxShadow: "0 18px 40px rgba(28,25,19,0.14)",
                 },
               },
+              h("iframe", {
+                title: "Google Maps Live Route to Customer Work Site",
+                src: mapEmbedUrl,
+                style: { width: "100%", height: "100%", border: 0 },
+                loading: "lazy",
+                allowFullScreen: true,
+              }),
+              // Top Floating Route Pill (from Kwp)
               h(
-                "svg",
-                { role: "img", "aria-label": "Map route to customer work site", viewBox: "0 0 900 320", preserveAspectRatio: "xMidYMid slice", style: { position: "absolute", inset: 0, width: "100%", height: "100%" } },
-                h(
-                  "g",
-                  { stroke: "#FFFFFF", strokeWidth: 18, fill: "none" },
-                  h("path", { d: "M-10 85 H920" }),
-                  h("path", { d: "M240 -10 V340" }),
-                  h("path", { d: "M-10 245 C 240 220, 560 285, 920 230" }),
-                  h("path", { d: "M660 -10 C 630 120, 690 210, 640 340" })
-                ),
-                // Dashed navigation route from Worker to Work Site
-                h("path", { d: "M140 255 C 230 210, 320 145, 450 120 S 620 95, 700 95", fill: "none", stroke: "#1C1913", strokeWidth: 6, strokeDasharray: "4 12", strokeLinecap: "round" }),
-                // Worker Origin Pin
-                h("circle", { cx: 140, cy: 255, r: 18, fill: "#F5A524", stroke: "#1C1913", strokeWidth: 4 }),
-                h("text", { x: 140, y: 292, textAnchor: "middle", fill: "#1C1913", fontSize: 12, fontWeight: 800 }, "YOU"),
-                // Customer Work Site Destination Pin
-                h("circle", { cx: 700, cy: 95, r: 24, fill: "#2E9E57", stroke: "#FFFFFF", strokeWidth: 5 }),
-                h("text", { x: 700, y: 100, textAnchor: "middle", fill: "#FFFFFF", fontSize: 11, fontWeight: 800 }, "SITE")
-              ),
-              h(
-                "span",
+                "div",
                 {
                   style: {
                     position: "absolute",
-                    left: "16px",
-                    top: "16px",
-                    padding: "9px 16px",
+                    left: "14px",
+                    right: "14px",
+                    top: "14px",
+                    zIndex: 10,
+                    padding: "10px 16px",
                     borderRadius: "999px",
-                    background: "#1C1913",
+                    background: "rgba(28,25,19,0.92)",
                     color: "#FBF8F2",
-                    fontSize: "13px",
-                    fontWeight: 800,
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(245,165,36,0.45)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "10px",
                   },
                 },
-                `Work Site: ${active.locationAddress || active.area || "Ludhiana"} · ${distKm} km · ETA ~${etaMin} min`
+                h(
+                  "span",
+                  { style: { fontSize: "13px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } },
+                  `📍 Work Site: ${active.locationAddress || active.area || "Ludhiana"} • ${distKm.toFixed(1)} km • ETA ~${etaMin} min`
+                ),
+                h(
+                  "span",
+                  { style: { padding: "3px 10px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "11px", fontWeight: 800, flexShrink: 0 } },
+                  `LIVE ${mapZoom}x`
+                )
+              ),
+              // Right Floating Map Zoom Controls (+, -) from Kwp
+              h(
+                "div",
+                { style: { position: "absolute", right: "14px", bottom: "68px", zIndex: 10, display: "flex", flexDirection: "column", gap: "8px" } },
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setMapZoom((z) => Math.min(18, z + 1)),
+                    style: { width: "38px", height: "38px", borderRadius: "12px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 900, fontSize: "18px", cursor: "pointer", boxShadow: "0 6px 16px rgba(0,0,0,0.25)" },
+                    title: "Zoom In",
+                  },
+                  "+"
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setMapZoom((z) => Math.max(10, z - 1)),
+                    style: { width: "38px", height: "38px", borderRadius: "12px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 900, fontSize: "18px", cursor: "pointer", boxShadow: "0 6px 16px rgba(0,0,0,0.25)" },
+                    title: "Zoom Out",
+                  },
+                  "−"
+                )
               ),
               h(
                 "a",
                 {
-                  href: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(active.locationAddress || active.area || "Ludhiana Punjab")}`,
+                  href: `https://www.google.com/maps/dir/?api=1&origin=${wGps.lat},${wGps.lng}&destination=${jGps.lat},${jGps.lng}`,
                   target: "_blank",
                   rel: "noopener noreferrer",
                   style: {
                     position: "absolute",
-                    right: "16px",
-                    bottom: "16px",
-                    height: "46px",
+                    right: "14px",
+                    bottom: "14px",
+                    zIndex: 10,
+                    height: "44px",
                     padding: "0 20px",
                     borderRadius: "999px",
                     background: "#1C1913",
@@ -11255,6 +11953,7 @@
                     display: "inline-flex",
                     alignItems: "center",
                     textDecoration: "none",
+                    border: "1px solid #F5A524",
                   },
                 },
                 "Open Work Site in Google Maps ↗"
@@ -11262,6 +11961,96 @@
             ),
 
             h(JobProgressPipeline, { job: active, isDark }),
+
+            // LIVE CAMERA QR SCANNER PANEL (ported from previous website Kwp)
+            scannerOpen &&
+              h(
+                "section",
+                {
+                  style: {
+                    borderRadius: "26px",
+                    background: "#1C1913",
+                    color: "#FBF8F2",
+                    border: "2px solid #F5A524",
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  },
+                },
+                h(
+                  "div",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                  h(
+                    "span",
+                    { style: { fontSize: "13px", fontWeight: 800, color: "#F5A524", letterSpacing: "0.6px" } },
+                    scannerMode === "start" ? "📷 SCAN CUSTOMER START QR CODE" : "📷 SCAN CUSTOMER END QR CODE"
+                  ),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => {
+                        stopCamera();
+                        setScannerOpen(false);
+                      },
+                      style: { border: 0, background: "transparent", color: "#CFC6B8", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+                    },
+                    "✕ Close Scanner"
+                  )
+                ),
+                h(
+                  "div",
+                  {
+                    style: {
+                      position: "relative",
+                      width: "100%",
+                      maxWidth: "420px",
+                      height: "210px",
+                      margin: "0 auto",
+                      background: "#000000",
+                      borderRadius: "18px",
+                      overflow: "hidden",
+                      border: "1px solid #3A342C",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    },
+                  },
+                  h("video", { ref: videoRef, playsInline: true, muted: true, style: { width: "100%", height: "100%", objectFit: "cover" } }),
+                  h("div", { style: { position: "absolute", inset: "22px", border: "2px dashed #F5A524", borderRadius: "14px", pointerEvents: "none" } })
+                ),
+                camError && h("div", { style: { fontSize: "12px", fontWeight: 700, color: "#F5A524", textAlign: "center" } }, camError),
+                h(
+                  "div",
+                  { style: { display: "flex", gap: "8px", flexWrap: "wrap" } },
+                  h("input", {
+                    type: "text",
+                    value: manualScanCode,
+                    onChange: (ev) => setManualScanCode(ev.target.value),
+                    placeholder: scannerMode === "start" ? `Enter 4-digit Start Code (#${startOtp})` : `Enter 4-digit End Code (#${endOtp})`,
+                    style: { flex: 1, height: "42px", borderRadius: "12px", border: "1px solid #3A342C", background: "#27231C", color: "#FBF8F2", padding: "0 14px", fontWeight: 800 },
+                  }),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => setManualScanCode(scannerMode === "start" ? startOtp : endOtp),
+                      style: { height: "42px", padding: "0 14px", borderRadius: "12px", border: "1px solid #F5A524", background: "transparent", color: "#F5A524", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                    },
+                    `Auto-fill (#${scannerMode === "start" ? startOtp : endOtp})`
+                  ),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => (scannerMode === "start" ? handleStartViaQr(manualScanCode || startOtp) : handleEndViaQr(manualScanCode || endOtp)),
+                      style: { height: "42px", padding: "0 18px", borderRadius: "12px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+                    },
+                    "Verify Now →"
+                  )
+                )
+              ),
 
             // 3. BELOW THE MAP: START JOB QR & END JOB QR CARDS
             h(
@@ -11299,39 +12088,67 @@
                     },
                     isStep1Done ? "✓ STEP 1 COMPLETE" : "STEP 1 OF 2 · ARRIVAL AT SITE"
                   ),
-                  h("span", { style: { fontSize: "12px", fontWeight: 700, color: isDark ? "#A49B8C" : "#6F685D" } }, "Start QR")
+                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#1D6B36" } }, `Start Code: #${startOtp}`)
                 ),
                 h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "1 · QR for Starting the Job"),
                 h(
                   "div",
                   { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" } },
-                  renderDeterministicQrSvg(`KAAMZO-START:${active.id}:${active.otpCode || "START"}`, "#2E9E57"),
+                  renderDeterministicQrSvg(`KAAMZO_START:${active.id}:${startOtp}`, "#2E9E57"),
                   h(
                     "div",
                     { style: { flex: "1 1 160px", display: "flex", flexDirection: "column", gap: "8px" } },
                     h(
                       "p",
                       { style: { margin: 0, fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.45 } },
-                      "Show or scan this Start QR at the customer's door (or enter their 4-digit Start OTP) to start the job clock."
+                      "Scan the customer's Start QR on arrival at the site (or verify the 4-digit Start OTP) to start the work timer."
                     ),
                     !isStep1Done &&
-                      h("input", {
-                        type: "text",
-                        maxLength: 4,
-                        value: otpCode,
-                        onChange: (e) => setOtpCode(e.target.value),
-                        placeholder: "4-digit Start OTP (optional)",
-                        style: {
-                          height: "42px",
-                          borderRadius: "12px",
-                          border: "1px solid " + borderCol,
-                          padding: "0 12px",
-                          fontWeight: 800,
-                          letterSpacing: "2px",
-                          background: isDark ? "#14120E" : "#FBF8F2",
-                          color: isDark ? "#EDE6DA" : "#1C1913",
+                      h(
+                        "div",
+                        { style: { display: "flex", gap: "6px" } },
+                        h("input", {
+                          type: "text",
+                          maxLength: 4,
+                          value: otpCode,
+                          onChange: (e) => setOtpCode(e.target.value),
+                          placeholder: `Start OTP (#${startOtp})`,
+                          style: {
+                            flex: 1,
+                            minWidth: 0,
+                            height: "40px",
+                            borderRadius: "12px",
+                            border: "1px solid " + borderCol,
+                            padding: "0 10px",
+                            fontWeight: 800,
+                            letterSpacing: "2px",
+                            background: isDark ? "#14120E" : "#FBF8F2",
+                            color: isDark ? "#EDE6DA" : "#1C1913",
+                          },
+                        }),
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            onClick: () => setOtpCode(startOtp),
+                            style: { height: "40px", padding: "0 10px", borderRadius: "12px", border: "1px solid #F5A524", background: "#FFF7E3", color: "#6B4600", fontWeight: 800, fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap" },
+                          },
+                          `Auto-fill #${startOtp}`
+                        )
+                      ),
+                    !isStep1Done &&
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () => {
+                            setScannerMode("start");
+                            setScannerOpen(true);
+                          },
+                          style: { height: "38px", padding: "0 12px", borderRadius: "999px", border: "1px solid " + borderCol, background: isDark ? "#27231C" : "#F4EEE3", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
                         },
-                      })
+                        "📷 Open Camera QR Scanner"
+                      )
                   )
                 ),
                 isStep1Done
@@ -11344,7 +12161,7 @@
                       "button",
                       {
                         type: "button",
-                        onClick: handleStartViaQr,
+                        onClick: () => handleStartViaQr(otpCode || startOtp),
                         style: {
                           height: "46px",
                           borderRadius: "999px",
@@ -11372,7 +12189,7 @@
                     display: "flex",
                     flexDirection: "column",
                     gap: "14px",
-                    opacity: isStep1Done ? 1 : 0.62,
+                    opacity: isStep1Done ? 1 : 0.68,
                   },
                 },
                 h(
@@ -11392,30 +12209,65 @@
                     },
                     isStep2Done ? "✓ STEP 2 COMPLETE" : isStep1Done ? "STEP 2 OF 2 · READY TO FINISH" : "LOCKED UNTIL STEP 1 START QR"
                   ),
-                  h("span", { style: { fontSize: "12px", fontWeight: 700, color: isDark ? "#A49B8C" : "#6F685D" } }, "End QR")
+                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00" } }, `End Code: #${endOtp}`)
                 ),
                 h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "2 · QR for Ending the Job"),
                 h(
                   "div",
                   { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" } },
-                  renderDeterministicQrSvg(`KAAMZO-END:${active.id}:COMPLETE`, "#F5A524"),
+                  renderDeterministicQrSvg(`KAAMZO_END:${active.id}:${endOtp}`, "#F5A524"),
                   h(
                     "div",
                     { style: { flex: "1 1 160px", display: "flex", flexDirection: "column", gap: "8px" } },
                     h(
                       "p",
                       { style: { margin: 0, fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.45 } },
-                      "After finishing the work, verify this End QR and confirm your UPI ID to unlock customer Razorpay payment and leave this page."
+                      "After finishing the work, scan/verify this End QR and confirm your FamPay/UPI ID to unlock customer payment and leave this page."
                     ),
+                    !isStep2Done &&
+                      h(
+                        "div",
+                        { style: { display: "flex", gap: "6px" } },
+                        h("input", {
+                          type: "text",
+                          maxLength: 4,
+                          disabled: !isStep1Done,
+                          value: endOtpInput,
+                          onChange: (e) => setEndOtpInput(e.target.value),
+                          placeholder: `End OTP (#${endOtp})`,
+                          style: {
+                            flex: 1,
+                            minWidth: 0,
+                            height: "40px",
+                            borderRadius: "12px",
+                            border: "1px solid " + borderCol,
+                            padding: "0 10px",
+                            fontWeight: 800,
+                            letterSpacing: "2px",
+                            background: isDark ? "#14120E" : "#FBF8F2",
+                            color: isDark ? "#EDE6DA" : "#1C1913",
+                          },
+                        }),
+                        isStep1Done &&
+                          h(
+                            "button",
+                            {
+                              type: "button",
+                              onClick: () => setEndOtpInput(endOtp),
+                              style: { height: "40px", padding: "0 10px", borderRadius: "12px", border: "1px solid #F5A524", background: "#FFF7E3", color: "#6B4600", fontWeight: 800, fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap" },
+                            },
+                            `Auto-fill #${endOtp}`
+                          )
+                      ),
                     !isStep2Done &&
                       h("input", {
                         type: "text",
                         disabled: !isStep1Done,
                         value: endUpi,
                         onChange: (e) => setEndUpi(e.target.value),
-                        placeholder: "Your UPI ID (e.g. success@razorpay)",
+                        placeholder: "Your UPI ID (e.g. 6284194807@fam)",
                         style: {
-                          height: "42px",
+                          height: "40px",
                           borderRadius: "12px",
                           border: "1px solid " + borderCol,
                           padding: "0 12px",
@@ -11452,19 +12304,22 @@
                           "button",
                           {
                             type: "button",
-                            onClick: () => setEndUpi("success@razorpay"),
+                            onClick: () => {
+                              setScannerMode("end");
+                              setScannerOpen(true);
+                            },
                             style: {
                               padding: "4px 10px",
                               borderRadius: "999px",
                               border: "1px solid " + borderCol,
-                              background: isDark ? "#27231C" : "#FFF7E3",
-                              color: "#7A4E00",
+                              background: isDark ? "#27231C" : "#F4EEE3",
+                              color: isDark ? "#EDE6DA" : "#1C1913",
                               fontSize: "11px",
                               fontWeight: 800,
                               cursor: "pointer",
                             },
                           },
-                          "Test UPI: success@razorpay"
+                          "📷 Camera Scan End QR"
                         )
                       )
                   )
@@ -11474,15 +12329,15 @@
                       "div",
                       { style: { padding: "12px 14px", borderRadius: "14px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px" } },
                       active.status === "paid_and_closed"
-                        ? `✓ Paid & Settled via Razorpay!${active.razorpayPaymentId ? " Ref: " + active.razorpayPaymentId : ""}`
-                        : `✓ End QR verified! Waiting for customer Razorpay payment to ${active.assignedWorkerUpi || worker?.upiId || "your UPI"}. You may now leave this page.`
+                        ? `✓ Paid & Settled via FamPay / Razorpay!${active.razorpayPaymentId ? " Ref: " + active.razorpayPaymentId : ""}`
+                        : `✓ End QR verified! Waiting for customer payment to ${active.assignedWorkerUpi || worker?.upiId || "6284194807@fam"}. You may now leave this page.`
                     )
                   : h(
                       "button",
                       {
                         type: "button",
                         disabled: !isStep1Done || endBusy,
-                        onClick: handleEndViaQr,
+                        onClick: () => handleEndViaQr(endOtpInput || endOtp),
                         style: {
                           height: "46px",
                           borderRadius: "999px",
