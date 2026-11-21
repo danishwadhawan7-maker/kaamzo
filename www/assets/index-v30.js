@@ -5667,34 +5667,6 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                     ]
                   }),
                   r.jsxs("button", {
-                    onClick: async () => {
-                      const pin = window.prompt("ADMIN AUTHENTICATION\n\nEnter your 4-Digit Master PIN to authorize reset:");
-                      if (!pin) return;
-                      let valid = !1;
-                      try {
-                        const res = await fetch("/api/admin/step-up", {
-                          method:"POST",
-                          credentials:"same-origin",
-                          headers: { "Content-Type":"application/json" },
-                          body: JSON.stringify({ pin: pin.trim() })
-                        });
-                        valid = res.ok;
-                      } catch {}
-                      if (!valid) {
-                        window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent("BLOCKED_DB_RESET","Unauthorized PIN entered for Reset.","CRITICAL", e.email);
-                        z("Access Denied: Invalid Security PIN.");
-                        return;
-                      }
-                      if (window.confirm("Confirm database reset?")) {
-                        window.kaamzoAdminSecurity && window.kaamzoAdminSecurity.logEvent("DATABASE_RESET_EXECUTED","Admin reset database.","WARNING", e.email);
-                        F();
-                      }
-                    },
-                    className:"px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95",
-                    title:"Reset Platform Records",
-                    children: [r.jsx(_2, { className:"w-3.5 h-3.5 text-rose-500" }), r.jsx("span", { children:"Reset Data" })]
-                  }),
-                  r.jsxs("button", {
                     onClick: () => { z("Records synchronized!"); },
                     className:"px-3 py-1.5 bg-[#F5A524] hover:bg-[#E8930C] active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs",
                     title:"Refresh Platform Records",

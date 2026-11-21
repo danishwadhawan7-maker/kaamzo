@@ -45,10 +45,10 @@ const SPECIFIC_TASKS = [
 
   // Plumber
   { trade: "Plumber", rx: /water\s*tank|tank\s*clean|sintex|overhead\s*tank/i, label: "Water Tank Cleaning / Fitting", unitPrice: 700, perDay: 800, hours: "2–3 hours", unitName: "tank" },
-  { trade: "Plumber", rx: /motor|submersible|water\s*pump|tullu/i, label: "Water Motor / Pump Repair", unitPrice: 550, perDay: 850, hours: "1.5–3 hours", unitName: "motor" },
+  { trade: "Plumber", rx: /motor|motot|moter|overhead|submersible|water\s*pump|tullu/i, label: "Water Motor / Pump Repair", unitPrice: 550, perDay: 850, hours: "1.5–3 hours", unitName: "motor" },
   { trade: "Plumber", rx: /commode|toilet\s*seat|western\s*toilet|flush\s*tank|cistern/i, label: "Toilet / Flush Tank Repair", unitPrice: 500, perDay: 800, hours: "1.5–2.5 hours", unitName: "unit" },
   { trade: "Plumber", rx: /drain|block|choke|clog|naali|sink\s*block/i, label: "Drain / Pipe Unblocking", unitPrice: 400, perDay: 800, hours: "1–2 hours", unitName: "drain" },
-  { trade: "Plumber", rx: /tap|nal|faucet|mixer|shower|sink|wash\s*basin|pipe\s*leak|leakage/i, label: "Tap / Pipe Leak Repair", unitPrice: 350, perDay: 800, hours: "1–2 hours", unitName: "point" },
+  { trade: "Plumber", rx: /tap|nal|faucet|mixer|shower|sink|wash\s*basin|pipe\s*leak|leakage|leek|kitcen|kitchen/i, label: "Tap / Pipe Leak Repair", unitPrice: 350, perDay: 800, hours: "1–2 hours", unitName: "point" },
 
   // Carpenter
   { trade: "Carpenter", rx: /cupboard|wardrobe|almirah|modular\s*kitchen|cabinet/i, label: "Cupboard / Wardrobe Carpentry", unitPrice: 900, perDay: 900, hours: "Half day – 1 day", unitName: "unit" },

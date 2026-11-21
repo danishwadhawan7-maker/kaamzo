@@ -7009,6 +7009,8 @@
     const [baseRate, setBaseRate] = useState(() => prefill?.dailyWage || getLiveTradeRate("Plumber", workers));
     const [estimating, setEstimating] = useState(false);
     const [aiNote, setAiNote] = useState(() => prefill?.aiNote || "");
+    const [aiEstimated, setAiEstimated] = useState(() => Boolean(prefill?.aiNote && prefill?.dailyWage));
+    const [pageStep, setPageStep] = useState(1); // 1 = Trade & Job Details (+ AI Price), 2 = Schedule & Broadcast
 
     useEffect(() => {
       if (KZ.prefillPostJob) {
@@ -7018,18 +7020,22 @@
         if (pf.description) setDesc(pf.description);
         if (pf.dailyWage) setBaseRate(Number(pf.dailyWage));
         if (pf.durationDays) setDays(Number(pf.durationDays));
-        if (pf.aiNote) setAiNote(pf.aiNote);
+        if (pf.aiNote) {
+          setAiNote(pf.aiNote);
+          setAiEstimated(true);
+        }
         KZ.prefillPostJob = null;
       }
     }, []);
 
+    const hasWorkDescribed = Boolean(title.trim().length >= 3 || desc.trim().length >= 3);
     const baseLabor = Number(baseRate) * Number(days);
     const platformFee = Math.round(baseLabor * 0.2);
     const totalCustomer = baseLabor + platformFee;
 
     const runAiEstimate = async () => {
-      if (!title.trim() && !desc.trim()) {
-        app.showNotification?.("Describe the job first for AI estimation.");
+      if (!hasWorkDescribed) {
+        app.showNotification?.("Please describe the work first before asking AI for the price.");
         return;
       }
       setEstimating(true);
@@ -7048,6 +7054,7 @@
         const data = await res.json().catch(() => ({}));
         if (data.rejected) {
           setAiNote(data.reason || "Please describe a valid home/site job.");
+          setAiEstimated(false);
         } else {
           if (data.trade && TRADES.some((t) => t.id === data.trade)) setTrade(data.trade);
           const nextWage = Number(data.suggestedWage || data.suggestedPrice || 0);
@@ -7057,17 +7064,27 @@
             data.reply ||
               data.summary ||
               data.explanation ||
-              `Suggested: ₹${nextWage} (${data.estimatedTime || "1 day"}).`
+              `Suggested Labour Price: ₹${nextWage} (${data.estimatedTime || "1 day"}).`
           );
+          setAiEstimated(true);
         }
       } catch (_) {
-        setAiNote("Using standard Ludhiana rate benchmark for " + trade + ".");
+        setAiNote("Estimated Ludhiana labour rate for " + trade + ": " + formatInr(baseRate) + "/day.");
+        setAiEstimated(true);
       }
       setEstimating(false);
     };
 
     const handleSubmit = (e) => {
       e.preventDefault();
+      if (!hasWorkDescribed || !aiEstimated) {
+        app.showNotification?.("Please describe the work and ask AI for the price first.");
+        return;
+      }
+      if (pageStep !== 2) {
+        setPageStep(2);
+        return;
+      }
       if (!cust) {
         KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/post-a-job" });
         return;
@@ -7100,180 +7117,402 @@
 
     return h(
       "main",
-      { style: { maxWidth: "1320px", margin: "0 auto", padding: "32px 24px 80px", display: "flex", flexDirection: "column", gap: "24px" } },
+      { style: { maxWidth: "1080px", margin: "0 auto", padding: "32px 24px 80px", display: "flex", flexDirection: "column", gap: "24px" } },
+      // Top Header with Cross (✕) Close Button to exit back to Home Page
       h(
         "div",
-        { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-        h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1px", color: "#7A4E00" } }, "BROADCAST TO VERIFIED PROS WITHIN 10 KM"),
-        h(
-          "h1",
-          { style: { margin: 0, fontSize: "clamp(34px, 4vw, 52px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } },
-          "Tell workers ",
-          h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "what you need.")
-        ),
-        h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A", maxWidth: "720px", lineHeight: 1.5 } }, "Your job goes live to verified workers within 10 km. You pay into escrow only when a worker accepts.")
-      ),
-      h(
-        "form",
-        { onSubmit: handleSubmit, style: { display: "flex", flexWrap: "wrap", gap: "24px", alignItems: "flex-start" } },
+        { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" } },
         h(
           "div",
-          { style: { flex: "999 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: "20px" } },
-          // Step 1: Trade
+          { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+          h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1px", color: "#7A4E00" } }, `STEP ${pageStep} OF 2 · BROADCAST TO VERIFIED PROS WITHIN 10 KM`),
           h(
-            "section",
-            { style: { borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
-            h("span", { style: { fontSize: "18px", fontWeight: 800 } }, "1 · Which trade?"),
+            "h1",
+            { style: { margin: 0, fontSize: "clamp(32px, 4vw, 50px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } },
+            pageStep === 1 ? "Tell workers " : "Schedule & ",
             h(
-              "div",
-              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: "10px" } },
-              TRADES.map((t) => {
-                const active = normalizeTrade(trade) === normalizeTrade(t.id);
-                return h(
-                  "button",
-                  {
-                    key: t.id,
-                    type: "button",
-                    onClick: () => {
-                      setTrade(t.id);
-                      setBaseRate(getLiveTradeRate(t.id, workers));
-                    },
-                    style: {
-                      borderRadius: "18px",
-                      border: "2px solid " + (active ? "#1C1913" : borderCol),
-                      background: t.bg,
-                      color: "#1C1913",
-                      padding: "12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-start",
-                      gap: "2px",
-                      textAlign: "left",
-                    },
-                  },
-                  h("span", { style: { fontWeight: 800, fontSize: "14px" } }, t.name),
-                  h("span", { style: { fontFamily: "'Noto Sans Devanagari', sans-serif", fontSize: "12px", color: t.fg } }, t.hi)
-                );
-              })
+              "span",
+              { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } },
+              pageStep === 1 ? "what you need." : "broadcast job."
             )
           ),
-
-          // Step 2: Work Details + AI Estimate
           h(
-            "section",
-            { style: { borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
-            h(
-              "div",
-              { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
-              h("span", { style: { fontSize: "18px", fontWeight: 800 } }, "2 · Job details"),
-              h(
-                "button",
-                {
-                  type: "button",
-                  disabled: estimating,
-                  onClick: runAiEstimate,
-                  style: { height: "38px", padding: "0 14px", borderRadius: "999px", border: 0, background: "#FFF0BF", color: "#6B4600", fontWeight: 800, fontSize: "12px" },
-                },
-                estimating ? "Estimating…" : "AI Cost & Time Estimator"
-              )
-            ),
-            h("input", {
-              type: "text",
-              required: true,
-              value: title,
-              onChange: (e) => setTitle(e.target.value),
-              placeholder: "Short title (e.g. Fix kitchen tap & overhead motor)",
-              style: { height: "54px", borderRadius: "16px", border: "1px solid " + borderCol, padding: "0 16px", fontSize: "15px", fontWeight: 600, background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
-            }),
-            h("textarea", {
-              rows: 3,
-              value: desc,
-              onChange: (e) => setDesc(e.target.value),
-              placeholder: "Tools required, floor number, urgent notes…",
-              style: { borderRadius: "16px", border: "1px solid " + borderCol, padding: "14px 16px", fontSize: "14px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
-            }),
-            aiNote && h("div", { style: { padding: "12px 14px", borderRadius: "14px", background: "#E3F4E8", color: "#1D6B36", fontSize: "13px", fontWeight: 700 } }, aiNote)
-          ),
-
-          // Step 3: Schedule & Address (No End Date!)
-          h(
-            "section",
-            { style: { borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
-            h("span", { style: { fontSize: "18px", fontWeight: 800 } }, "3 · Schedule & Ludhiana site"),
-            h(
-              "div",
-              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" } },
-              h(
-                "label",
-                { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
-                "Start Date",
-                h("input", { type: "date", value: startDate, onChange: (e) => setStartDate(e.target.value), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
-              ),
-              h(
-                "label",
-                { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
-                "Shift Start Time",
-                h("input", { type: "time", value: shiftStart, onChange: (e) => setShiftStart(e.target.value), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
-              ),
-              h(
-                "label",
-                { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
-                "Duration (Days)",
-                h("input", { type: "number", min: 1, max: 30, value: days, onChange: (e) => setDays(Math.max(1, Number(e.target.value) || 1)), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
-              )
-            ),
-            h(
-              "div",
-              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" } },
-              h(
-                "label",
-                { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
-                "Ludhiana Area",
-                h(
-                  "select",
-                  {
-                    value: area,
-                    onChange: (e) => setArea(e.target.value),
-                    style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
-                  },
-                  LUDHIANA_AREAS.map((a) => h("option", { key: a.name, value: a.name }, a.name))
-                )
-              ),
-              h(
-                "label",
-                { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
-                "Full Site Address",
-                h("input", { type: "text", value: addr, onChange: (e) => setAddr(e.target.value), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
-              )
-            )
+            "p",
+            { style: { margin: 0, fontSize: "15px", color: isDark ? "#CFC6B8" : "#4A443A", maxWidth: "680px", lineHeight: 1.5 } },
+            pageStep === 1
+              ? "Page 1: Select the trade, describe your work, and ask AI for the fair labour price to unlock scheduling."
+              : "Page 2: Pick your date, time, and Ludhiana address, review the labour price, and broadcast to nearby workers."
           )
         ),
-
-        // Right Sticky Summary
+        // Cross (✕) Button to abort posting and return to Find Workers / Home page
         h(
-          "aside",
-          { style: { flex: "1 1 320px", borderRadius: "30px", background: "#1C1913", color: "#FBF8F2", padding: "26px", display: "flex", flexDirection: "column", gap: "14px", position: "sticky", top: "96px" } },
-          h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#F3C969" } }, "TRANSPARENT ESCROW BREAKDOWN"),
-          h("label", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 700 } }, "Daily Base Rate (₹)", h("input", { type: "number", min: 300, max: 5000, step: 50, value: baseRate, onChange: (e) => setBaseRate(Math.max(300, Number(e.target.value) || 600)), style: { width: "100px", height: "38px", textAlign: "right", borderRadius: "10px", border: "1px solid #3A342C", background: "#2A241B", color: "#FBF8F2", padding: "0 10px", fontWeight: 800 } })),
-          h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#CFC6B8" } }, h("span", null, `Worker payout (${days}d)`), h("b", { style: { color: "#FBF8F2" } }, formatInr(baseLabor))),
-          h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#CFC6B8" } }, h("span", null, "Platform fee (+20%)"), h("b", { style: { color: "#FBF8F2" } }, formatInr(platformFee))),
-          h("div", { style: { borderTop: "1px solid #3A342C", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, h("span", { style: { fontWeight: 700 } }, "Total Customer Escrow"), h("span", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "40px", color: "#F5A524" } }, formatInr(totalCustomer))),
-          h(
-            "button",
-            {
-              type: "submit",
-              onClick: (e) => {
-                if (!cust) {
-                  e.preventDefault();
-                  KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/post-a-job" });
-                }
-              },
-              style: { height: "54px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "16px" },
+          "button",
+          {
+            type: "button",
+            title: "Cancel and return to home page",
+            "aria-label": "Close and return to home page",
+            onClick: () => navigate("/customer", { role: "customer" }),
+            style: {
+              width: "46px",
+              height: "46px",
+              borderRadius: "50%",
+              border: "1px solid " + borderCol,
+              background: cardBg,
+              color: isDark ? "#EDE6DA" : "#1C1913",
+              fontSize: "20px",
+              fontWeight: 800,
+              cursor: "pointer",
+              flexShrink: 0,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
             },
-            "Broadcast Job Now →"
-          ),
-          h("span", { style: { fontSize: "12px", color: "#CFC6B8", lineHeight: 1.5 } }, "Payment releases to worker UPI only after 4-digit start OTP and completion check.")
+          },
+          "✕"
         )
+      ),
+
+      // 2-Page Progress Pill Bar
+      h(
+        "div",
+        { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" } },
+        h(
+          "button",
+          {
+            type: "button",
+            onClick: () => setPageStep(1),
+            style: {
+              height: "44px",
+              borderRadius: "16px",
+              border: pageStep === 1 ? "2px solid #F5A524" : "1px solid " + borderCol,
+              background: pageStep === 1 ? "#1C1913" : cardBg,
+              color: pageStep === 1 ? "#FBF8F2" : isDark ? "#CFC6B8" : "#4A443A",
+              fontWeight: 800,
+              fontSize: "13px",
+              cursor: "pointer",
+            },
+          },
+          "1 · Trade & Job Details (Ask AI Price)"
+        ),
+        h(
+          "button",
+          {
+            type: "button",
+            disabled: !hasWorkDescribed || !aiEstimated,
+            onClick: () => {
+              if (hasWorkDescribed && aiEstimated) setPageStep(2);
+            },
+            style: {
+              height: "44px",
+              borderRadius: "16px",
+              border: pageStep === 2 ? "2px solid #F5A524" : "1px solid " + borderCol,
+              background: pageStep === 2 ? "#1C1913" : cardBg,
+              color: pageStep === 2 ? "#FBF8F2" : !hasWorkDescribed || !aiEstimated ? "#9E9587" : isDark ? "#CFC6B8" : "#4A443A",
+              fontWeight: 800,
+              fontSize: "13px",
+              cursor: !hasWorkDescribed || !aiEstimated ? "not-allowed" : "pointer",
+              opacity: !hasWorkDescribed || !aiEstimated ? 0.6 : 1,
+            },
+          },
+          "2 · Schedule, Labour Price & Broadcast"
+        )
+      ),
+
+      h(
+        "form",
+        { onSubmit: handleSubmit, style: { display: "flex", flexDirection: "column", gap: "22px" } },
+        pageStep === 1
+          ? // ==================== PAGE 1: TRADE & JOB DETAILS + AI PRICE GATE ====================
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "20px" } },
+              // 1. Trade
+              h(
+                "section",
+                { style: { borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
+                h("span", { style: { fontSize: "18px", fontWeight: 800 } }, "1 · Which trade?"),
+                h(
+                  "div",
+                  { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: "10px" } },
+                  TRADES.map((t) => {
+                    const active = normalizeTrade(trade) === normalizeTrade(t.id);
+                    return h(
+                      "button",
+                      {
+                        key: t.id,
+                        type: "button",
+                        onClick: () => {
+                          setTrade(t.id);
+                          setBaseRate(getLiveTradeRate(t.id, workers));
+                        },
+                        style: {
+                          borderRadius: "18px",
+                          border: "2px solid " + (active ? "#1C1913" : borderCol),
+                          background: t.bg,
+                          color: "#1C1913",
+                          padding: "12px",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          gap: "2px",
+                          textAlign: "left",
+                          cursor: "pointer",
+                        },
+                      },
+                      h("span", { style: { fontWeight: 800, fontSize: "14px" } }, t.name),
+                      h("span", { style: { fontFamily: "'Noto Sans Devanagari', sans-serif", fontSize: "12px", color: t.fg } }, t.hi)
+                    );
+                  })
+                )
+              ),
+
+              // 2. Job Details + Mandatory Ask AI for Price
+              h(
+                "section",
+                { style: { borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
+                h(
+                  "div",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
+                  h("span", { style: { fontSize: "18px", fontWeight: 800 } }, "2 · Job details"),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      disabled: estimating || !hasWorkDescribed,
+                      onClick: runAiEstimate,
+                      style: {
+                        height: "42px",
+                        padding: "0 18px",
+                        borderRadius: "999px",
+                        border: 0,
+                        background: hasWorkDescribed ? "#F5A524" : "#E5DCCB",
+                        color: "#1C1913",
+                        fontWeight: 800,
+                        fontSize: "13px",
+                        cursor: hasWorkDescribed ? "pointer" : "not-allowed",
+                      },
+                    },
+                    estimating ? "Asking AI for Price…" : "✨ Ask AI for Price"
+                  )
+                ),
+                h("input", {
+                  type: "text",
+                  required: true,
+                  value: title,
+                  onChange: (e) => {
+                    setTitle(e.target.value);
+                    setAiEstimated(false);
+                  },
+                  placeholder: "Describe the work (e.g. Fix kitchen tap & overhead motor)",
+                  style: { height: "54px", borderRadius: "16px", border: "1px solid " + borderCol, padding: "0 16px", fontSize: "15px", fontWeight: 600, background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
+                }),
+                h("textarea", {
+                  rows: 3,
+                  value: desc,
+                  onChange: (e) => {
+                    setDesc(e.target.value);
+                    setAiEstimated(false);
+                  },
+                  placeholder: "Tools required, floor number, number of items or rooms…",
+                  style: { borderRadius: "16px", border: "1px solid " + borderCol, padding: "14px 16px", fontSize: "14px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
+                }),
+
+                // Show AI Price Result OR Prompt to Ask AI first
+                aiEstimated && hasWorkDescribed
+                  ? h(
+                      "div",
+                      {
+                        style: {
+                          padding: "18px 20px",
+                          borderRadius: "20px",
+                          background: isDark ? "#1B2920" : "#E3F4E8",
+                          border: "2px solid #2E9E57",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: "14px",
+                        },
+                      },
+                      h(
+                        "div",
+                        { style: { display: "flex", flexDirection: "column", gap: "4px", maxWidth: "620px" } },
+                        h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#1D6B36" } }, "✓ AI LABOUR PRICE ESTIMATED"),
+                        h("div", { style: { fontSize: "14px", fontWeight: 700, color: isDark ? "#E3F4E8" : "#1C1913" } }, aiNote),
+                        h("span", { style: { fontSize: "13px", fontWeight: 800, color: "#1D6B36" } }, `Estimated Labour Price: ${formatInr(baseRate)}/day · Est. Duration: ${days} day(s)`)
+                      ),
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () => setPageStep(2),
+                          style: {
+                            height: "48px",
+                            padding: "0 24px",
+                            borderRadius: "999px",
+                            border: 0,
+                            background: "#1C1913",
+                            color: "#F5A524",
+                            fontWeight: 800,
+                            fontSize: "14px",
+                            cursor: "pointer",
+                            boxShadow: "0 8px 22px rgba(28,25,19,0.22)",
+                          },
+                        },
+                        "Schedule Next →"
+                      )
+                    )
+                  : h(
+                      "div",
+                      {
+                        style: {
+                          padding: "14px 16px",
+                          borderRadius: "16px",
+                          background: isDark ? "#27231C" : "#FFF7E3",
+                          border: "1px dashed #F5A524",
+                          color: isDark ? "#F3C969" : "#7A4E00",
+                          fontSize: "13px",
+                          fontWeight: 700,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: "10px",
+                        },
+                      },
+                      h("span", null, "Step required: Write your job details above and tap 'Ask AI for Price' to unlock Schedule & Broadcast."),
+                      hasWorkDescribed &&
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            disabled: estimating,
+                            onClick: runAiEstimate,
+                            style: { height: "36px", padding: "0 16px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#F5A524", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                          },
+                          estimating ? "Calculating…" : "Ask AI for Price Now →"
+                        )
+                    )
+              )
+            )
+          : // ==================== PAGE 2: SCHEDULE & SITE + LABOUR PRICE & BROADCAST ====================
+            h(
+              "div",
+              { style: { display: "flex", flexWrap: "wrap", gap: "24px", alignItems: "flex-start" } },
+              h(
+                "section",
+                { style: { flex: "999 1 520px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" } },
+                h(
+                  "div",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" } },
+                  h("span", { style: { fontSize: "18px", fontWeight: 800 } }, "3 · Schedule & Ludhiana site"),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => setPageStep(1),
+                      style: { height: "36px", padding: "0 14px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "12px", cursor: "pointer" },
+                    },
+                    "← Edit Trade & Job Details"
+                  )
+                ),
+                h(
+                  "div",
+                  { style: { padding: "12px 14px", borderRadius: "14px", background: isDark ? "#27231C" : "#FBF8F2", fontSize: "13px", fontWeight: 700 } },
+                  `${trade} · "${title}" — ${aiNote || "AI price verified"}`
+                ),
+                h(
+                  "div",
+                  { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px" } },
+                  h(
+                    "label",
+                    { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+                    "Start Date",
+                    h("input", { type: "date", value: startDate, onChange: (e) => setStartDate(e.target.value), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
+                  ),
+                  h(
+                    "label",
+                    { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+                    "Shift Start Time",
+                    h("input", { type: "time", value: shiftStart, onChange: (e) => setShiftStart(e.target.value), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
+                  ),
+                  h(
+                    "label",
+                    { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+                    "Duration (Days)",
+                    h("input", { type: "number", min: 1, max: 30, value: days, onChange: (e) => setDays(Math.max(1, Number(e.target.value) || 1)), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
+                  )
+                ),
+                h(
+                  "div",
+                  { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" } },
+                  h(
+                    "label",
+                    { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+                    "Ludhiana Area",
+                    h(
+                      "select",
+                      {
+                        value: area,
+                        onChange: (e) => setArea(e.target.value),
+                        style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
+                      },
+                      LUDHIANA_AREAS.map((a) => h("option", { key: a.name, value: a.name }, a.name))
+                    )
+                  ),
+                  h(
+                    "label",
+                    { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+                    "Full Site Address",
+                    h("input", { type: "text", value: addr, onChange: (e) => setAddr(e.target.value), style: { height: "48px", borderRadius: "14px", border: "1px solid " + borderCol, padding: "0 12px", background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" } })
+                  )
+                )
+              ),
+
+              // Labour Price & Broadcast Card (ONLY shown on Page 2 after AI Price + Schedule!)
+              h(
+                "aside",
+                { style: { flex: "1 1 320px", borderRadius: "30px", background: "#1C1913", color: "#FBF8F2", padding: "26px", display: "flex", flexDirection: "column", gap: "14px" } },
+                h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#F3C969" } }, "AI VERIFIED LABOUR PRICE"),
+                h(
+                  "label",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 700 } },
+                  "Daily Labour Rate (₹)",
+                  h("input", {
+                    type: "number",
+                    min: 250,
+                    max: 10000,
+                    step: 50,
+                    value: baseRate,
+                    onChange: (e) => setBaseRate(Math.max(250, Number(e.target.value) || 400)),
+                    style: { width: "105px", height: "38px", textAlign: "right", borderRadius: "10px", border: "1px solid #3A342C", background: "#2A241B", color: "#FBF8F2", padding: "0 10px", fontWeight: 800 },
+                  })
+                ),
+                h(
+                  "div",
+                  { style: { borderTop: "1px solid #3A342C", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
+                  h("span", { style: { fontWeight: 700, fontSize: "15px" } }, `Labour Price (${days}d)`),
+                  h("span", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "44px", color: "#F5A524", lineHeight: 1 } }, formatInr(baseLabor))
+                ),
+                h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#A49B8C" } }, h("span", null, "Platform fee (+20% escrow)"), h("span", null, formatInr(platformFee))),
+                h(
+                  "button",
+                  {
+                    type: "submit",
+                    onClick: (e) => {
+                      if (!cust) {
+                        e.preventDefault();
+                        KZ.openLoginPrompt?.({ title: "Login to post a job", returnPath: "/customer/post-a-job" });
+                      }
+                    },
+                    style: { height: "54px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "16px", cursor: "pointer", marginTop: "4px" },
+                  },
+                  `Broadcast Job Now · ${formatInr(baseLabor)} →`
+                ),
+                h("span", { style: { fontSize: "12px", color: "#CFC6B8", lineHeight: 1.5 } }, "Payment releases to worker UPI only after Start & End QR completion check.")
+              )
+            )
       )
     );
   }
@@ -8413,6 +8652,7 @@
     h,
     useApp,
     useState,
+    useEffect,
     useMemo,
     ICON_PATHS,
     LUDHIANA_AREAS,
@@ -8426,6 +8666,131 @@
     navigate,
   } = U;
   const { SvgIcon, TopUtilityBar, KaamzoFooter, JobProgressPipeline } = C;
+
+  // Check if worker is blocked by Admin or under 24-hour offline penalty after rejecting an accepted job
+  function getWorkerRestriction(worker) {
+    if (!worker || !worker.id) {
+      return { isBlocked: false, isPenalized: false, penaltyUntil: 0, remainingText: "" };
+    }
+    let blockedFlag = Boolean(worker.isBlocked || worker.isBanned);
+    let localPenalty = 0;
+    try {
+      const b = localStorage.getItem("kz_blocked_worker_" + worker.id);
+      if (b === "1") blockedFlag = true;
+      else if (b === "0") blockedFlag = false;
+      localPenalty = Number(localStorage.getItem("kz_penalty_until_" + worker.id) || 0);
+    } catch (_) {}
+    const penaltyUntil = Math.max(Number(worker.offlinePenaltyUntil || 0), localPenalty);
+    const diffMs = penaltyUntil - Date.now();
+    const isPenalized = diffMs > 0;
+    let remainingText = "";
+    if (isPenalized) {
+      const hrs = Math.floor(diffMs / 3600000);
+      const mins = Math.max(1, Math.ceil((diffMs % 3600000) / 60000));
+      remainingText = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    }
+    return { isBlocked: blockedFlag, isPenalized, penaltyUntil, remainingText };
+  }
+
+  async function applyWorker24hPenalty(worker, app) {
+    if (!worker || !worker.id) return;
+    const penaltyUntil = Date.now() + 24 * 60 * 60 * 1000;
+    worker.offlinePenaltyUntil = penaltyUntil;
+    worker.isOnline = false;
+    try {
+      localStorage.setItem("kz_penalty_until_" + worker.id, String(penaltyUntil));
+    } catch (_) {}
+    if (app.currentWorker?.isOnline) {
+      app.toggleWorkerStatus?.();
+    }
+    app.updateWorkerProfile?.({ isOnline: false, offlinePenaltyUntil: penaltyUntil });
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "upsert",
+          collection: "workers",
+          id: worker.id,
+          data: Object.assign({}, worker, {
+            id: worker.id,
+            isOnline: false,
+            offlinePenaltyUntil: penaltyUntil,
+            syncedAt: new Date().toISOString(),
+          }),
+        }),
+      });
+    } catch (_) {}
+  }
+
+  // Deterministic 21x21 QR Code SVG generator for Start Job QR & End Job QR
+  function renderDeterministicQrSvg(seedText, accentCol) {
+    const str = String(seedText || "KAAMZO-QR");
+    let hash = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    const size = 21;
+    const rects = [];
+    const isFinder = (r, c) =>
+      (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
+    const finderBit = (r, c) => {
+      const lr = r < 7 ? r : r >= size - 7 ? r - (size - 7) : r;
+      const lc = c < 7 ? c : c >= size - 7 ? c - (size - 7) : c;
+      if (lr === 0 || lr === 6 || lc === 0 || lc === 6) return true;
+      if (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4) return true;
+      return false;
+    };
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        let on = false;
+        if (isFinder(r, c)) {
+          on = finderBit(r, c);
+        } else if (
+          (r === 7 && (c < 8 || c >= size - 8)) ||
+          (r === size - 8 && c < 8) ||
+          (c === 7 && (r < 8 || r >= size - 8)) ||
+          (c === size - 8 && r < 8)
+        ) {
+          on = false;
+        } else {
+          const bitSeed = Math.imul(hash ^ (r * 31 + c * 97), 2654435761) >>> 0;
+          on = (bitSeed & 3) !== 0;
+        }
+        if (on) {
+          rects.push(
+            h("rect", {
+              key: r + "_" + c,
+              x: 8 + c * 6,
+              y: 8 + r * 6,
+              width: 5.5,
+              height: 5.5,
+              rx: 1.2,
+              fill: isFinder(r, c) ? accentCol || "#1C1913" : "#1C1913",
+            })
+          );
+        }
+      }
+    }
+    return h(
+      "svg",
+      {
+        viewBox: "0 0 142 142",
+        style: {
+          width: "136px",
+          height: "136px",
+          borderRadius: "16px",
+          background: "#FFFFFF",
+          padding: "4px",
+          border: "2px solid " + (accentCol || "#1C1913"),
+          flexShrink: 0,
+        },
+        "aria-label": "Verification QR Code",
+      },
+      rects
+    );
+  }
 
   const WORKER_SUBNAV = [
     { path: "/worker", label: "Work" },
@@ -8441,11 +8806,51 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const worker = app.currentWorker;
+    const jobs = app.jobs || [];
     const displayName = worker?.name || "Worker Account";
     const tradeName = worker ? getTradeMeta(worker.primaryTrade).name : "Electrician";
     const areaName = worker?.location?.area || app.currentCity?.name || "Ludhiana";
-    const isOnline = Boolean(worker && worker.isOnline);
+    const restr = getWorkerRestriction(worker);
+    const isOnline = Boolean(worker && worker.isOnline && !restr.isBlocked && !restr.isPenalized);
     const walletBal = worker?.walletBalance || 0;
+
+    // Active uncompleted job locks the worker onto /worker/live-job until Start QR + End QR are completed (or job is rejected/cancelled)
+    const lockedActiveJob = useMemo(() => {
+      if (!worker) return null;
+      return jobs.find(
+        (j) =>
+          (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) &&
+          ["accepted", "approved", "in_progress"].includes(j.status)
+      );
+    }, [jobs, worker]);
+
+    // Auto-redirect to /worker/live-job whenever worker has an active uncompleted job
+    useEffect(() => {
+      if (lockedActiveJob && path !== "/worker/live-job" && path !== "/worker/work") {
+        navigate("/worker/live-job", { role: "worker" });
+      }
+    }, [lockedActiveJob?.id, lockedActiveJob?.status, path]);
+
+    // Ensure penalized or blocked worker is forced offline
+    useEffect(() => {
+      if (worker && worker.isOnline && (restr.isBlocked || restr.isPenalized)) {
+        worker.isOnline = false;
+        app.toggleWorkerStatus?.();
+      }
+    }, [worker?.id, worker?.isOnline, restr.isBlocked, restr.isPenalized]);
+
+    const guardedWorkerNavigate = (targetPath, opts) => {
+      if (lockedActiveJob && targetPath !== "/worker/live-job" && targetPath !== "/worker/work") {
+        app.showNotification?.(
+          "🔒 Active job in progress! Complete Start QR & End QR (or cancel the job below) before leaving this page."
+        );
+        if (path !== "/worker/live-job") {
+          navigate("/worker/live-job", { role: "worker" });
+        }
+        return;
+      }
+      navigate(targetPath, opts || { role: "worker" });
+    };
 
     const mainTabs = [
       { path: "/worker", label: "Work", match: (p) => p === "/worker" },
@@ -8468,7 +8873,7 @@
           flexDirection: "column",
         },
       },
-      h(TopUtilityBar, { compact: false }),
+      !lockedActiveJob && h(TopUtilityBar, { compact: false }),
 
       // Sticky Worker Header
       h(
@@ -8504,7 +8909,7 @@
               href: "/",
               onClick: (e) => {
                 e.preventDefault();
-                navigate("/", { role: "select_role" });
+                guardedWorkerNavigate("/", { role: "select_role" });
               },
               style: {
                 textDecoration: "none",
@@ -8598,7 +9003,7 @@
                   key: t.path,
                   type: "button",
                   "aria-current": active ? "page" : undefined,
-                  onClick: () => navigate(t.path, { role: "worker" }),
+                  onClick: () => guardedWorkerNavigate(t.path, { role: "worker" }),
                   style: {
                     padding: "10px 16px",
                     borderRadius: "999px",
@@ -8607,9 +9012,11 @@
                     color: active ? (isDark ? "#14120E" : "#FBF8F2") : isDark ? "#EDE6DA" : "#3D3830",
                     fontSize: "14px",
                     fontWeight: 700,
+                    opacity: lockedActiveJob ? 0.55 : 1,
+                    cursor: lockedActiveJob ? "not-allowed" : "pointer",
                   },
                 },
-                t.label
+                (lockedActiveJob ? "🔒 " : "") + t.label
               );
             })
           ),
@@ -8626,6 +9033,19 @@
                 "aria-checked": isOnline,
                 onClick: () => {
                   if (worker) {
+                    const r = getWorkerRestriction(worker);
+                    if (r.isBlocked) {
+                      app.showNotification?.(
+                        "🚫 Account Blocked by Admin for violating Kaamzo company policy. You cannot go online."
+                      );
+                      return;
+                    }
+                    if (r.isPenalized) {
+                      app.showNotification?.(
+                        `⏳ 24-Hour Penalty Active: You cannot go online for 1 day after rejecting a job (${r.remainingText} remaining).`
+                      );
+                      return;
+                    }
                     app.toggleWorkerStatus?.();
                   } else {
                     KZ.openLoginPrompt?.({
@@ -8649,16 +9069,23 @@
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
+                  cursor: restr.isBlocked || restr.isPenalized ? "not-allowed" : "pointer",
                 },
               },
-              isOnline ? "● Online · broadcasting" : "○ Offline"
+              restr.isBlocked
+                ? "🚫 Blocked by Admin"
+                : restr.isPenalized
+                ? `○ Offline · 24h Penalty (${restr.remainingText})`
+                : isOnline
+                ? "● Online · broadcasting"
+                : "○ Offline"
             ),
             h(
               "button",
               {
                 type: "button",
                 className: "hide-sm",
-                onClick: () => navigate("/worker/khata-and-gate-pass", { role: "worker" }),
+                onClick: () => guardedWorkerNavigate("/worker/khata-and-gate-pass", { role: "worker" }),
                 style: {
                   height: "44px",
                   padding: "0 16px",
@@ -8708,7 +9135,7 @@
                 {
                   key: tool.path,
                   type: "button",
-                  onClick: () => navigate(tool.path, { role: "worker" }),
+                  onClick: () => guardedWorkerNavigate(tool.path, { role: "worker" }),
                   style: {
                     whiteSpace: "nowrap",
                     height: "34px",
@@ -8886,14 +9313,21 @@
     }, [jobs, workerTradeNorm, isDark]);
 
     const handleAccept = (job) => {
-      const curPath = window.location.pathname;
+      if (worker) {
+        const r = getWorkerRestriction(worker);
+        if (r.isBlocked) {
+          app.showNotification?.("🚫 Your account is blocked by Admin for policy violation.");
+          return;
+        }
+        if (r.isPenalized) {
+          app.showNotification?.(`⏳ 24-Hour Offline Penalty active (${r.remainingText} remaining).`);
+          return;
+        }
+      }
       app.acceptJobByWorker?.(job.id);
-      try {
-        window.history.replaceState({}, "", curPath);
-      } catch (_) {}
       if (worker && worker.isVerified) {
         KZ.notifyJobAcceptedForCustomer?.(job.id);
-        setAcceptedModalJob(job);
+        navigate("/worker/live-job", { role: "worker" });
       }
     };
 
@@ -9567,7 +10001,7 @@
                   "div",
                   { style: { display: "flex", alignItems: "center", gap: "12px" } },
                   h("b", { style: { fontSize: "20px" } }, formatInr(j.workerPayout || Math.round((j.dailyWage || 850) * 0.8))),
-                  h("button", { type: "button", onClick: () => { const curPath = window.location.pathname; app.acceptJobByWorker?.(j.id); try { window.history.replaceState({}, "", curPath); } catch (_) {} if (worker && worker.isVerified) KZ.notifyJobAcceptedForCustomer?.(j.id); }, style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px" } }, "1-Tap Accept")
+                  h("button", { type: "button", onClick: () => { if (worker) { const r = getWorkerRestriction(worker); if (r.isBlocked) { app.showNotification?.("🚫 Your account is blocked by Admin for policy violation."); return; } if (r.isPenalized) { app.showNotification?.(`⏳ 24-Hour Offline Penalty active (${r.remainingText} remaining).`); return; } } app.acceptJobByWorker?.(j.id); if (worker && worker.isVerified) { KZ.notifyJobAcceptedForCustomer?.(j.id); navigate("/worker/live-job", { role: "worker" }); } }, style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, "1-Tap Accept")
                 )
               )
             )
@@ -9793,37 +10227,643 @@
     const active =
       jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)) ||
       jobs.find((j) => worker && (j.assignedWorkerId === worker.id || j.assignedWorkerName === worker.name) && j.status === "paid_and_closed");
+
     const [otpCode, setOtpCode] = useState("");
+    const [endUpi, setEndUpi] = useState(() => worker?.upiId || active?.assignedWorkerUpi || "");
+    const [endBusy, setEndBusy] = useState(false);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [, setTick] = useState(0);
+
+    useEffect(() => {
+      if (worker?.upiId && !endUpi) setEndUpi(worker.upiId);
+    }, [worker?.upiId]);
+
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
 
+    const isJobLocked = Boolean(active && ["accepted", "approved", "in_progress"].includes(active.status));
+    const isStep1Done = Boolean(active && ["in_progress", "completed_pending_payment", "paid_and_closed"].includes(active.status));
+    const isStep2Done = Boolean(active && ["completed_pending_payment", "paid_and_closed"].includes(active.status));
+
+    const handleStartViaQr = async () => {
+      if (!active) return;
+      const codeToUse = String(otpCode || active.otpCode || "").trim();
+      if (codeToUse && app.startJobWithOtp) {
+        app.startJobWithOtp(active.id, codeToUse);
+      }
+      active.status = "in_progress";
+      active.startQrVerified = true;
+      active.startedAt = new Date().toISOString();
+      setTick((n) => n + 1);
+      app.showNotification?.("✓ Start QR Verified! Job is now In Progress. Complete the work, then scan/confirm End QR.");
+      try {
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "upsert",
+            collection: "jobs",
+            id: active.id,
+            data: Object.assign({}, active, { status: "in_progress", startQrVerified: true, syncedAt: new Date().toISOString() }),
+          }),
+        });
+      } catch (_) {}
+    };
+
+    const handleEndViaQr = async () => {
+      if (!active || !isStep1Done || endBusy) return;
+      const cleanUpi = String(endUpi || worker?.upiId || "success@razorpay").trim().toLowerCase();
+      if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(cleanUpi)) {
+        app.showNotification?.("Enter a valid UPI ID (e.g. name@okaxis or success@razorpay) to complete End QR.");
+        return;
+      }
+      setEndBusy(true);
+      try {
+        app.updateWorkerUpi?.(cleanUpi);
+        active.assignedWorkerUpi = cleanUpi;
+        active.workerUpi = cleanUpi;
+        active.endQrVerified = true;
+        app.completeJobByWorker?.(active.id);
+        active.status = "completed_pending_payment";
+        await fetch("/api/razorpay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "markCompleted",
+            jobId: active.id,
+            upiId: cleanUpi,
+            workerId: worker?.id || active.assignedWorkerId,
+            workerName: worker?.name || active.assignedWorkerName || "Kaamzo Worker",
+            workerPhone: worker?.phone || active.assignedWorkerPhone || "",
+            jobSnapshot: Object.assign({}, active, {
+              status: "completed_pending_payment",
+              assignedWorkerUpi: cleanUpi,
+              endQrVerified: true,
+            }),
+          }),
+        });
+        setTick((n) => n + 1);
+        app.showNotification?.("✓ End QR Verified & Job Completed! Page unlocked — customer can now tap Pay Now.");
+      } catch (_) {
+        app.showNotification?.("✓ Job marked completed via End QR.");
+      } finally {
+        setEndBusy(false);
+      }
+    };
+
+    const confirmRejectWith24hPenalty = async () => {
+      if (!active || !worker) return;
+      await applyWorker24hPenalty(worker, app);
+      app.releaseJobByWorker?.(active.id, "Rejected by worker — 24h offline penalty applied");
+      setShowRejectModal(false);
+      app.showNotification?.("⚠️ Job cancelled. You are now OFFLINE for the next 24 hours.");
+      navigate("/worker", { role: "worker" });
+    };
+
+    const distKm = active ? getJobDistanceKm(active, worker) : 1.4;
+    const etaMin = Math.max(4, Math.round(Number(distKm || 1.4) * 4));
+    const payoutAmt = active
+      ? active.workerPayout || Math.round((active.dailyWage || 850) * (active.durationDays || 1) * 0.8)
+      : 680;
+
     return h(
       "main",
-      { style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 60px", display: "flex", flexDirection: "column", gap: "24px" } },
-      h("h1", { style: { margin: 0, fontSize: "clamp(34px,4vw,52px)", fontWeight: 800 } }, "Live assignment & ", h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "start OTP")),
+      { style: { maxWidth: "1200px", margin: "0 auto", padding: "28px 24px 72px", display: "flex", flexDirection: "column", gap: "22px" } },
+      // Top Header + Lock Notice
+      h(
+        "div",
+        { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "14px" } },
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+          h(
+            "span",
+            { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.9px", color: isJobLocked ? "#9B1C1C" : "#1D6B36" } },
+            isJobLocked
+              ? "🔒 PAGE LOCKED · COMPLETE START QR & END QR TO LEAVE"
+              : "✓ JOB COMPLETED · PAGE UNLOCKED"
+          ),
+          h(
+            "h1",
+            { style: { margin: 0, fontSize: "clamp(32px,4vw,48px)", fontWeight: 800, lineHeight: 1 } },
+            "Go to work site & ",
+            h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "verify QR steps.")
+          )
+        ),
+        !isJobLocked &&
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => navigate("/worker", { role: "worker" }),
+              style: { height: "44px", padding: "0 20px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+            },
+            "← Return to Worker Home"
+          )
+      ),
+
       !active
-        ? h("div", { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "40px", textAlign: "center" } }, h("b", { style: { fontSize: "18px" } }, "No active job in progress"), h("p", { style: { color: isDark ? "#A49B8C" : "#6F685D" } }, "Accept a broadcast on the Jobs tab to begin."), h("button", { type: "button", onClick: () => navigate("/jobs", { role: "worker" }), style: { height: "44px", padding: "0 20px", borderRadius: "999px", border: 0, background: "#F5A524", fontWeight: 800 } }, "Browse 10 km Jobs"))
+        ? h(
+            "div",
+            { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "40px", textAlign: "center" } },
+            h("b", { style: { fontSize: "18px" } }, "No active job in progress"),
+            h("p", { style: { color: isDark ? "#A49B8C" : "#6F685D" } }, "Accept a broadcast on the Jobs tab to begin."),
+            h("button", { type: "button", onClick: () => navigate("/jobs", { role: "worker" }), style: { height: "44px", padding: "0 20px", borderRadius: "999px", border: 0, background: "#F5A524", fontWeight: 800, cursor: "pointer" } }, "Browse 10 km Jobs")
+          )
         : h(
             "div",
-            { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "28px", display: "flex", flexDirection: "column", gap: "16px" } },
-            h("b", { style: { fontSize: "24px" } }, active.title),
-            h("span", { style: { color: isDark ? "#CFC6B8" : "#4A443A" } }, `${active.customerName} · ${active.locationAddress || active.area}${active.assignedWorkerUpi ? " · UPI: " + active.assignedWorkerUpi : ""}`),
-            h(JobProgressPipeline, { job: active, isDark }),
-            (active.status === "accepted" || active.status === "approved") &&
+            { style: { display: "flex", flexDirection: "column", gap: "20px" } },
+
+            // 1. WORK SITE INSTRUCTION BANNER & DETAILS CARD
+            h(
+              "section",
+              {
+                style: {
+                  borderRadius: "28px",
+                  background: isDark ? "#27231C" : "#FFF7E3",
+                  border: "2px solid #F5A524",
+                  padding: "22px 24px",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "16px",
+                },
+              },
               h(
                 "div",
-                { style: { display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" } },
-                h("input", { type: "text", maxLength: 4, value: otpCode, onChange: (e) => setOtpCode(e.target.value), placeholder: "Enter 4-digit customer OTP", style: { width: "220px", height: "48px", borderRadius: "14px", border: "2px solid #E5DCCB", textAlign: "center", fontWeight: 800, fontSize: "18px", letterSpacing: "3px" } }),
-                h("button", { type: "button", onClick: () => app.startJobWithOtp?.(active.id, otpCode), style: { height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800 } }, "Verify OTP & Start Job"),
-                h("button", { type: "button", onClick: () => KZ.openCompleteJobModal?.(active), style: { height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, cursor: "pointer" } }, "Mark Completed · Enter UPI →")
+                { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+                h(
+                  "span",
+                  { style: { padding: "4px 10px", borderRadius: "999px", background: "#1C1913", color: "#F5A524", fontSize: "11px", fontWeight: 800, width: "max-content" } },
+                  `📍 HEAD TO WORK SITE · ${distKm} KM AWAY (~${etaMin} MIN)`
+                ),
+                h("h2", { style: { margin: 0, fontSize: "24px", fontWeight: 800 } }, active.title),
+                h(
+                  "div",
+                  { style: { fontSize: "15px", fontWeight: 700, color: isDark ? "#EDE6DA" : "#1C1913" } },
+                  `Work Site: ${active.locationAddress || active.area || "Ludhiana"} · Customer: ${active.customerName || "Employer"} (${active.customerPhone || ""})`
+                ),
+                h(
+                  "span",
+                  { style: { fontSize: "13px", color: isDark ? "#CFC6B8" : "#6B4600", fontWeight: 600 } },
+                  "Instruction: Go directly to the work site shown on the map below, scan/verify Step 1 Start QR on arrival, and Step 2 End QR after finishing."
+                )
               ),
-            active.status === "in_progress" &&
-              h("button", { type: "button", onClick: () => KZ.openCompleteJobModal?.(active), style: { alignSelf: "flex-start", height: "48px", padding: "0 24px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, cursor: "pointer" } }, "Mark Completed · Enter UPI →"),
-            active.status === "completed_pending_payment" &&
-              h("div", { style: { padding: "14px 18px", borderRadius: "16px", background: "#FFF0BF", color: "#6B4600", fontWeight: 800, fontSize: "14px" } }, `Job Completed! Waiting for customer Razorpay UPI payment to ${active.assignedWorkerUpi || worker?.upiId || "your UPI"}.`),
-            active.status === "paid_and_closed" &&
-              h("div", { style: { padding: "14px 18px", borderRadius: "16px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px" } }, `✓ Paid & Settled via Razorpay!${active.razorpayPaymentId ? " Payment ID: " + active.razorpayPaymentId : ""}`)
+              h(
+                "div",
+                { style: { textAlign: "right", display: "flex", flexDirection: "column", gap: "4px" } },
+                h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#7A4E00" } }, "YOUR LABOUR PAYOUT"),
+                h("span", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "42px", lineHeight: 1, fontWeight: 400 } }, formatInr(payoutAmt))
+              )
+            ),
+
+            // 2. LIVE ROUTE MAP TO THE WORK SITE
+            h(
+              "section",
+              {
+                style: {
+                  position: "relative",
+                  height: "320px",
+                  borderRadius: "30px",
+                  overflow: "hidden",
+                  background: "#E9F0DA",
+                  border: "1px solid " + borderCol,
+                },
+              },
+              h(
+                "svg",
+                { role: "img", "aria-label": "Map route to customer work site", viewBox: "0 0 900 320", preserveAspectRatio: "xMidYMid slice", style: { position: "absolute", inset: 0, width: "100%", height: "100%" } },
+                h(
+                  "g",
+                  { stroke: "#FFFFFF", strokeWidth: 18, fill: "none" },
+                  h("path", { d: "M-10 85 H920" }),
+                  h("path", { d: "M240 -10 V340" }),
+                  h("path", { d: "M-10 245 C 240 220, 560 285, 920 230" }),
+                  h("path", { d: "M660 -10 C 630 120, 690 210, 640 340" })
+                ),
+                // Dashed navigation route from Worker to Work Site
+                h("path", { d: "M140 255 C 230 210, 320 145, 450 120 S 620 95, 700 95", fill: "none", stroke: "#1C1913", strokeWidth: 6, strokeDasharray: "4 12", strokeLinecap: "round" }),
+                // Worker Origin Pin
+                h("circle", { cx: 140, cy: 255, r: 18, fill: "#F5A524", stroke: "#1C1913", strokeWidth: 4 }),
+                h("text", { x: 140, y: 292, textAnchor: "middle", fill: "#1C1913", fontSize: 12, fontWeight: 800 }, "YOU"),
+                // Customer Work Site Destination Pin
+                h("circle", { cx: 700, cy: 95, r: 24, fill: "#2E9E57", stroke: "#FFFFFF", strokeWidth: 5 }),
+                h("text", { x: 700, y: 100, textAnchor: "middle", fill: "#FFFFFF", fontSize: 11, fontWeight: 800 }, "SITE")
+              ),
+              h(
+                "span",
+                {
+                  style: {
+                    position: "absolute",
+                    left: "16px",
+                    top: "16px",
+                    padding: "9px 16px",
+                    borderRadius: "999px",
+                    background: "#1C1913",
+                    color: "#FBF8F2",
+                    fontSize: "13px",
+                    fontWeight: 800,
+                  },
+                },
+                `Work Site: ${active.locationAddress || active.area || "Ludhiana"} · ${distKm} km · ETA ~${etaMin} min`
+              ),
+              h(
+                "a",
+                {
+                  href: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(active.locationAddress || active.area || "Ludhiana Punjab")}`,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  style: {
+                    position: "absolute",
+                    right: "16px",
+                    bottom: "16px",
+                    height: "46px",
+                    padding: "0 20px",
+                    borderRadius: "999px",
+                    background: "#1C1913",
+                    color: "#F5A524",
+                    fontWeight: 800,
+                    fontSize: "13px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    textDecoration: "none",
+                  },
+                },
+                "Open Work Site in Google Maps ↗"
+              )
+            ),
+
+            h(JobProgressPipeline, { job: active, isDark }),
+
+            // 3. BELOW THE MAP: START JOB QR & END JOB QR CARDS
+            h(
+              "div",
+              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "18px" } },
+
+              // CARD 1: QR FOR STARTING THE JOB
+              h(
+                "section",
+                {
+                  style: {
+                    borderRadius: "28px",
+                    background: cardBg,
+                    border: "2px solid " + (isStep1Done ? "#2E9E57" : "#F5A524"),
+                    padding: "24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "14px",
+                  },
+                },
+                h(
+                  "div",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
+                  h(
+                    "span",
+                    {
+                      style: {
+                        padding: "4px 10px",
+                        borderRadius: "999px",
+                        background: isStep1Done ? "#E3F4E8" : "#FFF0BF",
+                        color: isStep1Done ? "#1D6B36" : "#6B4600",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                      },
+                    },
+                    isStep1Done ? "✓ STEP 1 COMPLETE" : "STEP 1 OF 2 · ARRIVAL AT SITE"
+                  ),
+                  h("span", { style: { fontSize: "12px", fontWeight: 700, color: isDark ? "#A49B8C" : "#6F685D" } }, "Start QR")
+                ),
+                h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "1 · QR for Starting the Job"),
+                h(
+                  "div",
+                  { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" } },
+                  renderDeterministicQrSvg(`KAAMZO-START:${active.id}:${active.otpCode || "START"}`, "#2E9E57"),
+                  h(
+                    "div",
+                    { style: { flex: "1 1 160px", display: "flex", flexDirection: "column", gap: "8px" } },
+                    h(
+                      "p",
+                      { style: { margin: 0, fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.45 } },
+                      "Show or scan this Start QR at the customer's door (or enter their 4-digit Start OTP) to start the job clock."
+                    ),
+                    !isStep1Done &&
+                      h("input", {
+                        type: "text",
+                        maxLength: 4,
+                        value: otpCode,
+                        onChange: (e) => setOtpCode(e.target.value),
+                        placeholder: "4-digit Start OTP (optional)",
+                        style: {
+                          height: "42px",
+                          borderRadius: "12px",
+                          border: "1px solid " + borderCol,
+                          padding: "0 12px",
+                          fontWeight: 800,
+                          letterSpacing: "2px",
+                          background: isDark ? "#14120E" : "#FBF8F2",
+                          color: isDark ? "#EDE6DA" : "#1C1913",
+                        },
+                      })
+                  )
+                ),
+                isStep1Done
+                  ? h(
+                      "div",
+                      { style: { padding: "12px 14px", borderRadius: "14px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px" } },
+                      "✓ Start QR verified — Job is now In Progress! Proceed to Step 2 End QR when finished."
+                    )
+                  : h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: handleStartViaQr,
+                        style: {
+                          height: "46px",
+                          borderRadius: "999px",
+                          border: 0,
+                          background: "#2E9E57",
+                          color: "#FFFFFF",
+                          fontWeight: 800,
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        },
+                      },
+                      "Scan / Verify Start QR & Begin Job →"
+                    )
+              ),
+
+              // CARD 2: QR FOR ENDING THE JOB
+              h(
+                "section",
+                {
+                  style: {
+                    borderRadius: "28px",
+                    background: cardBg,
+                    border: "2px solid " + (isStep2Done ? "#2E9E57" : isStep1Done ? "#F5A524" : borderCol),
+                    padding: "24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "14px",
+                    opacity: isStep1Done ? 1 : 0.62,
+                  },
+                },
+                h(
+                  "div",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
+                  h(
+                    "span",
+                    {
+                      style: {
+                        padding: "4px 10px",
+                        borderRadius: "999px",
+                        background: isStep2Done ? "#E3F4E8" : isStep1Done ? "#FFF0BF" : "#EFE7DA",
+                        color: isStep2Done ? "#1D6B36" : "#6B4600",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                      },
+                    },
+                    isStep2Done ? "✓ STEP 2 COMPLETE" : isStep1Done ? "STEP 2 OF 2 · READY TO FINISH" : "LOCKED UNTIL STEP 1 START QR"
+                  ),
+                  h("span", { style: { fontSize: "12px", fontWeight: 700, color: isDark ? "#A49B8C" : "#6F685D" } }, "End QR")
+                ),
+                h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "2 · QR for Ending the Job"),
+                h(
+                  "div",
+                  { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" } },
+                  renderDeterministicQrSvg(`KAAMZO-END:${active.id}:COMPLETE`, "#F5A524"),
+                  h(
+                    "div",
+                    { style: { flex: "1 1 160px", display: "flex", flexDirection: "column", gap: "8px" } },
+                    h(
+                      "p",
+                      { style: { margin: 0, fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.45 } },
+                      "After finishing the work, verify this End QR and confirm your UPI ID to unlock customer Razorpay payment and leave this page."
+                    ),
+                    !isStep2Done &&
+                      h("input", {
+                        type: "text",
+                        disabled: !isStep1Done,
+                        value: endUpi,
+                        onChange: (e) => setEndUpi(e.target.value),
+                        placeholder: "Your UPI ID (e.g. success@razorpay)",
+                        style: {
+                          height: "42px",
+                          borderRadius: "12px",
+                          border: "1px solid " + borderCol,
+                          padding: "0 12px",
+                          fontWeight: 700,
+                          fontSize: "13px",
+                          background: isDark ? "#14120E" : "#FBF8F2",
+                          color: isDark ? "#EDE6DA" : "#1C1913",
+                        },
+                      }),
+                    !isStep2Done &&
+                      isStep1Done &&
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () => setEndUpi("success@razorpay"),
+                          style: {
+                            alignSelf: "flex-start",
+                            padding: "4px 10px",
+                            borderRadius: "999px",
+                            border: "1px solid " + borderCol,
+                            background: isDark ? "#27231C" : "#FFF7E3",
+                            color: "#7A4E00",
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            cursor: "pointer",
+                          },
+                        },
+                        "Use test UPI: success@razorpay"
+                      )
+                  )
+                ),
+                isStep2Done
+                  ? h(
+                      "div",
+                      { style: { padding: "12px 14px", borderRadius: "14px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px" } },
+                      active.status === "paid_and_closed"
+                        ? `✓ Paid & Settled via Razorpay!${active.razorpayPaymentId ? " Ref: " + active.razorpayPaymentId : ""}`
+                        : `✓ End QR verified! Waiting for customer Razorpay payment to ${active.assignedWorkerUpi || worker?.upiId || "your UPI"}. You may now leave this page.`
+                    )
+                  : h(
+                      "button",
+                      {
+                        type: "button",
+                        disabled: !isStep1Done || endBusy,
+                        onClick: handleEndViaQr,
+                        style: {
+                          height: "46px",
+                          borderRadius: "999px",
+                          border: 0,
+                          background: isStep1Done ? "#F5A524" : "#CFC6B8",
+                          color: "#1C1913",
+                          fontWeight: 800,
+                          fontSize: "14px",
+                          cursor: isStep1Done ? "pointer" : "not-allowed",
+                        },
+                      },
+                      endBusy ? "Verifying End QR & Saving UPI…" : "Scan / Verify End QR & Complete Job →"
+                    )
+              )
+            ),
+
+            // 4. CANCEL / REJECT JOB TO LEAVE PAGE (WITH 24-HOUR OFFLINE PENALTY)
+            isJobLocked &&
+              h(
+                "section",
+                {
+                  style: {
+                    borderRadius: "24px",
+                    background: isDark ? "#2B1818" : "#FFF2F2",
+                    border: "1px solid #F5B5B5",
+                    padding: "18px 22px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "12px",
+                  },
+                },
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "2px" } },
+                  h("b", { style: { fontSize: "15px", color: isDark ? "#FFB4B4" : "#8A1C1C" } }, "Cannot complete this job?"),
+                  h(
+                    "span",
+                    { style: { fontSize: "13px", color: isDark ? "#E5C1C1" : "#6B2020" } },
+                    "You cannot leave this page until Start QR & End QR are done. Rejecting or cancelling will lock your account OFFLINE for 24 hours."
+                  )
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setShowRejectModal(true),
+                    style: {
+                      height: "42px",
+                      padding: "0 18px",
+                      borderRadius: "999px",
+                      border: 0,
+                      background: "#E5484D",
+                      color: "#FFFFFF",
+                      fontWeight: 800,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                    },
+                  },
+                  "Reject / Cancel Job to Leave Page"
+                )
+              )
+          ),
+
+      // 24-HOUR OFFLINE PENALTY WARNING MODAL
+      showRejectModal &&
+        h(
+          "div",
+          {
+            role: "dialog",
+            "aria-modal": "true",
+            style: {
+              position: "fixed",
+              inset: 0,
+              background: "rgba(28, 25, 19, 0.68)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+              zIndex: 150,
+              backdropFilter: "blur(6px)",
+            },
+            onClick: (e) => {
+              if (e.target === e.currentTarget) setShowRejectModal(false);
+            },
+          },
+          h(
+            "div",
+            {
+              style: {
+                width: "100%",
+                maxWidth: "460px",
+                borderRadius: "28px",
+                background: cardBg,
+                color: isDark ? "#EDE6DA" : "#1C1913",
+                border: "2px solid #E5484D",
+                padding: "28px",
+                boxShadow: "0 24px 64px rgba(0,0,0,0.34)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+              },
+            },
+            h(
+              "span",
+              {
+                style: {
+                  padding: "5px 12px",
+                  borderRadius: "999px",
+                  background: "#FFE1E1",
+                  color: "#9B1C1C",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  width: "max-content",
+                },
+              },
+              "⚠️ 24-HOUR OFFLINE PENALTY WARNING"
+            ),
+            h("h3", { style: { margin: 0, fontSize: "24px", fontWeight: 800, lineHeight: 1.15 } }, "Reject job & go offline for 1 day?"),
+            h(
+              "p",
+              { style: { margin: 0, fontSize: "14px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.55 } },
+              "If you reject or cancel this accepted job, you will NOT be able to get online for 1 full day (the next 24 hours). Your account will be switched to OFFLINE immediately and the job will return to other workers."
+            ),
+            h(
+              "div",
+              { style: { display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "6px", flexWrap: "wrap" } },
+              h(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setShowRejectModal(false),
+                  style: {
+                    height: "44px",
+                    padding: "0 18px",
+                    borderRadius: "999px",
+                    border: "1px solid " + borderCol,
+                    background: "#2E9E57",
+                    color: "#FFFFFF",
+                    fontWeight: 800,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  },
+                },
+                "Stay & Complete Job"
+              ),
+              h(
+                "button",
+                {
+                  type: "button",
+                  onClick: confirmRejectWith24hPenalty,
+                  style: {
+                    height: "44px",
+                    padding: "0 20px",
+                    borderRadius: "999px",
+                    border: 0,
+                    background: "#E5484D",
+                    color: "#FFFFFF",
+                    fontWeight: 800,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  },
+                },
+                "Confirm Reject · Offline for 24h"
+              )
+            )
           )
+        )
     );
   }
 
@@ -9891,7 +10931,7 @@
   const KZ = window.__KZ_REDESIGN__;
   const U = KZ.utils;
   const C = KZ.components;
-  const { h, useApp, getCtx, navigate } = U;
+  const { h, useApp, useState, useMemo, getCtx, navigate } = U;
   const { TopUtilityBar, KaamzoFooter } = C;
 
   KZ.views.AdminPortal = function AdminPortal() {
@@ -9899,13 +10939,80 @@
     const isDark = app.isDarkMode;
     const ctx = getCtx();
     const LegacyAdmin = ctx && ctx.LegacyAdmin;
+    const [policySearch, setPolicySearch] = useState("");
+    const [blockTick, setBlockTick] = useState(0);
 
-    const verifiedCount = (app.workers || []).filter((w) => w.isVerified).length;
+    const workers = app.workers || [];
+    const verifiedCount = workers.filter((w) => w.isVerified).length;
     const activeJobsCount = (app.jobs || []).filter((j) =>
       ["broadcast", "accepted", "approved", "in_progress"].includes(j.status)
     ).length;
     const pendingKycCount = (app.verifications || []).filter((v) => v.status === "pending").length;
     const openDisputesCount = (app.disputes || []).filter((d) => d.status !== "resolved").length;
+
+    const isWorkerBlocked = (w) => {
+      if (!w) return false;
+      try {
+        if (localStorage.getItem("kz_blocked_worker_" + w.id) === "1") return true;
+        if (localStorage.getItem("kz_blocked_worker_" + w.id) === "0") return false;
+      } catch (_) {}
+      return Boolean(w.isBlocked || w.isBanned);
+    };
+
+    const toggleBlockWorker = async (w) => {
+      if (!w || !w.id) return;
+      const currentlyBlocked = isWorkerBlocked(w);
+      const nextBlocked = !currentlyBlocked;
+      const reason = nextBlocked ? "Blocked by Admin for violating Kaamzo company policy" : "";
+      w.isBlocked = nextBlocked;
+      w.isBanned = nextBlocked;
+      w.blockReason = reason;
+      if (nextBlocked) w.isOnline = false;
+      try {
+        localStorage.setItem("kz_blocked_worker_" + w.id, nextBlocked ? "1" : "0");
+      } catch (_) {}
+      setBlockTick((n) => n + 1);
+      app.showNotification?.(
+        nextBlocked
+          ? `🚫 Blocked ${w.name} for company policy violation (forced offline).`
+          : `✓ Unblocked ${w.name}.`
+      );
+      try {
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "upsert",
+            collection: "workers",
+            id: w.id,
+            data: Object.assign({}, w, {
+              id: w.id,
+              isBlocked: nextBlocked,
+              isBanned: nextBlocked,
+              isOnline: nextBlocked ? false : w.isOnline,
+              blockReason: reason,
+              syncedAt: new Date().toISOString(),
+            }),
+          }),
+        });
+      } catch (_) {}
+    };
+
+    const filteredPolicyWorkers = useMemo(() => {
+      const q = policySearch.trim().toLowerCase();
+      return workers.filter((w) => {
+        if (!q) return true;
+        return (
+          String(w.name || "").toLowerCase().includes(q) ||
+          String(w.primaryTrade || "").toLowerCase().includes(q) ||
+          String(w.phone || "").toLowerCase().includes(q) ||
+          String(w.id || "").toLowerCase().includes(q)
+        );
+      });
+    }, [workers, policySearch, blockTick]);
+
+    const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
+    const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
 
     return h(
       "div",
@@ -10157,6 +11264,122 @@
                 h("div", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "30px", lineHeight: 1.1, color: stat.col } }, stat.val)
               )
             )
+          )
+        ),
+
+        // Worker Policy Compliance & Block/Ban Console (CTO Policy Enforcement)
+        h("style", null, `[title="Reset Platform Records"] { display: none !important; }`),
+        h(
+          "section",
+          {
+            style: {
+              borderRadius: "30px",
+              background: cardBg,
+              border: "1px solid " + borderCol,
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+            },
+          },
+          h(
+            "div",
+            { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px" } },
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+              h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#9B1C1C" } }, "COMPANY POLICY ENFORCEMENT · BAN / BLOCK WORKERS"),
+              h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, "Block or reinstate workers for company policy compliance")
+            ),
+            h("input", {
+              type: "text",
+              value: policySearch,
+              onChange: (e) => setPolicySearch(e.target.value),
+              placeholder: "Search worker name, trade, or phone…",
+              style: {
+                width: "280px",
+                maxWidth: "100%",
+                height: "42px",
+                borderRadius: "999px",
+                border: "1px solid " + borderCol,
+                padding: "0 16px",
+                fontSize: "13px",
+                background: isDark ? "#14120E" : "#FBF8F2",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+              },
+            })
+          ),
+          h(
+            "div",
+            { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "12px", maxHeight: "360px", overflowY: "auto", paddingRight: "4px" } },
+            filteredPolicyWorkers.map((w) => {
+              const blocked = isWorkerBlocked(w);
+              const penaltyUntil = Math.max(
+                Number(w.offlinePenaltyUntil || 0),
+                Number((() => { try { return localStorage.getItem("kz_penalty_until_" + w.id) || 0; } catch (_) { return 0; } })())
+              );
+              const penalized = penaltyUntil > Date.now();
+              return h(
+                "div",
+                {
+                  key: w.id,
+                  style: {
+                    padding: "14px 16px",
+                    borderRadius: "20px",
+                    background: blocked ? (isDark ? "#2D1818" : "#FFF1F1") : isDark ? "#27231C" : "#FBF8F2",
+                    border: "1px solid " + (blocked ? "#E5484D" : borderCol),
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "12px",
+                  },
+                },
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "3px", minWidth: 0 } },
+                  h(
+                    "div",
+                    { style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" } },
+                    h("b", { style: { fontSize: "15px" } }, w.name),
+                    h(
+                      "span",
+                      {
+                        style: {
+                          padding: "2px 8px",
+                          borderRadius: "999px",
+                          background: blocked ? "#E5484D" : penalized ? "#FFF0BF" : "#E3F4E8",
+                          color: blocked ? "#FFFFFF" : penalized ? "#6B4600" : "#1D6B36",
+                          fontSize: "10px",
+                          fontWeight: 800,
+                        },
+                      },
+                      blocked ? "🚫 BLOCKED" : penalized ? "⏳ 24H PENALTY" : "ACTIVE"
+                    )
+                  ),
+                  h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${w.primaryTrade || "Worker"} · ${w.phone || w.id}`)
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => toggleBlockWorker(w),
+                    style: {
+                      height: "36px",
+                      padding: "0 14px",
+                      borderRadius: "999px",
+                      border: 0,
+                      background: blocked ? "#2E9E57" : "#E5484D",
+                      color: "#FFFFFF",
+                      fontWeight: 800,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    },
+                  },
+                  blocked ? "Unblock" : "Block Worker"
+                )
+              );
+            })
           )
         ),
 
