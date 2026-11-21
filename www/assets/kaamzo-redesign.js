@@ -261,6 +261,211 @@
     return typeof job.distanceKm === "number" ? job.distanceKm : 1.8;
   }
 
+  function getCustomerAccountKey(cust) {
+    if (!cust) return "";
+    const email = String(cust.email || "").trim().toLowerCase();
+    const rawPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
+    const phone = rawPhone && rawPhone !== "9810100000" ? rawPhone : "";
+    const id = String(cust.id || cust.uid || "").trim();
+    const name = String(cust.name || "").trim().toLowerCase();
+    return email || phone || id || name || "";
+  }
+
+  function rememberCustomerJob(jobOrId, cust) {
+    if (!jobOrId || !cust) return;
+    const jobId = typeof jobOrId === "object" ? String(jobOrId.id || "") : String(jobOrId);
+    if (!jobId) return;
+    if (typeof jobOrId === "object") {
+      if (cust.id || cust.uid) jobOrId.customerId = cust.id || cust.uid;
+      if (cust.email) jobOrId.customerEmail = cust.email;
+      if (cust.name) jobOrId.customerName = cust.name;
+      if (cust.phone) jobOrId.customerPhone = cust.phone;
+    }
+    const key = getCustomerAccountKey(cust);
+    if (!key) return;
+    try {
+      const sKey = "kz_my_account_jobs_" + key;
+      const list = JSON.parse(localStorage.getItem(sKey) || "[]").map(String);
+      if (!list.includes(jobId)) {
+        list.push(jobId);
+        localStorage.setItem(sKey, JSON.stringify(list));
+      }
+      const ownerMap = JSON.parse(localStorage.getItem("kz_job_owner_map_v1") || "{}");
+      ownerMap[jobId] = {
+        key,
+        id: String(cust.id || cust.uid || "").trim(),
+        email: String(cust.email || "").trim().toLowerCase(),
+        phone: String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10),
+        name: String(cust.name || "").trim().toLowerCase(),
+      };
+      localStorage.setItem("kz_job_owner_map_v1", JSON.stringify(ownerMap));
+    } catch (_) {}
+  }
+
+  function recordCustomerPayment(job, cust, meta) {
+    if (!job) return;
+    const c = cust || {};
+    const key = getCustomerAccountKey(c);
+    if (c && key) {
+      rememberCustomerJob(job, c);
+      job.paidByCustomerId = c.id || c.uid || job.paidByCustomerId || "";
+      job.paidByCustomerEmail = c.email || job.paidByCustomerEmail || "";
+      job.paidByCustomerName = c.name || job.paidByCustomerName || "";
+      job.paidByCustomerPhone = c.phone || job.paidByCustomerPhone || "";
+    }
+    const fullAmount = Math.max(
+      1,
+      Number(meta?.amountInr) || Math.round((Number(job.dailyWage) || 850) * (Number(job.durationDays) || 1))
+    );
+    const paymentId = String(meta?.paymentId || job.razorpayPaymentId || job.transactionRef || "fam_" + Date.now());
+    const upiId = String(meta?.upiId || job.assignedWorkerUpi || "6284194807@fam");
+    const paidAt = meta?.paidAt || job.paidAt || new Date().toISOString();
+    job.paidAt = paidAt;
+    if (!key) return;
+    try {
+      const pKey = "kz_my_account_payments_" + key;
+      const existing = JSON.parse(localStorage.getItem(pKey) || "[]");
+      const entry = {
+        id: paymentId,
+        jobId: String(job.id || ""),
+        title: job.title || (job.trade || "Service") + " Work Order",
+        trade: job.trade || "Service",
+        amountInr: fullAmount,
+        workerName: job.assignedWorkerName || "Verified Worker",
+        workerPhone: job.assignedWorkerPhone || "",
+        upiId,
+        method: meta?.method || "FamPay UPI (6284194807@fam)",
+        paidAt,
+        area: job.locationAddress || job.area || "Ludhiana",
+        customerName: c.name || job.customerName || "Your Account",
+        customerEmail: c.email || job.customerEmail || "",
+        customerPhone: c.phone || job.customerPhone || "",
+      };
+      const filtered = existing.filter(
+        (x) => String(x.id) !== String(entry.id) && String(x.jobId) !== String(entry.jobId)
+      );
+      filtered.unshift(entry);
+      localStorage.setItem(pKey, JSON.stringify(filtered.slice(0, 100)));
+    } catch (_) {}
+  }
+
+  function isJobOwnedByCustomer(j, cust) {
+    if (!j || !cust) return false;
+    const key = getCustomerAccountKey(cust);
+    if (!key) return false;
+
+    const cId = String(cust.id || cust.uid || "").trim();
+    const cEmail = String(cust.email || "").trim().toLowerCase();
+    const rawCPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
+    const cPhone = rawCPhone && rawCPhone !== "9810100000" ? rawCPhone : "";
+    const cName = String(cust.name || "").trim().toLowerCase();
+    const genericNames = ["customer", "employer", "guest employer", "guest", "user", "kaamzo customer"];
+
+    // 1. Check explicit per-account localStorage ledger & job owner map
+    try {
+      const myList = JSON.parse(localStorage.getItem("kz_my_account_jobs_" + key) || "[]").map(String);
+      if (j.id && myList.includes(String(j.id))) return true;
+
+      const ownerMap = JSON.parse(localStorage.getItem("kz_job_owner_map_v1") || "{}");
+      const recordedOwner = j.id ? ownerMap[String(j.id)] : null;
+      if (recordedOwner) {
+        if (recordedOwner.key === key) return true;
+        if (cId && recordedOwner.id && cId === recordedOwner.id) return true;
+        if (cEmail && recordedOwner.email && cEmail === recordedOwner.email) return true;
+        if (cPhone && recordedOwner.phone && cPhone === recordedOwner.phone) return true;
+        return false;
+      }
+    } catch (_) {}
+
+    const jId = String(j.paidByCustomerId || j.customerId || j.customerUid || "").trim();
+    const jEmail = String(j.paidByCustomerEmail || j.customerEmail || "").trim().toLowerCase();
+    const rawJPhone = String(j.paidByCustomerPhone || j.customerPhone || "").replace(/[^0-9]/g, "").slice(-10);
+    const jPhone = rawJPhone && rawJPhone !== "9810100000" ? rawJPhone : "";
+    const jName = String(j.paidByCustomerName || j.customerName || "").trim().toLowerCase();
+
+    // If job explicitly belongs to a DIFFERENT customer ID or Email, reject immediately
+    if (cId && jId && cId !== jId) return false;
+    if (cEmail && jEmail && cEmail !== jEmail) return false;
+
+    // 2. Match by customer ID / UID
+    if (cId && jId && cId === jId) return true;
+
+    // 3. Match by customer Email
+    if (cEmail && jEmail && cEmail === jEmail) return true;
+
+    // 4. Match by 10-digit customer phone (excluding placeholder 9810100000)
+    if (cPhone && jPhone && cPhone === jPhone) return true;
+    if (cPhone && jPhone && cPhone !== jPhone) return false;
+
+    // 5. Match by exact non-generic customer name
+    if (cName && jName && !genericNames.includes(cName) && cName === jName) return true;
+
+    return false;
+  }
+
+  function getCustomerPayments(cust, myJobs) {
+    if (!cust) return [];
+    const key = getCustomerAccountKey(cust);
+    if (!key) return [];
+
+    const byJobId = new Map();
+    let stored = [];
+    try {
+      stored = JSON.parse(localStorage.getItem("kz_my_account_payments_" + key) || "[]");
+    } catch (_) {}
+
+    if (Array.isArray(stored)) {
+      stored.forEach((p) => {
+        if (p && (p.jobId || p.id)) {
+          byJobId.set(String(p.jobId || p.id), Object.assign({}, p));
+        }
+      });
+    }
+
+    (Array.isArray(myJobs) ? myJobs : []).forEach((j) => {
+      if (!j) return;
+      const isPaidJob =
+        j.status === "paid_and_closed" ||
+        j.isPaid === true ||
+        j.isEscrowPrepaid === true ||
+        Boolean(j.razorpayPaymentId) ||
+        Boolean(j.transactionRef) ||
+        j.paymentStatus === "paid_and_settled";
+      if (!isPaidJob) return;
+
+      const amountInr = Math.max(
+        1,
+        Number(j.escrowPrepaidAmount) ||
+          Math.round((Number(j.dailyWage) || 850) * (Number(j.durationDays) || 1))
+      );
+      const paymentId = String(
+        j.razorpayPaymentId || j.transactionRef || "FAM-" + String(j.id || "").toUpperCase()
+      );
+      const upiId = j.assignedWorkerUpi || "6284194807@fam";
+      const existing = byJobId.get(String(j.id)) || {};
+      byJobId.set(String(j.id), {
+        id: existing.id || paymentId,
+        jobId: String(j.id),
+        title: j.title || existing.title || (j.trade || "Service") + " Work Order",
+        trade: j.trade || existing.trade || "Service",
+        amountInr: existing.amountInr || amountInr,
+        workerName: j.assignedWorkerName || existing.workerName || "Verified Worker",
+        workerPhone: j.assignedWorkerPhone || existing.workerPhone || "",
+        upiId,
+        method:
+          j.paidVia === "RAZORPAY_CHECKOUT_UPI"
+            ? "Razorpay UPI Checkout"
+            : "FamPay UPI (" + upiId + ")",
+        paidAt: j.paidAt || existing.paidAt || j.ratedAt || j.escrowPrepaidAt || j.createdAt || "Settled",
+        area: j.locationAddress || j.area || existing.area || "Ludhiana",
+        statusLabel: j.status === "paid_and_closed" ? "PAID & SETTLED" : j.isEscrowPrepaid ? "ESCROW PAID" : "PAID",
+        job: j,
+      });
+    });
+
+    return Array.from(byJobId.values());
+  }
+
   // =========================================================================
   // 2. EXACT SVG ASSETS (Hero Scene + Plumber / Carpenter / Painter cards)
   // =========================================================================
@@ -2305,6 +2510,12 @@
             job.razorpayPayoutId = vData.payout?.id || job.razorpayPayoutId;
             job.razorpayPayoutStatus = vData.payout?.status || "processed_test_mode";
             job.paymentStatus = "paid_and_settled";
+            recordCustomerPayment(job, app.currentCustomer, {
+              paymentId: response.razorpay_payment_id,
+              upiId: job.assignedWorkerUpi || "6284194807@fam",
+              amountInr: fullAmount,
+              method: "Razorpay UPI Checkout",
+            });
             app.releasePaymentByCustomer?.(
               job.id,
               5,
@@ -2445,6 +2656,11 @@
     nextMilestoneTarget,
     isJobWithin10Km,
     getJobDistanceKm,
+    getCustomerAccountKey,
+    rememberCustomerJob,
+    recordCustomerPayment,
+    isJobOwnedByCustomer,
+    getCustomerPayments,
     normalizePathname,
     navigate,
     useRoute,
@@ -3285,6 +3501,12 @@
         job.razorpayPayoutId = data.payout?.id || job.razorpayPayoutId;
         job.assignedWorkerUpi = FAMPAY_ID;
         job.paymentStatus = "paid_and_settled";
+        recordCustomerPayment(job, app.currentCustomer, {
+          paymentId: job.razorpayPaymentId,
+          upiId: FAMPAY_ID,
+          amountInr: fullAmount,
+          method: "FamPay UPI (6284194807@fam)",
+        });
         app.releasePaymentByCustomer?.(
           job.id,
           5,
@@ -3296,6 +3518,12 @@
         app.showNotification?.(`✓ Paid ₹${fullAmount} via FamPay UPI (${FAMPAY_ID})!`);
         onClose();
       } catch (_) {
+        recordCustomerPayment(job, app.currentCustomer, {
+          paymentId: txRef,
+          upiId: FAMPAY_ID,
+          amountInr: fullAmount,
+          method: "FamPay UPI (6284194807@fam)",
+        });
         app.releasePaymentByCustomer?.(
           job.id,
           5,
@@ -3640,10 +3868,19 @@
       const candidate =
         (pendingId &&
           !ackList.includes(pendingId) &&
-          jobs.find((j) => String(j.id) === pendingId && (j.status === "accepted" || j.status === "approved"))) ||
+          jobs.find(
+            (j) =>
+              String(j.id) === pendingId &&
+              (j.status === "accepted" || j.status === "approved") &&
+              (!app.currentCustomer || isJobOwnedByCustomer(j, app.currentCustomer))
+          )) ||
         (app.ringingJob &&
           !ackList.includes(String(app.ringingJob.id)) &&
-          jobs.find((j) => String(j.id) === String(app.ringingJob.id)));
+          jobs.find(
+            (j) =>
+              String(j.id) === String(app.ringingJob.id) &&
+              (!app.currentCustomer || isJobOwnedByCustomer(j, app.currentCustomer))
+          ));
 
       if (candidate && (!customerRingJob || String(customerRingJob.id) !== String(candidate.id))) {
         setCustomerRingJob(candidate);
@@ -6111,6 +6348,10 @@
     getLiveTradeRate,
     haversineKm,
     formatInr,
+    rememberCustomerJob,
+    recordCustomerPayment,
+    isJobOwnedByCustomer,
+    getCustomerPayments,
     navigate,
     launchRazorpayCheckout,
   } = U;
@@ -6481,14 +6722,8 @@
     const jobs = app.jobs || [];
 
     const myCustomerJobs = useMemo(() => {
-      if (!cust?.phone && !cust?.name) return jobs;
-      const cleanCPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
-      const filtered = jobs.filter((j) => {
-        const jPhone = String(j.customerPhone || "").replace(/[^0-9]/g, "").slice(-10);
-        return (cleanCPhone && jPhone === cleanCPhone) || (cust.name && j.customerName === cust.name);
-      });
-      return filtered.length > 0 ? filtered : jobs;
-    }, [jobs, cust?.phone, cust?.name]);
+      return jobs.filter((j) => isJobOwnedByCustomer(j, cust));
+    }, [jobs, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name]);
 
     const pendingPayJobs = myCustomerJobs.filter((j) => j.status === "completed_pending_payment");
     const trackableJobs = myCustomerJobs
@@ -6555,8 +6790,10 @@
         title: hireTitle.trim() || `Direct hire: ${hireWorker.name} (${hireWorker.primaryTrade})`,
         trade: hireWorker.primaryTrade,
         description: `Direct hiring request for ${hireWorker.name} in ${hireWorker.location?.area || "Ludhiana"}.`,
+        customerId: cust?.id || cust?.uid || "",
+        customerEmail: cust?.email || "",
         customerName: cust?.name || "Customer",
-        customerPhone: cust?.phone || "+91 98101 00000",
+        customerPhone: cust?.phone || "",
         locationAddress: cust?.address || (cust?.area || "Model Town") + ", Ludhiana",
         area: cust?.area || "Model Town",
         dailyWage: baseRate,
@@ -6565,6 +6802,7 @@
         baseLabor: baseRate * (Number(hireDays) || 1),
       });
       if (created) {
+        rememberCustomerJob(created, cust);
         app.showNotification?.(`Work order #${created.id} posted for ${hireWorker.name}!`);
         setHireWorker(null);
         navigate("/customer/my-bookings", { role: "customer" });
@@ -7085,7 +7323,7 @@
   }
 
   // -------------------------------------------------------------------------
-  // 2. /customer/my-bookings
+  // 2. /customer/my-bookings — Account-Only Payments Ledger & Active Bookings
   // -------------------------------------------------------------------------
   function CustomerBookingsView() {
     const app = useApp();
@@ -7093,22 +7331,41 @@
     const cust = app.currentCustomer;
     const jobs = app.jobs || [];
 
+    // Strictly filter ONLY jobs owned by the logged-in customer account (NEVER fall back to all site jobs)
     const myJobs = useMemo(() => {
-      if (!cust?.phone && !cust?.name) return jobs;
-      const cleanCPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
-      const filtered = jobs.filter((j) => {
-        const jPhone = String(j.customerPhone || "").replace(/[^0-9]/g, "").slice(-10);
-        return (cleanCPhone && jPhone === cleanCPhone) || (cust.name && j.customerName === cust.name);
-      });
-      return filtered.length > 0 ? filtered : jobs;
-    }, [jobs, cust?.phone, cust?.name]);
+      return jobs.filter((j) => isJobOwnedByCustomer(j, cust));
+    }, [jobs, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name]);
 
-    const activeCount = myJobs.filter((j) => ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status)).length;
-    const broadcastCount = myJobs.filter((j) => j.status === "broadcast").length;
-    const doneCount = myJobs.filter((j) => j.status === "paid_and_closed").length;
+    const myAccountPayments = useMemo(() => {
+      return getCustomerPayments(cust, myJobs);
+    }, [cust, myJobs, jobs]);
+
+    const myTotalPaidInr = useMemo(() => {
+      return myAccountPayments.reduce((sum, p) => sum + (Number(p.amountInr) || 0), 0);
+    }, [myAccountPayments]);
+
+    const myUnpaidJobs = useMemo(() => {
+      return myJobs.filter(
+        (j) =>
+          j.status !== "paid_and_closed" &&
+          !j.isPaid &&
+          !j.razorpayPaymentId &&
+          j.status !== "cancelled"
+      );
+    }, [myJobs]);
+
+    const myPendingPayInr = useMemo(() => {
+      return myUnpaidJobs.reduce(
+        (sum, j) => sum + Math.round((Number(j.dailyWage) || 850) * (Number(j.durationDays) || 1)),
+        0
+      );
+    }, [myUnpaidJobs]);
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
+    const accountBadgeText = cust
+      ? `${cust.name || "Your Account"}${cust.email ? " · " + cust.email : cust.phone ? " · " + cust.phone : ""}`
+      : "Not signed in";
 
     return h(
       "main",
@@ -7120,73 +7377,217 @@
           "div",
           { style: { display: "flex", flexDirection: "column", gap: "8px" } },
           h(
+            "span",
+            {
+              style: {
+                alignSelf: "flex-start",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "6px 14px",
+                borderRadius: "999px",
+                background: isDark ? "#27231C" : "#E3F4E8",
+                color: isDark ? "#5BD68A" : "#1D6B36",
+                fontSize: "12px",
+                fontWeight: 800,
+                letterSpacing: "0.6px",
+              },
+            },
+            "ACCOUNT PAYMENTS ONLY · " + accountBadgeText.toUpperCase()
+          ),
+          h(
             "h1",
             { style: { margin: 0, fontSize: "clamp(34px, 4vw, 54px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } },
-            "My bookings & ",
-            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "work orders")
+            "Payments done by ",
+            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "your account.")
           ),
-          h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A" } }, "Track assigned workers, verify start OTPs, follow 10 km GPS routes and release UPI payments.")
+          h(
+            "p",
+            { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A" } },
+            "Showing only payments and work orders belonging to your logged-in account (FamPay 6284194807@fam & Razorpay UPI)."
+          )
         ),
         h(
           "button",
           {
             type: "button",
             onClick: () => navigate("/customer/post-a-job", { role: "customer" }),
-            style: { height: "52px", padding: "0 24px", border: 0, borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800, display: "flex", alignItems: "center", gap: "8px" },
+            style: { height: "52px", padding: "0 24px", border: 0, borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" },
           },
           h(SvgIcon, { path: ICON_PATHS.plus, size: 16, strokeWidth: 2.6 }),
           "Post new job"
         )
       ),
 
-      // Stats
+      // Account-Only Payment Summary Cards (never site-wide counts)
       h(
         "div",
-        { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" } },
+        { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px" } },
         h(
           "div",
           { style: { borderRadius: "28px", background: "#1C1913", color: "#FBF8F2", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } },
-          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", color: "#F3C969" } }, "ACTIVE"),
-          h("span", { style: { fontSize: "48px", fontWeight: 800, lineHeight: 1 } }, activeCount),
-          h("span", { style: { fontSize: "13px", color: "#CFC6B8" } }, "Jobs in progress")
-        ),
-        h(
-          "div",
-          { style: { borderRadius: "28px", background: "#FFF0BF", color: "#1C1913", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } },
-          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", color: "#6B4600" } }, "BROADCASTING"),
-          h("span", { style: { fontSize: "48px", fontWeight: 800, lineHeight: 1 } }, broadcastCount),
-          h("span", { style: { fontSize: "13px", color: "#4A443A" } }, "Jobs waiting for workers")
+          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", color: "#F3C969" } }, "TOTAL PAID BY YOUR ACCOUNT"),
+          h("span", { style: { fontSize: "44px", fontWeight: 800, lineHeight: 1, fontFamily: "'Instrument Serif', serif" } }, formatInr(myTotalPaidInr)),
+          h("span", { style: { fontSize: "13px", color: "#CFC6B8" } }, `${myAccountPayments.length} payment(s) settled by ${cust?.name || "your account"}`)
         ),
         h(
           "div",
           { style: { borderRadius: "28px", background: "#E3F4E8", color: "#1C1913", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } },
-          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", color: "#1D6B36" } }, "COMPLETED"),
-          h("span", { style: { fontSize: "48px", fontWeight: 800, lineHeight: 1 } }, doneCount),
-          h("span", { style: { fontSize: "13px", color: "#2D4A36" } }, "Paid & closed work orders")
+          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", color: "#1D6B36" } }, "PAYMENTS DONE (YOUR ACCOUNT)"),
+          h("span", { style: { fontSize: "44px", fontWeight: 800, lineHeight: 1 } }, myAccountPayments.length),
+          h("span", { style: { fontSize: "13px", color: "#2D4A36" } }, "Paid via FamPay (6284194807@fam) & Razorpay UPI")
+        ),
+        h(
+          "div",
+          { style: { borderRadius: "28px", background: "#FFF0BF", color: "#1C1913", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } },
+          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", color: "#6B4600" } }, "PENDING PAYMENT (YOUR ACCOUNT)"),
+          h("span", { style: { fontSize: "44px", fontWeight: 800, lineHeight: 1, fontFamily: "'Instrument Serif', serif" } }, formatInr(myPendingPayInr)),
+          h("span", { style: { fontSize: "13px", color: "#4A443A" } }, `${myUnpaidJobs.length} active booking(s) created by your account`)
         )
       ),
 
-      // Booking cards
+      // SECTION 1: ALL PAYMENTS DONE BY YOUR ACCOUNT
       h(
-        "div",
+        "section",
         { style: { display: "flex", flexDirection: "column", gap: "16px" } },
-        myJobs.length === 0
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" } },
+          h(
+            "div",
+            { style: { display: "flex", flexDirection: "column", gap: "2px" } },
+            h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#1D6B36" } }, "VERIFIED ACCOUNT PAYMENT HISTORY"),
+            h("h2", { style: { margin: 0, fontSize: "24px", fontWeight: 800 } }, `All payments done by your account (${myAccountPayments.length})`)
+          ),
+          h(
+            "span",
+            { style: { padding: "6px 14px", borderRadius: "999px", background: isDark ? "#27231C" : "#F4EEE3", fontSize: "12px", fontWeight: 800, color: isDark ? "#F5A524" : "#6B4600" } },
+            "FamPay UPI ID: 6284194807@fam"
+          )
+        ),
+
+        !cust
           ? h(
               "div",
               { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "40px", textAlign: "center" } },
-              h("h3", { style: { margin: "0 0 8px", fontSize: "20px", fontWeight: 800 } }, "No bookings yet"),
-              h("p", { style: { margin: "0 0 18px", color: isDark ? "#A49B8C" : "#6F685D" } }, "Post your first job to broadcast within 10 km."),
+              h("h3", { style: { margin: "0 0 8px", fontSize: "20px", fontWeight: 800 } }, "Sign in to view your account payments"),
+              h("p", { style: { margin: "0 0 18px", color: isDark ? "#A49B8C" : "#6F685D" } }, "We only show payments and bookings made by your personal account."),
               h(
                 "button",
                 {
                   type: "button",
-                  onClick: () => navigate("/customer/post-a-job", { role: "customer" }),
-                  style: { height: "48px", padding: "0 22px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800 },
+                  onClick: () => navigate("/register", { registerRole: "customer" }),
+                  style: { height: "48px", padding: "0 22px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, cursor: "pointer" },
                 },
-                "+ Post a job"
+                "Sign in / Register →"
               )
             )
-          : myJobs.map((j) => {
+          : myAccountPayments.length === 0
+          ? h(
+              "div",
+              { style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "36px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" } },
+              h("h3", { style: { margin: 0, fontSize: "20px", fontWeight: 800 } }, "No payments done by your account yet"),
+              h(
+                "p",
+                { style: { margin: 0, maxWidth: "520px", color: isDark ? "#A49B8C" : "#6F685D", fontSize: "14px", lineHeight: 1.5 } },
+                myUnpaidJobs.length > 0
+                  ? `You have ${myUnpaidJobs.length} booking(s) below awaiting payment. Click "Pay Now" on your booking below to pay via FamPay (6284194807@fam) or Razorpay UPI.`
+                  : "Once you complete a payment via FamPay (6284194807@fam) or Razorpay UPI for your booking, every payment receipt from your account will appear here."
+              ),
+              myUnpaidJobs.length === 0 &&
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => navigate("/customer/post-a-job", { role: "customer" }),
+                    style: { marginTop: "6px", height: "46px", padding: "0 22px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, cursor: "pointer" },
+                  },
+                  "+ Post a job"
+                )
+            )
+          : myAccountPayments.map((p) => {
+              const tm = getTradeMeta(p.trade);
+              const paidDateStr = (() => {
+                try {
+                  if (!p.paidAt || p.paidAt === "Settled" || p.paidAt === "Just now") return "Paid recently";
+                  const d = new Date(p.paidAt);
+                  return Number.isNaN(d.getTime()) ? String(p.paidAt) : d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+                } catch (_) {
+                  return "Paid";
+                }
+              })();
+              return h(
+                "article",
+                {
+                  key: p.id + "_" + p.jobId,
+                  style: {
+                    borderRadius: "26px",
+                    background: cardBg,
+                    border: "2px solid #2E9E57",
+                    padding: "22px 24px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "16px",
+                  },
+                },
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "8px", minWidth: "240px", flex: 1 } },
+                  h(
+                    "div",
+                    { style: { display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" } },
+                    h("span", { style: { padding: "4px 12px", borderRadius: "999px", background: "#2E9E57", color: "#FFFFFF", fontSize: "11px", fontWeight: 800 } }, "✓ " + (p.statusLabel || "PAID BY YOUR ACCOUNT")),
+                    h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: tm.bg, color: tm.fg, fontSize: "12px", fontWeight: 800 } }, tm.name),
+                    h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#FFF0BF", color: "#6B4600", fontSize: "11px", fontWeight: 800 } }, "UPI: " + (p.upiId || "6284194807@fam")),
+                    h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#DCEBFF", color: "#123A6B", fontSize: "11px", fontWeight: 800 } }, "REF: " + p.id)
+                  ),
+                  h("h3", { style: { margin: 0, fontSize: "21px", fontWeight: 800 } }, p.title),
+                  h(
+                    "div",
+                    { style: { fontSize: "13px", color: isDark ? "#CFC6B8" : "#4A443A", display: "flex", flexWrap: "wrap", gap: "12px" } },
+                    h("span", { style: { fontWeight: 700, color: "#1D6B36" } }, `Paid to: ${p.workerName} (${p.upiId || "6284194807@fam"})`),
+                    h("span", null, `Paid by: ${cust?.name || "Your Account"}`),
+                    h("span", null, `${p.area || "Ludhiana"} · ${paidDateStr}`)
+                  )
+                ),
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" } },
+                  h("div", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "38px", lineHeight: 1, color: "#1D6B36", fontWeight: 700 } }, formatInr(p.amountInr)),
+                  p.job &&
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () => {
+                          KZ.selectedTrackingJobId = p.job.id;
+                          app.setActiveWorkJobId?.(p.job.id);
+                          navigate("/customer/live-eta-attendance", { role: "customer" });
+                        },
+                        style: { height: "38px", padding: "0 16px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
+                      },
+                      "View Receipt & Steps →"
+                    )
+                )
+              );
+            })
+      ),
+
+      // SECTION 2: YOUR ACCOUNT'S UNPAID / ACTIVE BOOKINGS (So you can pay or track your own active order)
+      cust &&
+        myUnpaidJobs.length > 0 &&
+        h(
+          "section",
+          { style: { display: "flex", flexDirection: "column", gap: "16px", marginTop: "8px" } },
+          h(
+            "div",
+            { style: { display: "flex", flexDirection: "column", gap: "2px" } },
+            h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#7A4E00" } }, "AWAITING PAYMENT OR IN PROGRESS (YOUR ACCOUNT ONLY)"),
+            h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, `Your active bookings to pay or track (${myUnpaidJobs.length})`)
+          ),
+          myUnpaidJobs.map((j) => {
               const tm = getTradeMeta(j.trade);
               const pendingProposals = (j.negotiationHistory || []).filter((p) => p.status === "pending" && p.senderRole === "worker");
               return h(
@@ -7270,29 +7671,26 @@
                 h(
                   "div",
                   { style: { display: "flex", flexWrap: "wrap", gap: "10px" } },
-                  j.status === "accepted" &&
-                    !j.isEscrowPrepaid &&
-                    h(
-                      "button",
-                      {
-                        type: "button",
-                        onClick: () => app.approveAndFundEscrow?.(j.id),
-                        style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px" },
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => launchRazorpayCheckout(j, app),
+                      style: {
+                        height: "42px",
+                        padding: "0 20px",
+                        borderRadius: "999px",
+                        border: 0,
+                        background: "#F5A524",
+                        color: "#1C1913",
+                        fontWeight: 800,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 14px rgba(245,165,36,0.35)",
                       },
-                      "Approve & Fund Escrow"
-                    ),
-                  !j.isEscrowPrepaid &&
-                    j.status !== "paid_and_closed" &&
-                    j.status !== "cancelled" &&
-                    h(
-                      "button",
-                      {
-                        type: "button",
-                        onClick: () => app.payPrepaidEscrow?.(j.id),
-                        style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "13px" },
-                      },
-                      "Prepay Escrow"
-                    ),
+                    },
+                    `Pay Now · ${formatInr((j.dailyWage || 850) * (j.durationDays || 1))} (6284194807@fam)`
+                  ),
                   h(
                     "button",
                     {
@@ -7308,41 +7706,8 @@
                       ? "Track Broadcast Status →"
                       : j.status === "in_progress"
                       ? "Watch Live Work →"
-                      : j.status === "paid_and_closed"
-                      ? "View Receipt & Steps"
                       : "Live Map & Start Code →"
                   ),
-                  j.status === "completed_pending_payment" &&
-                    h(
-                      "button",
-                      {
-                        type: "button",
-                        onClick: () => launchRazorpayCheckout(j, app),
-                        style: {
-                          height: "42px",
-                          padding: "0 20px",
-                          borderRadius: "999px",
-                          border: 0,
-                          background: "#F5A524",
-                          color: "#1C1913",
-                          fontWeight: 800,
-                          fontSize: "13px",
-                          cursor: "pointer",
-                          boxShadow: "0 4px 14px rgba(245,165,36,0.35)",
-                        },
-                      },
-                      `Pay Now · ${formatInr((j.dailyWage || 850) * (j.durationDays || 1))}`
-                    ),
-                  j.status === "in_progress" &&
-                    h(
-                      "button",
-                      {
-                        type: "button",
-                        onClick: () => launchRazorpayCheckout(j, app),
-                        style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
-                      },
-                      "Pay with Razorpay UPI"
-                    ),
                   j.status === "broadcast" &&
                     h(
                       "button",
@@ -7377,7 +7742,7 @@
                 )
               );
             })
-      )
+        )
     );
   }
 
@@ -7490,8 +7855,10 @@
         title: title.trim(),
         trade,
         description: desc.trim() || `Need Aadhaar-verified ${trade} in ${area}.`,
+        customerId: cust?.id || cust?.uid || "",
+        customerEmail: cust?.email || "",
         customerName: cust?.name || "Employer",
-        customerPhone: cust?.phone || "+91 98101 00000",
+        customerPhone: cust?.phone || "",
         locationAddress: addr.trim() || area + ", Ludhiana",
         area,
         dailyWage: baseRate,
@@ -7501,6 +7868,7 @@
         baseLabor,
       });
       if (created) {
+        rememberCustomerJob(created, cust);
         navigate("/customer/my-bookings", { role: "customer" });
       }
     };
@@ -7920,14 +8288,8 @@
     const jobs = app.jobs || [];
 
     const myJobs = useMemo(() => {
-      if (!cust?.phone && !cust?.name) return jobs;
-      const cleanCPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
-      const filtered = jobs.filter((j) => {
-        const jPhone = String(j.customerPhone || "").replace(/[^0-9]/g, "").slice(-10);
-        return (cleanCPhone && jPhone === cleanCPhone) || (cust.name && j.customerName === cust.name);
-      });
-      return filtered.length > 0 ? filtered : jobs;
-    }, [jobs, cust?.phone, cust?.name]);
+      return jobs.filter((j) => isJobOwnedByCustomer(j, cust));
+    }, [jobs, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name]);
 
     const [selectedId, setSelectedId] = useState(
       () => KZ.selectedTrackingJobId || app.activeWorkJobId || myJobs[0]?.id || null
@@ -8467,7 +8829,7 @@
     const jobs = app.jobs || [];
 
     const pastPros = useMemo(() => {
-      const done = jobs.filter((j) => j.assignedWorkerName);
+      const done = jobs.filter((j) => isJobOwnedByCustomer(j, cust) && j.assignedWorkerName);
       if (done.length > 0) return done.slice(0, 6);
       return workers.slice(0, 4).map((w) => ({
         id: "pro-" + w.id,
@@ -8477,7 +8839,7 @@
         dailyWage: w.dailyRate,
         rating: w.rating || 4.8,
       }));
-    }, [jobs, workers]);
+    }, [jobs, workers, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name]);
 
     const [crewCounts, setCrewCounts] = useState({ Mason: 2, Helper: 3, Electrician: 1, Plumber: 0, Painter: 0 });
     const [crewDays, setCrewDays] = useState(3);
@@ -8498,8 +8860,10 @@
         title: `Rebook ${item.assignedWorkerName} (${item.trade})`,
         trade: item.trade,
         description: `1-tap rebook for trusted ${item.trade} ${item.assignedWorkerName}.`,
+        customerId: cust?.id || cust?.uid || "",
+        customerEmail: cust?.email || "",
         customerName: cust?.name || "Employer",
-        customerPhone: cust?.phone || "+91 98101 00000",
+        customerPhone: cust?.phone || "",
         locationAddress: cust?.address || "Model Town, Ludhiana",
         area: cust?.area || "Model Town",
         dailyWage: r,
@@ -8507,7 +8871,10 @@
         startDate: new Date().toISOString().slice(0, 10),
         baseLabor: r,
       });
-      if (created) navigate("/customer/my-bookings", { role: "customer" });
+      if (created) {
+        rememberCustomerJob(created, cust);
+        navigate("/customer/my-bookings", { role: "customer" });
+      }
     };
 
     const postCrew = () => {
@@ -8528,8 +8895,10 @@
         title: `Site Crew (${summary}) · ${crewDays}d`,
         trade: leadTrade,
         description: `Multi-trade crew broadcast: ${summary} for ${crewDays} days.`,
+        customerId: cust?.id || cust?.uid || "",
+        customerEmail: cust?.email || "",
         customerName: cust?.name || "Employer",
-        customerPhone: cust?.phone || "+91 98101 00000",
+        customerPhone: cust?.phone || "",
         locationAddress: cust?.address || "Model Town, Ludhiana",
         area: cust?.area || "Model Town",
         dailyWage: Math.round(crewTotalBase / crewDays),
@@ -8537,7 +8906,10 @@
         startDate: new Date().toISOString().slice(0, 10),
         baseLabor: crewTotalBase,
       });
-      if (created) navigate("/customer/my-bookings", { role: "customer" });
+      if (created) {
+        rememberCustomerJob(created, cust);
+        navigate("/customer/my-bookings", { role: "customer" });
+      }
     };
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
@@ -8703,7 +9075,9 @@
   function CustomerSupportView() {
     const app = useApp();
     const isDark = app.isDarkMode;
-    const jobs = app.jobs || [];
+    const cust = app.currentCustomer;
+    const allJobs = app.jobs || [];
+    const jobs = useMemo(() => allJobs.filter((j) => isJobOwnedByCustomer(j, cust)), [allJobs, cust?.id, cust?.uid, cust?.email, cust?.phone, cust?.name]);
     const disputes = app.disputes || [];
 
     const [selJobId, setSelJobId] = useState(jobs[0]?.id || "");
