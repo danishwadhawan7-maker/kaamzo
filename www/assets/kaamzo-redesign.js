@@ -2906,12 +2906,286 @@
     );
   }
 
+  function playCustomerRingTone() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!window.__kzAudioCtx || window.__kzAudioCtx.state === "closed") {
+        window.__kzAudioCtx = new AC();
+      }
+      const ctx = window.__kzAudioCtx;
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+
+      // Dual-frequency telephone ring burst (440Hz + 480Hz) — two bursts like a real phone ring
+      [0, 0.42].forEach((offset) => {
+        const o1 = ctx.createOscillator();
+        const o2 = ctx.createOscillator();
+        const g = ctx.createGain();
+        o1.type = "sine";
+        o2.type = "sine";
+        o1.frequency.setValueAtTime(440, now + offset);
+        o2.frequency.setValueAtTime(480, now + offset);
+        g.gain.setValueAtTime(0.18, now + offset);
+        g.gain.setValueAtTime(0.18, now + offset + 0.28);
+        g.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.34);
+        o1.connect(g);
+        o2.connect(g);
+        g.connect(ctx.destination);
+        o1.start(now + offset);
+        o2.start(now + offset);
+        o1.stop(now + offset + 0.35);
+        o2.stop(now + offset + 0.35);
+      });
+
+      // Uplifting confirmation chime right after the ring burst
+      [587.33, 739.99, 880].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        const t0 = now + 0.85 + idx * 0.09;
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(0.2, t0);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.24);
+        osc.connect(g);
+        g.connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.25);
+      });
+
+      if (navigator.vibrate) {
+        navigator.vibrate([350, 140, 350]);
+      }
+    } catch (_) {}
+  }
+
+  function JobAcceptedRingingModal({ job, onAnswer, onDismiss }) {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+
+    useEffect(() => {
+      if (!job) return;
+      playCustomerRingTone();
+      const iv = setInterval(() => {
+        playCustomerRingTone();
+      }, 2100);
+      const stopT = setTimeout(() => {
+        onDismiss?.();
+      }, 25000);
+      return () => {
+        clearInterval(iv);
+        clearTimeout(stopT);
+      };
+    }, [job?.id]);
+
+    if (!job) return null;
+
+    const etaMin = Math.max(3, Math.round(Number(job.distanceKm || 1.2) * 4));
+
+    return h(
+      "div",
+      {
+        role: "dialog",
+        "aria-modal": "true",
+        style: {
+          position: "fixed",
+          inset: 0,
+          background: "rgba(28, 25, 19, 0.65)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+          zIndex: 160,
+          backdropFilter: "blur(6px)",
+        },
+      },
+      h(
+        "div",
+        {
+          style: {
+            width: "100%",
+            maxWidth: "460px",
+            borderRadius: "30px",
+            background: isDark ? "#1F1C17" : "#FFFFFF",
+            color: isDark ? "#EDE6DA" : "#1C1913",
+            border: "2px solid #F5A524",
+            padding: "28px",
+            boxShadow: "0 28px 68px rgba(0,0,0,0.34)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: "14px",
+          },
+        },
+        h(
+          "div",
+          {
+            style: {
+              width: "74px",
+              height: "74px",
+              borderRadius: "50%",
+              background: "#F5A524",
+              color: "#1C1913",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "34px",
+              boxShadow: "0 0 0 12px rgba(245,165,36,0.22)",
+            },
+          },
+          "🔔"
+        ),
+        h(
+          "span",
+          {
+            style: {
+              padding: "5px 14px",
+              borderRadius: "999px",
+              background: "#E3F4E8",
+              color: "#1D6B36",
+              fontSize: "12px",
+              fontWeight: 800,
+              letterSpacing: "0.8px",
+            },
+          },
+          "JOB ACCEPTED · WORKER ON THE WAY"
+        ),
+        h(
+          "h3",
+          { style: { margin: 0, fontSize: "26px", fontWeight: 800, lineHeight: 1.15 } },
+          `${job.assignedWorkerName || "Verified Worker"} accepted your job!`
+        ),
+        h(
+          "p",
+          { style: { margin: 0, fontSize: "14px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.5 } },
+          `Heading to ${job.locationAddress || job.area || "your location"} for "${job.title || job.trade}" · ETA ~${etaMin} min (${job.distanceKm || 1.2} km away).`
+        ),
+        job.otpCode &&
+          h(
+            "div",
+            {
+              style: {
+                width: "100%",
+                padding: "14px 16px",
+                borderRadius: "18px",
+                background: "#1C1913",
+                color: "#FBF8F2",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              },
+            },
+            h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#CFC6B8" } }, "Share 4-Digit Start OTP on arrival"),
+            h("b", { style: { fontSize: "24px", letterSpacing: "3px", color: "#F5A524" } }, job.otpCode)
+          ),
+        h(
+          "div",
+          { style: { display: "flex", gap: "10px", width: "100%", marginTop: "6px" } },
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: onDismiss,
+              style: {
+                height: "46px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
+                background: "transparent",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+                fontWeight: 700,
+                fontSize: "13px",
+                cursor: "pointer",
+              },
+            },
+            "Silence Ring"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: onAnswer,
+              style: {
+                flex: 1,
+                height: "46px",
+                padding: "0 22px",
+                borderRadius: "999px",
+                border: 0,
+                background: "#2E9E57",
+                color: "#FFFFFF",
+                fontWeight: 800,
+                fontSize: "14px",
+                cursor: "pointer",
+                boxShadow: "0 8px 22px rgba(46,158,87,0.35)",
+              },
+            },
+            "View Live Map & ETA →"
+          )
+        )
+      )
+    );
+  }
+
+  KZ.notifyJobAcceptedForCustomer = function (jobId) {
+    if (!jobId) return;
+    try {
+      localStorage.setItem(
+        "kz_pending_customer_ring",
+        JSON.stringify({ jobId: String(jobId), ts: Date.now() })
+      );
+      const ackRaw = localStorage.getItem("kz_acked_customer_accepts") || "[]";
+      const ackList = JSON.parse(ackRaw).filter((id) => String(id) !== String(jobId));
+      localStorage.setItem("kz_acked_customer_accepts", JSON.stringify(ackList));
+    } catch (_) {}
+  };
+
   KZ.MainApp = function MainApp() {
     const app = useApp();
     const { path } = useRoute();
     const [otpConfig, setOtpConfig] = useState(null);
     const [loginPrompt, setLoginPrompt] = useState(null);
     const [completeJobModal, setCompleteJobModal] = useState(null);
+    const [customerRingJob, setCustomerRingJob] = useState(null);
+    const [storageTick, setStorageTick] = useState(0);
+    const prevStatusesRef = useRef({});
+    const seededInitialRef = useRef(false);
+
+    useEffect(() => {
+      const onStorage = (ev) => {
+        if (!ev || !ev.key || ev.key === "kz_pending_customer_ring" || ev.key.startsWith("kaamzo_")) {
+          setStorageTick((n) => n + 1);
+        }
+      };
+      window.addEventListener("storage", onStorage);
+      return () => window.removeEventListener("storage", onStorage);
+    }, []);
+
+    // Unlock WebAudio on first user gesture so ringing plays reliably
+    useEffect(() => {
+      const unlock = () => {
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          if (!window.__kzAudioCtx || window.__kzAudioCtx.state === "closed") {
+            window.__kzAudioCtx = new AC();
+          }
+          if (window.__kzAudioCtx.state === "suspended") {
+            window.__kzAudioCtx.resume().catch(() => {});
+          }
+        } catch (_) {}
+      };
+      window.addEventListener("click", unlock, { passive: true });
+      window.addEventListener("touchstart", unlock, { passive: true });
+      window.addEventListener("keydown", unlock, { passive: true });
+      return () => {
+        window.removeEventListener("click", unlock);
+        window.removeEventListener("touchstart", unlock);
+        window.removeEventListener("keydown", unlock);
+      };
+    }, []);
 
     useEffect(() => {
       KZ.openOtpModal = (cfg) => setOtpConfig(cfg);
@@ -2923,6 +3197,90 @@
         KZ.openCompleteJobModal = null;
       };
     }, []);
+
+    // Detect when any job transitions from broadcast/open -> accepted/approved (or pending ring marker)
+    // and trigger ringing + automatic Live Map navigation when in the Customer Portal!
+    useEffect(() => {
+      const jobs = Array.isArray(app.jobs) ? app.jobs : [];
+      if (jobs.length === 0) return;
+
+      const prev = prevStatusesRef.current;
+      const next = {};
+      jobs.forEach((j) => {
+        if (!j || !j.id) return;
+        next[j.id] = j.status;
+        const oldSt = prev[j.id];
+        if (
+          seededInitialRef.current &&
+          (oldSt === "broadcast" || oldSt === "open") &&
+          (j.status === "accepted" || j.status === "approved")
+        ) {
+          KZ.notifyJobAcceptedForCustomer(j.id);
+        }
+      });
+      prevStatusesRef.current = next;
+      seededInitialRef.current = true;
+
+      const isCustomerView =
+        path === "/customer" ||
+        path.startsWith("/customer/") ||
+        (app.currentRole === "customer" && !path.startsWith("/worker") && path !== "/jobs" && !path.startsWith("/admin"));
+
+      if (!isCustomerView) return;
+
+      let pendingId = null;
+      try {
+        const raw = localStorage.getItem("kz_pending_customer_ring");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Valid if accepted within the last 15 minutes
+          if (parsed && parsed.jobId && Date.now() - Number(parsed.ts || 0) < 15 * 60 * 1000) {
+            pendingId = String(parsed.jobId);
+          }
+        }
+      } catch (_) {}
+
+      let ackList = [];
+      try {
+        ackList = JSON.parse(localStorage.getItem("kz_acked_customer_accepts") || "[]").map(String);
+      } catch (_) {}
+
+      const candidate =
+        (pendingId &&
+          !ackList.includes(pendingId) &&
+          jobs.find((j) => String(j.id) === pendingId && (j.status === "accepted" || j.status === "approved"))) ||
+        (app.ringingJob &&
+          !ackList.includes(String(app.ringingJob.id)) &&
+          jobs.find((j) => String(j.id) === String(app.ringingJob.id)));
+
+      if (candidate && (!customerRingJob || String(customerRingJob.id) !== String(candidate.id))) {
+        setCustomerRingJob(candidate);
+        KZ.selectedTrackingJobId = candidate.id;
+        app.setActiveWorkJobId?.(candidate.id);
+        if (path !== "/customer/live-eta-attendance") {
+          navigate("/customer/live-eta-attendance", { role: "customer" });
+        }
+      }
+    }, [app.jobs, app.ringingJob, path, app.currentRole, storageTick]);
+
+    const acknowledgeCustomerRing = (job, goMap) => {
+      const target = job || customerRingJob;
+      if (target && target.id) {
+        try {
+          const ackList = JSON.parse(localStorage.getItem("kz_acked_customer_accepts") || "[]").map(String);
+          if (!ackList.includes(String(target.id))) ackList.push(String(target.id));
+          localStorage.setItem("kz_acked_customer_accepts", JSON.stringify(ackList));
+          localStorage.removeItem("kz_pending_customer_ring");
+        } catch (_) {}
+        KZ.selectedTrackingJobId = target.id;
+        app.setActiveWorkJobId?.(target.id);
+      }
+      app.silenceRingingJob?.();
+      setCustomerRingJob(null);
+      if (goMap && path !== "/customer/live-eta-attendance") {
+        navigate("/customer/live-eta-attendance", { role: "customer" });
+      }
+    };
 
     // If user completed Firebase Google SSO and needs registration, jump to /register
     useEffect(() => {
@@ -2966,7 +3324,13 @@
       h(HelpAndSupportFloating, null),
       otpConfig && h(GlobalOtpModal, { config: otpConfig, onClose: () => setOtpConfig(null) }),
       loginPrompt && h(LoginRequiredModal, { config: loginPrompt, onClose: () => setLoginPrompt(null) }),
-      completeJobModal && h(CompleteJobUpiModal, { job: completeJobModal, onClose: () => setCompleteJobModal(null) })
+      completeJobModal && h(CompleteJobUpiModal, { job: completeJobModal, onClose: () => setCompleteJobModal(null) }),
+      customerRingJob &&
+        h(JobAcceptedRingingModal, {
+          job: customerRingJob,
+          onAnswer: () => acknowledgeCustomerRing(customerRingJob, true),
+          onDismiss: () => acknowledgeCustomerRing(customerRingJob, false),
+        })
     );
   };
 })();
@@ -8522,8 +8886,13 @@
     }, [jobs, workerTradeNorm, isDark]);
 
     const handleAccept = (job) => {
+      const curPath = window.location.pathname;
       app.acceptJobByWorker?.(job.id);
+      try {
+        window.history.replaceState({}, "", curPath);
+      } catch (_) {}
       if (worker && worker.isVerified) {
+        KZ.notifyJobAcceptedForCustomer?.(job.id);
         setAcceptedModalJob(job);
       }
     };
@@ -9198,7 +9567,7 @@
                   "div",
                   { style: { display: "flex", alignItems: "center", gap: "12px" } },
                   h("b", { style: { fontSize: "20px" } }, formatInr(j.workerPayout || Math.round((j.dailyWage || 850) * 0.8))),
-                  h("button", { type: "button", onClick: () => app.acceptJobByWorker?.(j.id), style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px" } }, "1-Tap Accept")
+                  h("button", { type: "button", onClick: () => { const curPath = window.location.pathname; app.acceptJobByWorker?.(j.id); try { window.history.replaceState({}, "", curPath); } catch (_) {} if (worker && worker.isVerified) KZ.notifyJobAcceptedForCustomer?.(j.id); }, style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px" } }, "1-Tap Accept")
                 )
               )
             )
