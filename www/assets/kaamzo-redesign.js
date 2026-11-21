@@ -1564,6 +1564,99 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const [open, setOpen] = useState(false);
+    const [tab, setTab] = useState("price"); // "price" | "help"
+    const [inputVal, setInputVal] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [lastEstimate, setLastEstimate] = useState(null);
+    const [messages, setMessages] = useState([
+      {
+        id: "welcome",
+        sender: "bot",
+        text: "Hi! Tell me any home or site job (English or Hinglish) and I'll calculate a fair Ludhiana rate + time estimate.",
+        estimate: null,
+      },
+    ]);
+
+    const QUICK_PROMPTS = [
+      "Fix leaking kitchen tap",
+      "Install 2 ceiling fans",
+      "Paint 2 bedrooms",
+      "AC service & check",
+    ];
+
+    const sendPriceQuery = async (rawText) => {
+      const text = String(rawText || inputVal || "").trim();
+      if (!text || busy) return;
+      setInputVal("");
+      const userMsg = { id: "u_" + Date.now(), sender: "user", text };
+      setMessages((prev) => prev.concat([userMsg]));
+      setBusy(true);
+      try {
+        const res = await fetch("/api/estimate-job", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: text,
+            city: app.currentCity?.name || "Ludhiana",
+            previousEstimate: lastEstimate,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.rejected) {
+          setMessages((prev) =>
+            prev.concat([
+              {
+                id: "b_" + Date.now(),
+                sender: "bot",
+                text: data.reason || data.reply || "Please describe the work in a few words (e.g. 'Fix 2 fans and 1 switchboard').",
+                estimate: null,
+              },
+            ])
+          );
+        } else {
+          setLastEstimate(data);
+          setMessages((prev) =>
+            prev.concat([
+              {
+                id: "b_" + Date.now(),
+                sender: "bot",
+                text: data.reply || `Estimated ₹${data.suggestedPrice} for ${data.trade}.`,
+                estimate: data,
+              },
+            ])
+          );
+        }
+      } catch (_) {
+        setMessages((prev) =>
+          prev.concat([
+            {
+              id: "b_" + Date.now(),
+              sender: "bot",
+              text: "Could not reach the price estimator right now. Please try again in a moment.",
+              estimate: null,
+            },
+          ])
+        );
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    const applyEstimateToPostJob = (est) => {
+      if (!est) return;
+      KZ.prefillPostJob = {
+        trade: est.trade || "Plumber",
+        title: est.taskLabel || est.summaryTitle || "",
+        description: est.originalPrompt || "",
+        dailyWage: est.suggestedWage || est.suggestedPrice || 850,
+        durationDays: est.estimatedDays || 1,
+        aiNote: est.reply || "",
+      };
+      setOpen(false);
+      navigate("/customer/post-a-job", { role: "customer" });
+    };
+
+    const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
 
     return h(
       "div",
@@ -1581,147 +1674,400 @@
           "div",
           {
             style: {
-              width: "290px",
+              width: "min(360px, calc(100vw - 28px))",
+              maxHeight: "min(560px, calc(100vh - 110px))",
               borderRadius: "24px",
               background: isDark ? "#1F1C17" : "#FFFFFF",
               color: isDark ? "#EDE6DA" : "#1C1913",
-              border: "1px solid " + (isDark ? "#2E2A22" : "#EFE7DA"),
-              boxShadow: "0 20px 44px rgba(80,50,10,0.18)",
-              padding: "18px",
+              border: "1px solid " + borderCol,
+              boxShadow: "0 22px 50px rgba(40,25,5,0.22)",
+              padding: "16px",
               display: "flex",
               flexDirection: "column",
               gap: "10px",
+              overflow: "hidden",
             },
           },
           h(
             "div",
-            { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
-            h("b", { style: { fontSize: "17px" } }, "How can we help?"),
+            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
+            h(
+              "div",
+              { style: { display: "flex", gap: "6px", background: isDark ? "#14120E" : "#F7F2EA", padding: "4px", borderRadius: "999px" } },
+              h(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setTab("price"),
+                  style: {
+                    height: "32px",
+                    padding: "0 12px",
+                    borderRadius: "999px",
+                    border: 0,
+                    background: tab === "price" ? "#1C1913" : "transparent",
+                    color: tab === "price" ? "#F5A524" : isDark ? "#CFC6B8" : "#4A443A",
+                    fontWeight: 800,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  },
+                },
+                "AI Price Bot"
+              ),
+              h(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setTab("help"),
+                  style: {
+                    height: "32px",
+                    padding: "0 12px",
+                    borderRadius: "999px",
+                    border: 0,
+                    background: tab === "help" ? "#1C1913" : "transparent",
+                    color: tab === "help" ? "#FBF8F2" : isDark ? "#CFC6B8" : "#4A443A",
+                    fontWeight: 800,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  },
+                },
+                "Support & SOS"
+              )
+            ),
             h(
               "button",
               {
                 type: "button",
                 onClick: () => setOpen(false),
-                style: { border: 0, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 800 },
+                style: { border: 0, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 800, fontSize: "16px", cursor: "pointer", padding: "4px 6px" },
               },
               "✕"
             )
           ),
-          h(
-            "a",
-            {
-              href: "https://wa.me/919592221100?text=Hi%20Kaamzo%20Support%2C%20I%20need%20help%20on%20kaamzo.site",
-              target: "_blank",
-              rel: "noopener noreferrer",
-              style: {
-                height: "48px",
-                padding: "0 20px",
-                borderRadius: "999px",
-                fontWeight: 800,
-                fontSize: "15px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                textDecoration: "none",
-                background: "#2E9E57",
-                color: "#FFFFFF",
-              },
-            },
-            "WhatsApp us"
-          ),
-          h(
-            "a",
-            {
-              href: "tel:+919592221100",
-              style: {
-                height: "48px",
-                padding: "0 20px",
-                borderRadius: "999px",
-                fontWeight: 800,
-                fontSize: "15px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                textDecoration: "none",
-                background: "#1C1913",
-                color: "#FBF8F2",
-              },
-            },
-            "Call +91 95922 21100"
-          ),
-          h(
-            "button",
-            {
-              type: "button",
-              onClick: () => {
-                setOpen(false);
-                app.openGlobalChat?.(
-                  null,
-                  { name: "Kaamzo Support", phone: "+91 95922 21100", role: "support" },
-                  app.currentRole === "worker" ? "worker" : "customer"
-                );
-              },
-              style: {
-                height: "48px",
-                padding: "0 20px",
-                borderRadius: "999px",
-                fontWeight: 800,
-                fontSize: "15px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
-                background: isDark ? "#14120E" : "#FFFFFF",
-                color: isDark ? "#EDE6DA" : "#1C1913",
-              },
-            },
-            "Live support chat"
-          ),
-          h(
-            "a",
-            {
-              href: "mailto:support@kaamzo.in",
-              style: {
-                height: "44px",
-                padding: "0 18px",
-                borderRadius: "999px",
-                fontWeight: 700,
-                fontSize: "13px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                textDecoration: "none",
-                border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
-                background: "transparent",
-                color: isDark ? "#EDE6DA" : "#1C1913",
-              },
-            },
-            "Email support@kaamzo.in"
-          ),
-          h(
-            "a",
-            {
-              href: "tel:112",
-              style: {
-                height: "48px",
-                padding: "0 20px",
-                borderRadius: "999px",
-                fontWeight: 800,
-                fontSize: "15px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                textDecoration: "none",
-                background: "#FFE1E1",
-                color: "#8A1C1C",
-              },
-            },
-            "SOS · Dial 112"
-          )
+
+          tab === "price"
+            ? h(
+                "div",
+                { style: { display: "flex", flexDirection: "column", gap: "10px", minHeight: 0, flex: 1 } },
+                h(
+                  "div",
+                  {
+                    style: {
+                      flex: 1,
+                      minHeight: "220px",
+                      maxHeight: "310px",
+                      overflowY: "auto",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                      paddingRight: "2px",
+                    },
+                  },
+                  messages.map((m) =>
+                    h(
+                      "div",
+                      {
+                        key: m.id,
+                        style: {
+                          alignSelf: m.sender === "user" ? "flex-end" : "flex-start",
+                          maxWidth: "92%",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                        },
+                      },
+                      h(
+                        "div",
+                        {
+                          style: {
+                            padding: "10px 13px",
+                            borderRadius: m.sender === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                            background: m.sender === "user" ? "#1C1913" : isDark ? "#27231C" : "#FBF8F2",
+                            color: m.sender === "user" ? "#FBF8F2" : isDark ? "#EDE6DA" : "#1C1913",
+                            border: m.sender === "user" ? "none" : "1px solid " + borderCol,
+                            fontSize: "13px",
+                            lineHeight: 1.45,
+                            fontWeight: m.sender === "user" ? 600 : 500,
+                          },
+                        },
+                        m.text
+                      ),
+                      m.estimate &&
+                        h(
+                          "div",
+                          {
+                            style: {
+                              padding: "12px",
+                              borderRadius: "16px",
+                              background: isDark ? "#242019" : "#FFF7E3",
+                              border: "1px solid #F5A524",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "8px",
+                              fontSize: "12px",
+                            },
+                          },
+                          h(
+                            "div",
+                            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
+                            h("span", { style: { padding: "3px 8px", borderRadius: "999px", background: "#1C1913", color: "#F5A524", fontWeight: 800, fontSize: "11px" } }, m.estimate.trade),
+                            h("span", { style: { fontWeight: 700, color: isDark ? "#CFC6B8" : "#6B4600" } }, m.estimate.estimatedTime)
+                          ),
+                          h(
+                            "div",
+                            { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
+                            h("b", { style: { fontSize: "20px", color: isDark ? "#FBF8F2" : "#1C1913" } }, formatInr(m.estimate.suggestedPrice)),
+                            h("span", { style: { color: isDark ? "#A49B8C" : "#6F685D", fontWeight: 600 } }, `Range ${formatInr(m.estimate.minPrice)}–${formatInr(m.estimate.maxPrice)}`)
+                          ),
+                          Array.isArray(m.estimate.breakdown) &&
+                            m.estimate.breakdown.map((row, rIdx) =>
+                              h(
+                                "div",
+                                { key: rIdx, style: { display: "flex", justifyContent: "space-between", fontSize: "11px", color: isDark ? "#CFC6B8" : "#4A443A" } },
+                                h("span", null, row.label),
+                                h("b", null, formatInr(row.amount))
+                              )
+                            ),
+                          Array.isArray(m.estimate.followUps) &&
+                            m.estimate.followUps.length > 0 &&
+                            h(
+                              "div",
+                              { style: { display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "2px" } },
+                              m.estimate.followUps.map((fu) =>
+                                h(
+                                  "button",
+                                  {
+                                    key: fu,
+                                    type: "button",
+                                    onClick: () => sendPriceQuery(fu),
+                                    style: {
+                                      padding: "4px 9px",
+                                      borderRadius: "999px",
+                                      border: "1px solid " + borderCol,
+                                      background: isDark ? "#1F1C17" : "#FFFFFF",
+                                      color: isDark ? "#EDE6DA" : "#1C1913",
+                                      fontSize: "11px",
+                                      fontWeight: 700,
+                                      cursor: "pointer",
+                                    },
+                                  },
+                                  "+ " + fu
+                                )
+                              )
+                            ),
+                          h(
+                            "button",
+                            {
+                              type: "button",
+                              onClick: () => applyEstimateToPostJob(m.estimate),
+                              style: {
+                                marginTop: "4px",
+                                height: "36px",
+                                borderRadius: "999px",
+                                border: 0,
+                                background: "#2E9E57",
+                                color: "#FFFFFF",
+                                fontWeight: 800,
+                                fontSize: "12px",
+                                cursor: "pointer",
+                              },
+                            },
+                            `Post this Job at ${formatInr(m.estimate.suggestedWage || m.estimate.suggestedPrice)}/day →`
+                          )
+                        )
+                    )
+                  ),
+                  busy &&
+                    h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D", fontWeight: 700 } }, "Calculating fair Ludhiana rate…")
+                ),
+
+                messages.length <= 1 &&
+                  h(
+                    "div",
+                    { style: { display: "flex", flexWrap: "wrap", gap: "6px" } },
+                    QUICK_PROMPTS.map((qp) =>
+                      h(
+                        "button",
+                        {
+                          key: qp,
+                          type: "button",
+                          onClick: () => sendPriceQuery(qp),
+                          style: {
+                            padding: "6px 10px",
+                            borderRadius: "999px",
+                            border: "1px solid " + borderCol,
+                            background: isDark ? "#27231C" : "#FBF8F2",
+                            color: isDark ? "#EDE6DA" : "#1C1913",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          },
+                        },
+                        qp
+                      )
+                    )
+                  ),
+
+                h(
+                  "form",
+                  {
+                    onSubmit: (e) => {
+                      e.preventDefault();
+                      sendPriceQuery(inputVal);
+                    },
+                    style: { display: "flex", gap: "6px", alignItems: "center" },
+                  },
+                  h("input", {
+                    type: "text",
+                    value: inputVal,
+                    onChange: (e) => setInputVal(e.target.value),
+                    placeholder: "e.g. Install 2 fans or paint 2 rooms…",
+                    style: {
+                      flex: 1,
+                      height: "40px",
+                      borderRadius: "999px",
+                      border: "1px solid " + borderCol,
+                      padding: "0 14px",
+                      fontSize: "13px",
+                      background: isDark ? "#14120E" : "#FBF8F2",
+                      color: isDark ? "#EDE6DA" : "#1C1913",
+                    },
+                  }),
+                  h(
+                    "button",
+                    {
+                      type: "submit",
+                      disabled: busy,
+                      style: {
+                        height: "40px",
+                        padding: "0 16px",
+                        borderRadius: "999px",
+                        border: 0,
+                        background: "#F5A524",
+                        color: "#1C1913",
+                        fontWeight: 800,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                      },
+                    },
+                    "Ask"
+                  )
+                )
+              )
+            : h(
+                "div",
+                { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+                h(
+                  "a",
+                  {
+                    href: "https://wa.me/919592221100?text=Hi%20Kaamzo%20Support%2C%20I%20need%20help%20on%20kaamzo.site",
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                    style: {
+                      height: "46px",
+                      padding: "0 20px",
+                      borderRadius: "999px",
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textDecoration: "none",
+                      background: "#2E9E57",
+                      color: "#FFFFFF",
+                    },
+                  },
+                  "WhatsApp us"
+                ),
+                h(
+                  "a",
+                  {
+                    href: "tel:+919592221100",
+                    style: {
+                      height: "46px",
+                      padding: "0 20px",
+                      borderRadius: "999px",
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textDecoration: "none",
+                      background: "#1C1913",
+                      color: "#FBF8F2",
+                    },
+                  },
+                  "Call +91 95922 21100"
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => {
+                      setOpen(false);
+                      app.openGlobalChat?.(
+                        null,
+                        { name: "Kaamzo Support", phone: "+91 95922 21100", role: "support" },
+                        app.currentRole === "worker" ? "worker" : "customer"
+                      );
+                    },
+                    style: {
+                      height: "46px",
+                      padding: "0 20px",
+                      borderRadius: "999px",
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
+                      background: isDark ? "#14120E" : "#FFFFFF",
+                      color: isDark ? "#EDE6DA" : "#1C1913",
+                    },
+                  },
+                  "Live support chat"
+                ),
+                h(
+                  "a",
+                  {
+                    href: "mailto:support@kaamzo.in",
+                    style: {
+                      height: "42px",
+                      padding: "0 18px",
+                      borderRadius: "999px",
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textDecoration: "none",
+                      border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
+                      background: "transparent",
+                      color: isDark ? "#EDE6DA" : "#1C1913",
+                    },
+                  },
+                  "Email support@kaamzo.in"
+                ),
+                h(
+                  "a",
+                  {
+                    href: "tel:112",
+                    style: {
+                      height: "46px",
+                      padding: "0 20px",
+                      borderRadius: "999px",
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textDecoration: "none",
+                      background: "#FFE1E1",
+                      color: "#8A1C1C",
+                    },
+                  },
+                  "SOS · Dial 112"
+                )
+              )
         ),
       h(
         "button",
@@ -1741,10 +2087,11 @@
             fontWeight: 800,
             fontSize: "14px",
             boxShadow: "0 12px 28px rgba(28,25,19,0.22)",
+            cursor: "pointer",
           },
         },
-        h(SvgIcon, { path: ICON_PATHS.help, size: 18 }),
-        "Help & Support"
+        h("span", { style: { width: "9px", height: "9px", borderRadius: "50%", background: "#F5A524" } }),
+        "AI Price Bot & Help"
       )
     );
   }
@@ -6286,17 +6633,31 @@
     const cust = app.currentCustomer;
     const workers = app.workers || [];
 
-    const [trade, setTrade] = useState("Plumber");
-    const [title, setTitle] = useState("");
-    const [desc, setDesc] = useState("");
+    const prefill = KZ.prefillPostJob || null;
+    const [trade, setTrade] = useState(() => prefill?.trade || "Plumber");
+    const [title, setTitle] = useState(() => prefill?.title || "");
+    const [desc, setDesc] = useState(() => prefill?.description || "");
     const [area, setArea] = useState(cust?.area || "Model Town");
     const [addr, setAddr] = useState(cust?.address || "Model Town, Ludhiana");
     const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
     const [shiftStart, setShiftStart] = useState("09:00");
-    const [days, setDays] = useState(1);
-    const [baseRate, setBaseRate] = useState(() => getLiveTradeRate("Plumber", workers));
+    const [days, setDays] = useState(() => prefill?.durationDays || 1);
+    const [baseRate, setBaseRate] = useState(() => prefill?.dailyWage || getLiveTradeRate("Plumber", workers));
     const [estimating, setEstimating] = useState(false);
-    const [aiNote, setAiNote] = useState("");
+    const [aiNote, setAiNote] = useState(() => prefill?.aiNote || "");
+
+    useEffect(() => {
+      if (KZ.prefillPostJob) {
+        const pf = KZ.prefillPostJob;
+        if (pf.trade) setTrade(pf.trade);
+        if (pf.title) setTitle(pf.title);
+        if (pf.description) setDesc(pf.description);
+        if (pf.dailyWage) setBaseRate(Number(pf.dailyWage));
+        if (pf.durationDays) setDays(Number(pf.durationDays));
+        if (pf.aiNote) setAiNote(pf.aiNote);
+        KZ.prefillPostJob = null;
+      }
+    }, []);
 
     const baseLabor = Number(baseRate) * Number(days);
     const platformFee = Math.round(baseLabor * 0.2);
@@ -6309,19 +6670,32 @@
       }
       setEstimating(true);
       try {
+        const promptText = (title + " " + desc).trim();
         const res = await fetch("/api/estimate-job", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             trade,
-            description: (title + " " + desc).trim(),
+            prompt: promptText,
+            description: promptText,
             city: app.currentCity?.name || "Ludhiana",
           }),
         });
         const data = await res.json().catch(() => ({}));
-        if (data.suggestedWage) setBaseRate(Number(data.suggestedWage));
-        if (data.estimatedDays) setDays(Number(data.estimatedDays));
-        setAiNote(data.summary || data.explanation || "Fair Ludhiana market rate estimated.");
+        if (data.rejected) {
+          setAiNote(data.reason || "Please describe a valid home/site job.");
+        } else {
+          if (data.trade && TRADES.some((t) => t.id === data.trade)) setTrade(data.trade);
+          const nextWage = Number(data.suggestedWage || data.suggestedPrice || 0);
+          if (nextWage >= 250) setBaseRate(nextWage);
+          if (data.estimatedDays) setDays(Number(data.estimatedDays));
+          setAiNote(
+            data.reply ||
+              data.summary ||
+              data.explanation ||
+              `Suggested: ₹${nextWage} (${data.estimatedTime || "1 day"}).`
+          );
+        }
       } catch (_) {
         setAiNote("Using standard Ludhiana rate benchmark for " + trade + ".");
       }
