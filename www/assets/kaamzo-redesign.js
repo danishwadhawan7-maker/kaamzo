@@ -2710,21 +2710,27 @@
     const howSteps = [
       {
         n: "1",
-        title: "Tell us the job",
-        body: "Search the work you need. We only look within 10 km, so help arrives fast.",
+        title: "Broadcast your job",
+        body: "Post your task & location — Kaamzo broadcasts instantly to verified workers within 10 km.",
         bg: "#DCEAF5",
       },
       {
         n: "2",
-        title: "Pick from your top 5",
-        body: "Nearby workers ranked by skill, distance, ratings and Aadhaar verification.",
+        title: "Worker arrives on live map",
+        body: "Track your accepted worker live on GPS with ETA and confirm arrival using your 4-digit Start OTP.",
         bg: "#FCEBCB",
       },
       {
         n: "3",
-        title: "Pay when it is done",
-        body: "Money waits in escrow. Share your 4-digit OTP and the worker is paid by UPI.",
-        bg: "#E4EED2",
+        title: "Work in progress",
+        body: "Watch live work progress and digital attendance while your verified neighbour completes the job.",
+        bg: "#FBE3D3",
+      },
+      {
+        n: "4",
+        title: "Pay via Razorpay UPI",
+        body: "Once the worker marks completed, tap Pay Now to settle cleanly via UPI with instant status updates.",
+        bg: "#E3F4E8",
       },
     ];
 
@@ -3609,13 +3615,13 @@
           h(
             "h2",
             { style: { margin: 0, fontSize: "clamp(34px, 4vw, 52px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
-            "Booked in ",
-            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "three easy steps.")
+            "Booked & done in ",
+            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "four clear steps.")
           )
         ),
         h(
           "ol",
-          { style: { listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "18px" } },
+          { style: { listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px" } },
           howSteps.map((step) =>
             h(
               "li",
@@ -5382,8 +5388,8 @@
 
     const pendingPayJobs = myCustomerJobs.filter((j) => j.status === "completed_pending_payment");
     const trackableJobs = myCustomerJobs
-      .filter((j) => ["accepted", "approved", "in_progress", "paid_and_closed"].includes(j.status))
-      .slice(0, 3);
+      .filter((j) => ["broadcast", "open", "accepted", "approved", "in_progress", "paid_and_closed"].includes(j.status))
+      .slice(0, 4);
 
     const [query, setQuery] = useState(() => KZ.lastSearchQuery || "");
     const [selectedTrade, setSelectedTrade] = useState(() => KZ.lastSelectedTrade || "All");
@@ -5703,13 +5709,22 @@
               "div",
               {
                 key: j.id,
+                role: "button",
+                tabIndex: 0,
+                onClick: () => {
+                  KZ.selectedTrackingJobId = j.id;
+                  app.setActiveWorkJobId?.(j.id);
+                  navigate("/customer/live-eta-attendance", { role: "customer" });
+                },
                 style: {
                   padding: "12px 14px",
                   borderRadius: "16px",
                   background: isDark ? "#27231C" : "#FBF8F2",
+                  border: "1px solid " + borderCol,
                   display: "flex",
                   flexDirection: "column",
                   gap: "10px",
+                  cursor: "pointer",
                 },
               },
               h(
@@ -5717,18 +5732,23 @@
                 { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" } },
                 h("b", { style: { fontSize: "14px" } }, `${j.title} · ${j.assignedWorkerName || j.trade}`),
                 h(
-                  "span",
-                  {
-                    style: {
-                      padding: "4px 10px",
-                      borderRadius: "999px",
-                      background: j.status === "paid_and_closed" ? "#E3F4E8" : "#FFF0BF",
-                      color: j.status === "paid_and_closed" ? "#1D6B36" : "#6B4600",
-                      fontSize: "11px",
-                      fontWeight: 800,
+                  "div",
+                  { style: { display: "flex", alignItems: "center", gap: "8px" } },
+                  h(
+                    "span",
+                    {
+                      style: {
+                        padding: "4px 10px",
+                        borderRadius: "999px",
+                        background: j.status === "paid_and_closed" ? "#E3F4E8" : "#FFF0BF",
+                        color: j.status === "paid_and_closed" ? "#1D6B36" : "#6B4600",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                      },
                     },
-                  },
-                  String(j.status || "").toUpperCase().replace(/_/g, " ")
+                    String(j.status || "").toUpperCase().replace(/_/g, " ")
+                  ),
+                  h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#9B4D00" } }, "Track Live →")
                 )
               ),
               h(JobProgressPipeline, { job: j, isDark })
@@ -6069,7 +6089,22 @@
                 "article",
                 {
                   key: j.id,
-                  style: { borderRadius: "28px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" },
+                  onClick: (e) => {
+                    if (e.target && e.target.closest && e.target.closest("button, a, input")) return;
+                    KZ.selectedTrackingJobId = j.id;
+                    app.setActiveWorkJobId?.(j.id);
+                    navigate("/customer/live-eta-attendance", { role: "customer" });
+                  },
+                  style: {
+                    borderRadius: "28px",
+                    background: cardBg,
+                    border: "1px solid " + borderCol,
+                    padding: "24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "14px",
+                    cursor: "pointer",
+                  },
                 },
                 h(
                   "div",
@@ -6154,19 +6189,25 @@
                       },
                       "Prepay Escrow"
                     ),
-                  j.assignedWorkerName &&
-                    j.status !== "paid_and_closed" &&
-                    h(
-                      "button",
-                      {
-                        type: "button",
-                        onClick: () => {
-                          navigate("/customer/live-eta-attendance", { role: "customer" });
-                        },
-                        style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px" },
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => {
+                        KZ.selectedTrackingJobId = j.id;
+                        app.setActiveWorkJobId?.(j.id);
+                        navigate("/customer/live-eta-attendance", { role: "customer" });
                       },
-                      "Live ETA & Start Code"
-                    ),
+                      style: { height: "42px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+                    },
+                    j.status === "broadcast" || j.status === "open"
+                      ? "Track Broadcast Status →"
+                      : j.status === "in_progress"
+                      ? "Watch Live Work →"
+                      : j.status === "paid_and_closed"
+                      ? "View Receipt & Steps"
+                      : "Live Map & Start Code →"
+                  ),
                   j.status === "completed_pending_payment" &&
                     h(
                       "button",
@@ -6500,23 +6541,47 @@
   }
 
   // -------------------------------------------------------------------------
-  // 4. /customer/live-eta-attendance & /customer/work
+  // 4. /customer/live-eta-attendance & /customer/work — 4-Step Live Job Condition Tracker
   // -------------------------------------------------------------------------
   function CustomerLiveEtaView() {
     const app = useApp();
     const isDark = app.isDarkMode;
+    const cust = app.currentCustomer;
     const jobs = app.jobs || [];
+
+    const myJobs = useMemo(() => {
+      if (!cust?.phone && !cust?.name) return jobs;
+      const cleanCPhone = String(cust.phone || "").replace(/[^0-9]/g, "").slice(-10);
+      const filtered = jobs.filter((j) => {
+        const jPhone = String(j.customerPhone || "").replace(/[^0-9]/g, "").slice(-10);
+        return (cleanCPhone && jPhone === cleanCPhone) || (cust.name && j.customerName === cust.name);
+      });
+      return filtered.length > 0 ? filtered : jobs;
+    }, [jobs, cust?.phone, cust?.name]);
+
+    const [selectedId, setSelectedId] = useState(
+      () => KZ.selectedTrackingJobId || app.activeWorkJobId || myJobs[0]?.id || null
+    );
+
+    useEffect(() => {
+      if (KZ.selectedTrackingJobId && KZ.selectedTrackingJobId !== selectedId) {
+        setSelectedId(KZ.selectedTrackingJobId);
+      }
+    }, [KZ.selectedTrackingJobId]);
+
     const activeJob =
-      jobs.find((j) => j.id === app.activeWorkJobId) ||
-      jobs.find((j) => ["in_progress", "approved", "accepted", "completed_pending_payment"].includes(j.status)) ||
-      jobs[0];
+      myJobs.find((j) => j.id === selectedId) ||
+      myJobs.find((j) => j.id === app.activeWorkJobId) ||
+      myJobs.find((j) => ["in_progress", "approved", "accepted", "completed_pending_payment", "broadcast"].includes(j.status)) ||
+      myJobs[0];
 
     const [elapsedSec, setElapsedSec] = useState(0);
     useEffect(() => {
+      setElapsedSec(0);
       if (activeJob?.status !== "in_progress") return;
       const t = setInterval(() => setElapsedSec((s) => s + 1), 1000);
       return () => clearInterval(t);
-    }, [activeJob?.status]);
+    }, [activeJob?.id, activeJob?.status]);
 
     const fmtClock = (s) => {
       const m = Math.floor(s / 60);
@@ -6527,21 +6592,187 @@
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
 
+    const st = String(activeJob?.status || "broadcast").toLowerCase();
+    const isBroadcasting = st === "broadcast" || st === "open";
+    const isComing = st === "accepted" || st === "approved";
+    const isWorking = st === "in_progress";
+    const isPayDue = st === "completed_pending_payment";
+    const isPaid = st === "paid_and_closed";
+
+    const currentStepIdx = isPaid || isPayDue ? 3 : isWorking ? 2 : isComing ? 1 : 0;
+
+    const fourSteps = [
+      { n: "1", title: "Job Broadcasted", sub: "10 km verified radar", bg: "#DCEAF5", fg: "#123A6B" },
+      { n: "2", title: "Worker Coming", sub: "Live GPS map & Start OTP", bg: "#FCEBCB", fg: "#6B4600" },
+      { n: "3", title: "Work In Progress", sub: "Job being completed", bg: "#FBE3D3", fg: "#7A2E0E" },
+      { n: "4", title: "Completed & Paid", sub: "Razorpay UPI settlement", bg: "#E3F4E8", fg: "#1D6B36" },
+    ];
+
+    const animStyles = `
+      @keyframes kzRadarPing { 0% { transform: scale(0.35); opacity: 0.8; } 100% { transform: scale(1.65); opacity: 0; } }
+      @keyframes kzRadarSweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      @keyframes kzWorkerDrive { 0% { transform: translate(0px, 0px); } 50% { transform: translate(118px, -78px); } 100% { transform: translate(235px, -112px); } }
+      @keyframes kzToolSwing { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(16deg); } }
+      @keyframes kzWorkerBob { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
+      @keyframes kzSparkFloat { 0% { transform: translateY(6px) scale(0.7); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-16px) scale(1.1); opacity: 0; } }
+      @keyframes kzBarGlide { 0% { background-position: 0 0; } 100% { background-position: 56px 0; } }
+      @keyframes kzPulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.65; } }
+      @keyframes kzCheckPop { 0% { transform: scale(0.75); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    `;
+
+    const fullAmount = activeJob
+      ? Math.max(1, Math.round(Number(activeJob.dailyWage || 850) * Number(activeJob.durationDays || 1)))
+      : 850;
+
     return h(
       "main",
-      { style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 60px", display: "flex", flexDirection: "column", gap: "24px" } },
+      { style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 60px", display: "flex", flexDirection: "column", gap: "22px" } },
+      h("style", null, animStyles),
       h(
         "div",
-        { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-        h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1px", color: "#7A4E00" } }, "LIVE JOB TRACKER"),
+        { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "16px" } },
         h(
-          "h1",
-          { style: { margin: 0, fontSize: "clamp(34px,4vw,52px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } },
-          "Live ETA & ",
-          h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "digital attendance.")
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+          h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1px", color: "#7A4E00" } }, "4-STEP LIVE JOB TRACKER"),
+          h(
+            "h1",
+            { style: { margin: 0, fontSize: "clamp(34px,4vw,52px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } },
+            "Live job ",
+            h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "condition & progress.")
+          ),
+          h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A", maxWidth: "720px", lineHeight: 1.5 } }, "Watch every stage live — from 10 km broadcast radar, to your worker arriving on the map, to live work in progress and Razorpay UPI payment.")
         ),
-        h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A", maxWidth: "720px", lineHeight: 1.5 } }, "Follow your worker to the door, start the attendance clock with your 4-digit OTP, and release payment when done.")
+        h(
+          "button",
+          {
+            type: "button",
+            onClick: () => navigate("/customer/my-bookings", { role: "customer" }),
+            style: { height: "44px", padding: "0 18px", borderRadius: "999px", border: "1px solid " + borderCol, background: cardBg, color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "13px", cursor: "pointer" },
+          },
+          "← All My Bookings"
+        )
       ),
+
+      // Quick Job Switcher Pills (click any broadcasted/active job to inspect its live condition)
+      myJobs.length > 1 &&
+        h(
+          "div",
+          { style: { display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" } },
+          h("span", { style: { fontSize: "12px", fontWeight: 800, color: isDark ? "#A49B8C" : "#6F685D", marginRight: "4px" } }, "SELECT JOB:"),
+          myJobs.slice(0, 6).map((j) => {
+            const isSel = activeJob && j.id === activeJob.id;
+            return h(
+              "button",
+              {
+                key: j.id,
+                type: "button",
+                onClick: () => {
+                  KZ.selectedTrackingJobId = j.id;
+                  setSelectedId(j.id);
+                  app.setActiveWorkJobId?.(j.id);
+                },
+                style: {
+                  height: "36px",
+                  padding: "0 14px",
+                  borderRadius: "999px",
+                  border: "1px solid " + (isSel ? "#1C1913" : borderCol),
+                  background: isSel ? "#1C1913" : cardBg,
+                  color: isSel ? "#FBF8F2" : isDark ? "#EDE6DA" : "#3D3830",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                },
+              },
+              h("span", {
+                style: {
+                  width: "7px",
+                  height: "7px",
+                  borderRadius: "50%",
+                  background: j.status === "paid_and_closed" ? "#2E9E57" : j.status === "in_progress" ? "#F5A524" : "#3B82F6",
+                },
+              }),
+              (j.title || j.trade || "Job").slice(0, 28)
+            );
+          })
+        ),
+
+      // 4-Step Job Procedure Stepper (New Kaamzo Color Palette)
+      activeJob &&
+        h(
+          "section",
+          {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+              gap: "12px",
+            },
+          },
+          fourSteps.map((step, idx) => {
+            const done = idx < currentStepIdx || (idx === 3 && isPaid);
+            const active = idx === currentStepIdx && !isPaid;
+            return h(
+              "div",
+              {
+                key: step.n,
+                style: {
+                  borderRadius: "22px",
+                  padding: "16px 18px",
+                  background: active ? step.bg : done ? (isDark ? "#1C2B20" : "#E3F4E8") : cardBg,
+                  border: active ? "2px solid #F5A524" : "1px solid " + (done ? "#2E9E57" : borderCol),
+                  color: active || done ? (done && isDark ? "#E3F4E8" : "#1C1913") : isDark ? "#A49B8C" : "#6F685D",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  transition: "all .25s ease",
+                },
+              },
+              h(
+                "span",
+                {
+                  style: {
+                    width: "34px",
+                    height: "34px",
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    background: done ? "#2E9E57" : active ? "#1C1913" : isDark ? "#2E2A22" : "#EFE7DA",
+                    color: done || active ? "#FBF8F2" : isDark ? "#A49B8C" : "#6F685D",
+                    fontWeight: 800,
+                    fontSize: "14px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                },
+                done ? "✓" : step.n
+              ),
+              h(
+                "div",
+                { style: { display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 } },
+                h(
+                  "span",
+                  { style: { fontSize: "14px", fontWeight: 800, display: "flex", alignItems: "center", gap: "6px" } },
+                  step.title,
+                  active &&
+                    h("span", {
+                      style: {
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: "#F5A524",
+                        animation: "kzPulseDot 1.3s ease-in-out infinite",
+                      },
+                    })
+                ),
+                h("span", { style: { fontSize: "12px", opacity: 0.85 } }, step.sub)
+              )
+            );
+          })
+        ),
+
       !activeJob
         ? h(
             "div",
@@ -6552,44 +6783,288 @@
         : h(
             "div",
             { style: { display: "flex", flexWrap: "wrap", gap: "24px", alignItems: "flex-start" } },
+            // LEFT DYNAMIC CONDITION CANVAS
             h(
               "section",
               { style: { flex: "999 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: "16px" } },
-              h(
-                "div",
-                { style: { position: "relative", height: "340px", borderRadius: "30px", overflow: "hidden", background: "#E9F0DA" } },
+
+              // CONDITION 1: BROADCASTING (Animated 10km Radar)
+              isBroadcasting &&
                 h(
-                  "svg",
-                  { role: "img", "aria-label": "Route map showing live distance", viewBox: "0 0 800 340", preserveAspectRatio: "xMidYMid slice", style: { position: "absolute", inset: 0, width: "100%", height: "100%" } },
-                  h(
-                    "g",
-                    { stroke: "#FFFFFF", strokeWidth: 16, fill: "none" },
-                    h("path", { d: "M-10 90 H820" }),
-                    h("path", { d: "M220 -10 V350" }),
-                    h("path", { d: "M-10 250 C 200 230, 520 290, 820 240" }),
-                    h("path", { d: "M600 -10 C 570 120, 630 200, 580 350" })
-                  ),
-                  h("path", { d: "M110 280 C 150 240, 200 160, 220 120 S 420 92, 600 92", fill: "none", stroke: "#1C1913", strokeWidth: 6, strokeDasharray: "2 12", strokeLinecap: "round" }),
-                  h("circle", { cx: 110, cy: 280, r: 20, fill: "#F5A524", stroke: "#FFFFFF", strokeWidth: 5 }),
-                  h("circle", { cx: 380, cy: 92, r: 14, fill: "#1C1913" })
-                ),
-                h(
-                  "span",
-                  { style: { position: "absolute", left: "16px", top: "16px", padding: "8px 14px", borderRadius: "999px", background: "#FFFFFF", color: "#1C1913", fontSize: "13px", fontWeight: 800 } },
-                  `${activeJob.assignedWorkerName || "Worker"} · ${activeJob.distanceKm || 1.2} km · ETA ~${Math.max(3, Math.round((activeJob.distanceKm || 1.2) * 4))} min`
-                ),
-                h(
-                  "a",
+                  "div",
                   {
-                    href: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeJob.locationAddress || "Ludhiana Punjab")}`,
-                    target: "_blank",
-                    rel: "noopener noreferrer",
-                    style: { position: "absolute", right: "16px", bottom: "16px", height: "46px", padding: "0 20px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", textDecoration: "none" },
+                    style: {
+                      position: "relative",
+                      minHeight: "380px",
+                      borderRadius: "30px",
+                      overflow: "hidden",
+                      background: isDark
+                        ? "linear-gradient(155deg, #1E242B 0%, #27231C 100%)"
+                        : "linear-gradient(155deg, #DCEAF5 0%, #FBF8F2 55%, #FCEBCB 100%)",
+                      border: "1px solid " + borderCol,
+                      padding: "28px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      gap: "16px",
+                    },
                   },
-                  "Open Google Maps"
+                  h(
+                    "span",
+                    { style: { position: "absolute", left: "18px", top: "18px", padding: "8px 14px", borderRadius: "999px", background: "#1C1913", color: "#F5A524", fontSize: "12px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" } },
+                    h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#F5A524", animation: "kzPulseDot 1.2s infinite" } }),
+                    "STEP 1 · BROADCASTING WITHIN 10 KM"
+                  ),
+                  // Animated Radar Rings
+                  h(
+                    "div",
+                    { style: { position: "relative", width: "180px", height: "180px", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "24px" } },
+                    h("span", { style: { position: "absolute", inset: "20px", borderRadius: "50%", border: "2px solid #F5A524", animation: "kzRadarPing 2.2s ease-out infinite" } }),
+                    h("span", { style: { position: "absolute", inset: "20px", borderRadius: "50%", border: "2px solid #2E9E57", animation: "kzRadarPing 2.2s ease-out 1.1s infinite" } }),
+                    h("div", {
+                      style: {
+                        position: "absolute",
+                        inset: "12px",
+                        borderRadius: "50%",
+                        background: "conic-gradient(from 0deg, rgba(245,165,36,0.34) 0deg, rgba(245,165,36,0) 75deg, transparent 360deg)",
+                        animation: "kzRadarSweep 2.6s linear infinite",
+                      },
+                    }),
+                    h(
+                      "div",
+                      { style: { position: "relative", width: "68px", height: "68px", borderRadius: "50%", background: "#1C1913", color: "#F5A524", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "13px", boxShadow: "0 10px 28px rgba(28,25,19,0.22)" } },
+                      "10 km"
+                    )
+                  ),
+                  h("h3", { style: { margin: 0, fontSize: "24px", fontWeight: 800 } }, `Notifying verified ${activeJob.trade || "workers"} near ${activeJob.area || "you"}…`),
+                  h("p", { style: { margin: 0, maxWidth: "460px", fontSize: "14px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.5 } }, "As soon as a nearby worker accepts, this screen automatically switches to the live GPS arrival map."),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => app.openTop5Shortlist?.(activeJob),
+                      style: { height: "44px", padding: "0 22px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+                    },
+                    "View Top 5 Nearby Matches →"
+                  )
+                ),
+
+              // CONDITION 2: WORKER IS COMING (Live Route Map with Animated Moving Worker Pin)
+              isComing &&
+                h(
+                  "div",
+                  { style: { position: "relative", height: "380px", borderRadius: "30px", overflow: "hidden", background: "#E9F0DA", border: "1px solid " + borderCol } },
+                  h(
+                    "svg",
+                    { role: "img", "aria-label": "Live route map showing worker approaching", viewBox: "0 0 800 380", preserveAspectRatio: "xMidYMid slice", style: { position: "absolute", inset: 0, width: "100%", height: "100%" } },
+                    h(
+                      "g",
+                      { stroke: "#FFFFFF", strokeWidth: 16, fill: "none" },
+                      h("path", { d: "M-10 95 H820" }),
+                      h("path", { d: "M220 -10 V390" }),
+                      h("path", { d: "M-10 270 C 200 245, 520 305, 820 250" }),
+                      h("path", { d: "M600 -10 C 570 125, 630 215, 580 390" })
+                    ),
+                    // Route path from worker to customer home
+                    h("path", { d: "M125 295 C 190 245, 250 185, 360 150 S 520 110, 610 105", fill: "none", stroke: "#1C1913", strokeWidth: 6, strokeDasharray: "2 12", strokeLinecap: "round" }),
+                    // Destination: Customer Home Pin
+                    h("circle", { cx: 610, cy: 105, r: 22, fill: "#2E9E57", stroke: "#FFFFFF", strokeWidth: 5 }),
+                    h("text", { x: 610, y: 110, textAnchor: "middle", fill: "#FFFFFF", fontSize: 12, fontWeight: 800 }, "HOME"),
+                    // Animated Worker Pin gliding toward Home
+                    h(
+                      "g",
+                      { style: { animation: "kzWorkerDrive 5.5s ease-in-out infinite alternate" } },
+                      h("circle", { cx: 145, cy: 278, r: 28, fill: "rgba(245,165,36,0.28)" }),
+                      h("circle", { cx: 145, cy: 278, r: 18, fill: "#F5A524", stroke: "#1C1913", strokeWidth: 4 }),
+                      h("circle", { cx: 145, cy: 278, r: 5, fill: "#1C1913" })
+                    )
+                  ),
+                  h(
+                    "span",
+                    { style: { position: "absolute", left: "16px", top: "16px", padding: "9px 15px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontSize: "13px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" } },
+                    h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#F5A524", animation: "kzPulseDot 1.2s infinite" } }),
+                    `ON THE WAY · ${activeJob.assignedWorkerName || "Worker"} · ${activeJob.distanceKm || 1.2} km · ETA ~${Math.max(3, Math.round((activeJob.distanceKm || 1.2) * 4))} min`
+                  ),
+                  h(
+                    "a",
+                    {
+                      href: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeJob.locationAddress || "Ludhiana Punjab")}`,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                      style: { position: "absolute", right: "16px", bottom: "16px", height: "46px", padding: "0 20px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", textDecoration: "none" },
+                    },
+                    "Open Google Maps"
+                  )
+                ),
+
+              // CONDITION 3: WORK IN PROGRESS (Animated Worker-At-Work Scene)
+              isWorking &&
+                h(
+                  "div",
+                  {
+                    style: {
+                      position: "relative",
+                      minHeight: "380px",
+                      borderRadius: "30px",
+                      overflow: "hidden",
+                      background: isDark
+                        ? "linear-gradient(155deg, #27231C 0%, #1F1C17 60%, #1B2920 100%)"
+                        : "linear-gradient(155deg, #FFF7E3 0%, #FBF8F2 55%, #E3F4E8 100%)",
+                      border: "2px solid #F5A524",
+                      padding: "28px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      gap: "16px",
+                    },
+                  },
+                  h(
+                    "span",
+                    { style: { position: "absolute", left: "18px", top: "18px", padding: "8px 14px", borderRadius: "999px", background: "#2E9E57", color: "#FFFFFF", fontSize: "12px", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" } },
+                    h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#FFFFFF", animation: "kzPulseDot 1.1s infinite" } }),
+                    "STEP 3 · WORK IN PROGRESS"
+                  ),
+                  // Animated Worker SVG Scene
+                  h(
+                    "svg",
+                    { viewBox: "0 0 320 180", style: { width: "290px", maxWidth: "100%", height: "auto", marginTop: "20px" }, "aria-label": "Worker actively completing the job" },
+                    // Warm backdrop sun circle
+                    h("circle", { cx: 160, cy: 105, r: 72, fill: isDark ? "rgba(245,165,36,0.12)" : "#FCEBCB" }),
+                    // Floor line
+                    h("rect", { x: 40, y: 152, width: 240, height: 6, rx: 3, fill: isDark ? "#3A342C" : "#E5DCCB" }),
+                    // Workbench / Fixture
+                    h("rect", { x: 185, y: 104, width: 78, height: 48, rx: 10, fill: "#D4A373" }),
+                    h("rect", { x: 194, y: 114, width: 60, height: 10, rx: 4, fill: "#FBF8F2", opacity: 0.7 }),
+                    // Worker body (bobbing subtly while working)
+                    h(
+                      "g",
+                      { style: { animation: "kzWorkerBob 1.8s ease-in-out infinite" } },
+                      // Legs
+                      h("rect", { x: 112, y: 116, width: 16, height: 36, rx: 6, fill: "#2B303A" }),
+                      h("rect", { x: 132, y: 116, width: 16, height: 36, rx: 6, fill: "#1C1913" }),
+                      // Torso in Kaamzo marigold amber
+                      h("rect", { x: 106, y: 74, width: 48, height: 48, rx: 14, fill: "#F5A524" }),
+                      // Head & cap
+                      h("circle", { cx: 130, cy: 52, r: 18, fill: "#D99B72" }),
+                      h("path", { d: "M112 48 C114 32, 146 32, 148 48 Z", fill: "#1C1913" }),
+                      h("rect", { x: 128, y: 44, width: 26, height: 5, rx: 2.5, fill: "#1C1913" }),
+                      // Animated Swinging Working Arm + Wrench/Tool
+                      h(
+                        "g",
+                        { style: { transformOrigin: "146px 86px", animation: "kzToolSwing 1.15s ease-in-out infinite" } },
+                        h("rect", { x: 142, y: 80, width: 44, height: 12, rx: 6, fill: "#D99B72" }),
+                        h("rect", { x: 178, y: 72, width: 28, height: 8, rx: 3, fill: "#4A5568", transform: "rotate(-22 182 82)" }),
+                        h("circle", { cx: 204, cy: 70, r: 6, fill: "#2E9E57" })
+                      )
+                    ),
+                    // Floating animated sparks / work progress dots
+                    h("circle", { cx: 212, cy: 82, r: 4, fill: "#F5A524", style: { animation: "kzSparkFloat 1.5s ease-out infinite" } }),
+                    h("circle", { cx: 226, cy: 90, r: 3.5, fill: "#2E9E57", style: { animation: "kzSparkFloat 1.5s ease-out 0.5s infinite" } }),
+                    h("circle", { cx: 200, cy: 76, r: 3, fill: "#E07A5F", style: { animation: "kzSparkFloat 1.5s ease-out 0.9s infinite" } })
+                  ),
+                  h("h3", { style: { margin: 0, fontSize: "24px", fontWeight: 800 } }, `${activeJob.assignedWorkerName || "Your worker"} is completing the job`),
+                  h("p", { style: { margin: 0, maxWidth: "480px", fontSize: "14px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.5 } }, `Work is actively underway for "${activeJob.title}". Once finished, the worker will click Mark Completed and your Pay Now button will unlock automatically.`),
+                  // Animated progress bar
+                  h(
+                    "div",
+                    { style: { width: "100%", maxWidth: "420px", height: "12px", borderRadius: "999px", background: isDark ? "#2E2A22" : "#EFE7DA", overflow: "hidden" } },
+                    h("div", {
+                      style: {
+                        width: "72%",
+                        height: "100%",
+                        borderRadius: "999px",
+                        backgroundImage: "repeating-linear-gradient(45deg, #F5A524 0, #F5A524 14px, #2E9E57 14px, #2E9E57 28px)",
+                        backgroundSize: "56px 56px",
+                        animation: "kzBarGlide 1.4s linear infinite",
+                      },
+                    })
+                  )
+                ),
+
+              // CONDITION 4: COMPLETED / PAID
+              (isPayDue || isPaid) &&
+                h(
+                  "div",
+                  {
+                    style: {
+                      position: "relative",
+                      minHeight: "380px",
+                      borderRadius: "30px",
+                      overflow: "hidden",
+                      background: isPaid
+                        ? isDark
+                          ? "linear-gradient(155deg, #1B2920 0%, #1F1C17 100%)"
+                          : "linear-gradient(155deg, #E3F4E8 0%, #FBF8F2 100%)"
+                        : isDark
+                        ? "linear-gradient(155deg, #2B2418 0%, #1F1C17 100%)"
+                        : "linear-gradient(155deg, #FFF7E3 0%, #FBF8F2 100%)",
+                      border: "2px solid " + (isPaid ? "#2E9E57" : "#F5A524"),
+                      padding: "32px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      gap: "14px",
+                    },
+                  },
+                  h(
+                    "div",
+                    {
+                      style: {
+                        width: "76px",
+                        height: "76px",
+                        borderRadius: "50%",
+                        background: isPaid ? "#2E9E57" : "#F5A524",
+                        color: isPaid ? "#FFFFFF" : "#1C1913",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "34px",
+                        fontWeight: 900,
+                        animation: "kzCheckPop 0.6s ease-out",
+                        boxShadow: "0 14px 32px rgba(28,25,19,0.16)",
+                      },
+                    },
+                    isPaid ? "✓" : "₹"
+                  ),
+                  h("h3", { style: { margin: 0, fontSize: "26px", fontWeight: 800 } }, isPaid ? "Job Completed & Settled via Razorpay!" : "Job Completed — Ready for Payment"),
+                  h(
+                    "p",
+                    { style: { margin: 0, maxWidth: "480px", fontSize: "14px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.5 } },
+                    isPaid
+                      ? `Paid ${formatInr(fullAmount)} to ${activeJob.assignedWorkerName || "Worker"}${activeJob.assignedWorkerUpi ? " (" + activeJob.assignedWorkerUpi + ")" : ""}${activeJob.razorpayPaymentId ? " · Ref: " + activeJob.razorpayPaymentId : ""}.`
+                      : `${activeJob.assignedWorkerName || "Your worker"} marked "${activeJob.title}" completed${activeJob.assignedWorkerUpi ? " with UPI " + activeJob.assignedWorkerUpi : ""}. Pay securely via Razorpay UPI now.`
+                  ),
+                  isPayDue &&
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () => launchRazorpayCheckout(activeJob, app),
+                        style: {
+                          height: "48px",
+                          padding: "0 26px",
+                          borderRadius: "999px",
+                          border: 0,
+                          background: "#F5A524",
+                          color: "#1C1913",
+                          fontWeight: 800,
+                          fontSize: "15px",
+                          cursor: "pointer",
+                          boxShadow: "0 8px 22px rgba(245,165,36,0.38)",
+                        },
+                      },
+                      `Pay Now · ${formatInr(fullAmount)} (Razorpay UPI)`
+                    )
                 )
-              )
             ),
+
+            // RIGHT SUMMARY & CONTROLS PANEL
             h(
               "aside",
               { style: { flex: "1 1 340px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
@@ -6602,9 +7077,9 @@
                 "div",
                 { style: { display: "flex", flexWrap: "wrap", gap: "8px" } },
                 h("button", { type: "button", onClick: () => app.dispatchJobStartOtp?.(activeJob), style: { height: "44px", padding: "0 16px", borderRadius: "999px", border: "1px solid " + borderCol, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontWeight: 700, fontSize: "13px" } }, "Resend Start OTP"),
-                activeJob.status === "paid_and_closed"
+                isPaid
                   ? h("span", { style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "13px", display: "inline-flex", alignItems: "center", justifyContent: "center" } }, "✓ Paid via Razorpay")
-                  : h("button", { type: "button", onClick: () => launchRazorpayCheckout(activeJob, app), style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", border: 0, background: activeJob.status === "completed_pending_payment" ? "#F5A524" : "#2E9E57", color: activeJob.status === "completed_pending_payment" ? "#1C1913" : "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, `Pay Now · ${formatInr((activeJob.dailyWage || 850) * (activeJob.durationDays || 1))}`)
+                  : h("button", { type: "button", onClick: () => launchRazorpayCheckout(activeJob, app), style: { flex: 1, height: "44px", padding: "0 18px", borderRadius: "999px", border: 0, background: isPayDue ? "#F5A524" : "#2E9E57", color: isPayDue ? "#1C1913" : "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, `Pay Now · ${formatInr(fullAmount)}`)
               )
             )
           )
