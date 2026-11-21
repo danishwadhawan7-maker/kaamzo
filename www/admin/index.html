@@ -269,6 +269,170 @@
       .kz-admin-theme-scope .rounded-2xl {
         border-radius: 20px !important;
       }
+
+      /* =======================================================================
+         MOBILE & ANTI-CLUTTER RESPONSIVE ARCHITECTURE (<= 860px & <= 640px)
+         ======================================================================= */
+      .kz-bonus-scroll {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .kz-bonus-scroll::-webkit-scrollbar,
+      .kz-subnav-scroll::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      @media (max-width: 860px) {
+        .kz-register-main {
+          padding: 16px 16px 80px !important;
+          gap: 20px !important;
+        }
+        .kz-register-form {
+          order: -1 !important;
+          flex: 1 1 100% !important;
+          padding: 20px 18px !important;
+          border-radius: 24px !important;
+        }
+        .kz-register-preview {
+          order: 2 !important;
+          flex: 1 1 100% !important;
+          transform: none !important;
+          padding: 20px 18px !important;
+          border-radius: 24px !important;
+        }
+      }
+
+      @media (max-width: 760px) {
+        /* 1. Eliminate Triple-Stacked Header Clutter:
+              Hide duplicate .kz-tabs inside .kz-app-header because sticky bottom .mbar
+              already provides thumb-zone 4-tab navigation on phones. */
+        .kz-app-header .kz-tabs:not(.kz-admin-tabs) {
+          display: none !important;
+        }
+        .kz-app-header > div:first-child {
+          padding: 8px 14px !important;
+          gap: 8px !important;
+        }
+        .kz-subnav-scroll {
+          padding: 6px 14px !important;
+          gap: 6px !important;
+          scrollbar-width: none;
+        }
+        .kz-top-utility-inner {
+          padding: 6px 12px !important;
+          gap: 6px !important;
+        }
+
+        /* 2. Safe Bottom Clearance for Fixed Bottom Mobile Tab Bar (.mbar) */
+        .mbar {
+          padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+          box-shadow: 0 -8px 24px rgba(28, 25, 19, 0.08);
+        }
+        footer {
+          padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        .kz-help-float {
+          bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+          right: 12px !important;
+          left: auto !important;
+          align-items: flex-end !important;
+        }
+        .kz-help-float > button {
+          height: 42px !important;
+          padding: 0 14px !important;
+          font-size: 12.5px !important;
+        }
+
+        /* 3. HomePage Hero & Section Vertical Gaps */
+        .kz-hero-section {
+          min-height: 540px !important;
+        }
+        .kz-hero-inner {
+          padding: 28px 16px 36px !important;
+        }
+        .kz-workers-cta-sec {
+          padding: 52px 16px 76px !important;
+        }
+        .kz-section-pad {
+          padding: 44px 16px !important;
+        }
+
+        /* 4. Jobs Feed & Portal Containers */
+        .kz-jobs-hero-wrap {
+          padding: 20px 16px 18px !important;
+          gap: 16px !important;
+        }
+        .kz-jobs-radar-card {
+          width: 100% !important;
+          padding: 14px 16px !important;
+          border-radius: 22px !important;
+        }
+        .kz-jobs-radar-card .kz-radar-ring {
+          width: 72px !important;
+          height: 72px !important;
+        }
+        .kz-main-pad {
+          padding: 18px 14px 84px !important;
+          gap: 18px !important;
+        }
+        .kz-portal-hero {
+          padding: 22px 18px !important;
+          border-radius: 24px !important;
+          gap: 18px !important;
+        }
+
+        /* 5. Bonus Ladder 10-Bar Chart Horizontal Scroll on Mobile */
+        .kz-bonus-bars-grid {
+          min-width: 520px !important;
+        }
+      }
+
+      @media (max-width: 640px) {
+        /* 6. Search Pill Forms: Clean Rounded Card + Full-Width Thumb CTA when wrapped */
+        .kz-search-pill-form {
+          border-radius: 22px !important;
+          padding: 8px !important;
+          gap: 8px !important;
+        }
+        .kz-search-pill-form > button,
+        .kz-search-pill-form > a {
+          width: 100% !important;
+          justify-content: center !important;
+          min-height: 48px !important;
+        }
+
+        /* 7. Job Feed Card Thumb-First Action Layout */
+        .kz-job-card {
+          padding: 18px 16px !important;
+          border-radius: 22px !important;
+        }
+        .kz-job-card .kz-actions {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+        }
+        .kz-job-card .kz-actions .kz-btn-accept {
+          grid-column: 1 / -1 !important;
+          width: 100% !important;
+          height: 50px !important;
+          font-size: 15px !important;
+          justify-content: center !important;
+          margin-left: 0 !important;
+          order: -1 !important;
+          box-shadow: 0 8px 20px rgba(245, 165, 36, 0.32) !important;
+        }
+
+        /* 8. Live Map & QR Cards on Mobile */
+        .kz-live-map-box {
+          height: 300px !important;
+          border-radius: 22px !important;
+        }
+        .kz-qr-step-card {
+          padding: 18px 16px !important;
+          border-radius: 22px !important;
+        }
+      }
     </style>
     <script src="/assets/kaamzo-translator.js" defer></script>
     <script src="/assets/kaamzo-redesign.js" defer></script>

@@ -825,6 +825,7 @@
       h(
         "div",
         {
+          className: "kz-top-utility-inner",
           style: {
             maxWidth: "1240px",
             margin: "0 auto",
@@ -4125,6 +4126,7 @@
         "section",
         {
           id: "top",
+          className: "kz-hero-section",
           style: {
             position: "relative",
             minHeight: "940px",
@@ -4266,6 +4268,7 @@
         h(
           "div",
           {
+            className: "kz-hero-inner",
             style: {
               position: "relative",
               zIndex: 5,
@@ -4343,6 +4346,7 @@
             "form",
             {
               onSubmit: handleSearch,
+              className: "kz-search-pill-form",
               style: {
                 marginTop: "10px",
                 width: "100%",
@@ -4690,7 +4694,7 @@
       // ============ TWO PATHS ============
       h(
         "section",
-        { style: { maxWidth: "1240px", margin: "0 auto", padding: "96px 24px 40px", display: "flex", flexDirection: "column", gap: "40px" } },
+        { className: "kz-section-pad", style: { maxWidth: "1240px", margin: "0 auto", padding: "96px 24px 40px", display: "flex", flexDirection: "column", gap: "40px" } },
         h(
           "h2",
           { style: { margin: 0, textAlign: "center", fontSize: "clamp(34px, 4.4vw, 58px)", lineHeight: 1.02, letterSpacing: "-1.6px", fontWeight: 800 } },
@@ -4700,7 +4704,7 @@
         ),
         h(
           "div",
-          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" } },
+          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "20px" } },
           h(
             "a",
             {
@@ -4785,7 +4789,7 @@
       // ============ MEET THE TRADES ============
       h(
         "section",
-        { style: { maxWidth: "1240px", margin: "0 auto", padding: "72px 24px 24px", display: "flex", flexDirection: "column", gap: "36px" } },
+        { className: "kz-section-pad", style: { maxWidth: "1240px", margin: "0 auto", padding: "72px 24px 24px", display: "flex", flexDirection: "column", gap: "36px" } },
         h(
           "div",
           { style: { display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", textAlign: "center" } },
@@ -4799,7 +4803,7 @@
         ),
         h(
           "div",
-          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" } },
+          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "20px" } },
           [
             {
               name: "Plumber",
@@ -5059,7 +5063,7 @@
         ),
         h(
           "div",
-          { style: { position: "relative", maxWidth: "1240px", margin: "0 auto", padding: "110px 24px 300px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "24px" } },
+          { className: "kz-workers-cta-sec", style: { position: "relative", maxWidth: "1240px", margin: "0 auto", padding: "96px 24px 160px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "24px" } },
           h(
             "span",
             { style: { padding: "8px 14px", borderRadius: "999px", background: "#FFFFFF", border: "1px solid #EFE7DA", fontSize: "13px", fontWeight: 700, color: "#7A4E00" } },
@@ -5512,12 +5516,13 @@
       h(
         "main",
         {
+          className: "kz-register-main",
           style: {
             position: "relative",
             zIndex: 2,
             maxWidth: "1200px",
             margin: "0 auto",
-            padding: "12px 24px 520px",
+            padding: "12px 24px 120px",
             display: "flex",
             flexWrap: "wrap",
             gap: "32px",
@@ -5528,7 +5533,7 @@
         // LEFT: live rotated ID card
         h(
           "aside",
-          { "aria-label": "Your Kaamzo profile preview", style: { flex: "1 1 360px", maxWidth: "460px", display: "flex", flexDirection: "column", gap: "18px", paddingTop: "18px" } },
+          { className: "kz-register-preview", "aria-label": "Your Kaamzo profile preview", style: { flex: "1 1 360px", maxWidth: "460px", display: "flex", flexDirection: "column", gap: "18px", paddingTop: "18px" } },
           h(
             "p",
             { style: { margin: 0, fontFamily: "'Caveat', cursive", fontSize: "34px", lineHeight: 1.05, color: "#3D2A05" } },
@@ -5537,6 +5542,7 @@
           h(
             "div",
             {
+              className: "kz-register-preview",
               style: {
                 position: "relative",
                 overflow: "hidden",
@@ -5669,6 +5675,7 @@
           "section",
           {
             "aria-live": "polite",
+            className: "kz-register-form",
             style: {
               flex: "1 1 440px",
               maxWidth: "560px",
@@ -6625,6 +6632,7 @@
           h(
             "div",
             {
+              className: "kz-subnav-scroll",
               style: {
                 maxWidth: "1320px",
                 margin: "0 auto",
@@ -6825,11 +6833,12 @@
 
     return h(
       "main",
-      { style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 80px", display: "flex", flexDirection: "column", gap: "28px" } },
+      { className: "kz-main-pad", style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 80px", display: "flex", flexDirection: "column", gap: "28px" } },
       // HERO
       h(
         "section",
         {
+          className: "kz-portal-hero",
           style: {
             position: "relative",
             overflow: "hidden",
@@ -6873,6 +6882,7 @@
             "form",
             {
               onSubmit: (e) => e.preventDefault(),
+              className: "kz-search-pill-form",
               style: { display: "flex", flexWrap: "wrap", gap: "6px", padding: "6px", borderRadius: "999px", background: "rgba(255,255,255,0.9)", boxShadow: "0 16px 40px rgba(110,70,20,0.14)", maxWidth: "620px" },
             },
             h("label", { htmlFor: "kz-cust-q", style: { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" } }, "Search trade, skill or worker"),
@@ -7174,7 +7184,7 @@
 
       h(
         "div",
-        { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: "18px" } },
+        { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))", gap: "18px" } },
         filteredWorkers.length === 0
           ? h(
               "div",
@@ -8695,7 +8705,7 @@
                     // Live Google Maps Routing Container (copied from previous website Kwp / Noe + Kaamzo Theme)
                     h(
                       "div",
-                      { style: { position: "relative", height: "410px", borderRadius: "30px", overflow: "hidden", background: "#1C1913", border: "2px solid #F5A524", boxShadow: "0 18px 40px rgba(28,25,19,0.14)" } },
+                      { className: "kz-live-map-box", style: { position: "relative", height: "410px", borderRadius: "30px", overflow: "hidden", background: "#1C1913", border: "2px solid #F5A524", boxShadow: "0 18px 40px rgba(28,25,19,0.14)" } },
                       h("iframe", {
                         title: "Google Maps Live Routing to Customer Site",
                         src: mapEmbedUrl,
@@ -10270,6 +10280,7 @@
           h(
             "div",
             {
+              className: "kz-subnav-scroll",
               style: {
                 maxWidth: "1320px",
                 margin: "0 auto",
@@ -10512,7 +10523,7 @@
         h(
           "div",
           {
-            className: "kz-jobs-wrap",
+            className: "kz-jobs-wrap kz-jobs-hero-wrap",
             style: {
               maxWidth: "1320px",
               margin: "0 auto",
@@ -10573,6 +10584,7 @@
           h(
             "div",
             {
+              className: "kz-jobs-radar-card",
               style: {
                 background: "#FFFFFF",
                 border: "1px solid #EFE7DA",
@@ -10726,6 +10738,7 @@
                     "article",
                     {
                       key: j.id,
+                      className: "kz-job-card",
                       style: {
                         background: cardBg,
                         border: "1px solid " + borderCol,
@@ -11022,11 +11035,11 @@
 
     return h(
       "main",
-      { style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 80px", display: "flex", flexDirection: "column", gap: "24px" } },
+      { className: "kz-main-pad", style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 80px", display: "flex", flexDirection: "column", gap: "24px" } },
       // HERO
       h(
         "section",
-        { style: { position: "relative", overflow: "hidden", borderRadius: "36px", background: "linear-gradient(180deg, #2A2342 0%, #5E4260 55%, #C9805A 100%)", color: "#FBF8F2", padding: "40px", display: "flex", flexWrap: "wrap", gap: "28px", alignItems: "flex-end" } },
+        { className: "kz-portal-hero", style: { position: "relative", overflow: "hidden", borderRadius: "36px", background: "linear-gradient(180deg, #2A2342 0%, #5E4260 55%, #C9805A 100%)", color: "#FBF8F2", padding: "40px", display: "flex", flexWrap: "wrap", gap: "28px", alignItems: "flex-end" } },
         h(
           "div",
           { style: { position: "relative", flex: "1 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: "16px" } },
@@ -11035,7 +11048,7 @@
           h("p", { style: { margin: 0, fontSize: "16px", lineHeight: 1.5, color: "#EBD9C8", maxWidth: "540px" } }, "Work within your 10 km neighbourhood. No middlemen. Payouts go straight to your UPI the moment work is confirmed."),
           h(
             "form",
-            { onSubmit: (e) => { e.preventDefault(); navigate("/jobs", { role: "worker", searchQuery: searchQ }); }, style: { display: "flex", flexWrap: "wrap", gap: "6px", padding: "6px", borderRadius: "999px", background: "rgba(255,255,255,0.95)", maxWidth: "600px" } },
+            { className: "kz-search-pill-form", onSubmit: (e) => { e.preventDefault(); navigate("/jobs", { role: "worker", searchQuery: searchQ }); }, style: { display: "flex", flexWrap: "wrap", gap: "6px", padding: "6px", borderRadius: "999px", background: "rgba(255,255,255,0.95)", maxWidth: "600px" } },
             h("input", { type: "text", value: searchQ, onChange: (e) => setSearchQ(e.target.value), placeholder: "Search nearby work in Ludhiana…", style: { flex: "1 1 200px", height: "48px", border: 0, outline: "none", background: "transparent", padding: "0 16px", fontSize: "15px", color: "#1C1913" } }),
             h("button", { type: "submit", style: { height: "48px", padding: "0 22px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800 } }, "Open 10 km Job Board →")
           )
@@ -11316,10 +11329,10 @@
       ),
       h(
         "section",
-        { style: { borderRadius: "34px", background: "linear-gradient(120deg,#F5A524 0%,#F7C24E 60%,#FBDC86 100%)", padding: "28px", display: "flex", flexDirection: "column", gap: "16px", color: "#1C1913" } },
+        { className: "kz-portal-hero kz-bonus-scroll", style: { borderRadius: "34px", background: "linear-gradient(120deg,#F5A524 0%,#F7C24E 60%,#FBDC86 100%)", padding: "28px", display: "flex", flexDirection: "column", gap: "16px", color: "#1C1913" } },
         h(
           "div",
-          { style: { display: "grid", gridTemplateColumns: "repeat(10,minmax(0,1fr))", gap: "8px", alignItems: "end", height: "260px" } },
+          { className: "kz-bonus-bars-grid", style: { display: "grid", gridTemplateColumns: "repeat(10,minmax(0,1fr))", gap: "8px", alignItems: "end", height: "260px" } },
           bars.map((b) =>
             h(
               "div",
@@ -11329,7 +11342,7 @@
             )
           )
         ),
-        h("div", { style: { display: "grid", gridTemplateColumns: "repeat(10,minmax(0,1fr))", gap: "8px", textAlign: "center", fontSize: "11px", fontWeight: 800, color: "#3D2A05" } }, bars.map((b) => h("span", { key: b.jobs }, b.jobs + " jobs")))
+        h("div", { className: "kz-bonus-bars-grid", style: { display: "grid", gridTemplateColumns: "repeat(10,minmax(0,1fr))", gap: "8px", textAlign: "center", fontSize: "11px", fontWeight: 800, color: "#3D2A05" } }, bars.map((b) => h("span", { key: b.jobs }, b.jobs + " jobs")))
       ),
       h(
         "div",
@@ -11680,7 +11693,7 @@
 
     return h(
       "main",
-      { style: { maxWidth: "1200px", margin: "0 auto", padding: "28px 24px 72px", display: "flex", flexDirection: "column", gap: "20px" } },
+      { className: "kz-main-pad", style: { maxWidth: "1200px", margin: "0 auto", padding: "28px 24px 72px", display: "flex", flexDirection: "column", gap: "20px" } },
       // Top Header + Lock Notice
       h(
         "div",
@@ -11857,6 +11870,7 @@
             h(
               "section",
               {
+                className: "kz-live-map-box",
                 style: {
                   position: "relative",
                   height: "390px",
@@ -12055,12 +12069,13 @@
             // 3. BELOW THE MAP: START JOB QR & END JOB QR CARDS
             h(
               "div",
-              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "18px" } },
+              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "18px" } },
 
               // CARD 1: QR FOR STARTING THE JOB
               h(
                 "section",
                 {
+                  className: "kz-qr-step-card",
                   style: {
                     borderRadius: "28px",
                     background: cardBg,
@@ -12181,6 +12196,7 @@
               h(
                 "section",
                 {
+                  className: "kz-qr-step-card",
                   style: {
                     borderRadius: "28px",
                     background: cardBg,
@@ -12737,7 +12753,7 @@
             "nav",
             {
               "aria-label": "Admin",
-              className: "kz-tabs " + (isDark ? "kz-tab-track" : ""),
+              className: "kz-tabs kz-admin-tabs " + (isDark ? "kz-tab-track" : ""),
               style: {
                 display: "flex",
                 gap: "4px",
@@ -12745,6 +12761,8 @@
                 borderRadius: "999px",
                 background: isDark ? "#1F1C17" : "#FFFFFF",
                 border: "1px solid " + (isDark ? "#2E2A22" : "#EFE7DA"),
+                overflowX: "auto",
+                maxWidth: "100%",
               },
             },
             [
@@ -12800,6 +12818,7 @@
       h(
         "main",
         {
+          className: "kz-main-pad",
           style: {
             maxWidth: "1320px",
             width: "100%",
@@ -12815,6 +12834,7 @@
         h(
           "section",
           {
+            className: "kz-portal-hero",
             style: {
               position: "relative",
               overflow: "hidden",
