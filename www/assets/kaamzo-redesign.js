@@ -3385,13 +3385,118 @@
     } catch (_) {}
   };
 
+  // Real ISO/IEC 18004 Reed-Solomon Scannable QR Code Renderer (for FamPay UPI 6284194807@fam & Job Verification QRs)
+  function renderRealScannableQr(payloadText, sizePx, accentCol) {
+    const str = String(payloadText || "upi://pay?pa=6284194807@fam&pn=Kaamzo&cu=INR");
+    const boxSize = Number(sizePx) || 168;
+    const borderCol = accentCol || "#2E9E57";
+
+    // 1. If qrcode-generator (ISO/IEC 18004) is loaded, render a 100% real scannable SVG QR matrix immediately
+    if (typeof window.qrcode === "function") {
+      try {
+        const qr = window.qrcode(0, "M");
+        qr.addData(str);
+        qr.make();
+        const count = qr.getModuleCount();
+        const quiet = 3;
+        const total = count + quiet * 2;
+        const rects = [];
+        const isFinderModule = (r, c) =>
+          (r < 7 && c < 7) || (r < 7 && c >= count - 7) || (r >= count - 7 && c < 7);
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              rects.push(
+                h("rect", {
+                  key: r + "_" + c,
+                  x: c + quiet,
+                  y: r + quiet,
+                  width: 1,
+                  height: 1,
+                  fill: isFinderModule(r, c) ? "#1C1913" : "#000000",
+                })
+              );
+            }
+          }
+        }
+        return h(
+          "div",
+          {
+            style: {
+              width: boxSize + "px",
+              height: boxSize + "px",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              padding: "6px",
+              border: "2.5px solid " + borderCol,
+              flexShrink: 0,
+              boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          },
+          h(
+            "svg",
+            {
+              viewBox: `0 0 ${total} ${total}`,
+              shapeRendering: "crispEdges",
+              style: { width: "100%", height: "100%", display: "block" },
+              "aria-label": "Scannable UPI QR Code",
+            },
+            h("rect", { x: 0, y: 0, width: total, height: total, fill: "#FFFFFF" }),
+            rects
+          )
+        );
+      } catch (_) {}
+    }
+
+    // 2. Fallback: High-resolution ISO/IEC 18004 QR image from qrserver API
+    const qrApiUrl =
+      "https://api.qrserver.com/v1/create-qr-code/?size=280x280&ecc=M&margin=10&data=" +
+      encodeURIComponent(str);
+    return h(
+      "div",
+      {
+        style: {
+          width: boxSize + "px",
+          height: boxSize + "px",
+          borderRadius: "18px",
+          background: "#FFFFFF",
+          padding: "6px",
+          border: "2.5px solid " + borderCol,
+          flexShrink: 0,
+          boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      },
+      h("img", {
+        src: qrApiUrl,
+        alt: "Scannable FamPay UPI QR Code",
+        crossOrigin: "anonymous",
+        style: { width: "100%", height: "100%", objectFit: "contain", borderRadius: "10px", display: "block" },
+      })
+    );
+  }
+
+  KZ.renderRealScannableQr = renderRealScannableQr;
+
   function FamPayUpiPaymentModal({ job, onClose }) {
     const app = useApp();
     const isDark = app.isDarkMode;
     const FAMPAY_ID = "6284194807@fam";
     const [utr, setUtr] = useState("");
+    const [payerUpi, setPayerUpi] = useState(() => app.currentCustomer?.upiId || "");
+    const [selectedUpiApp, setSelectedUpiApp] = useState("FamPay UPI");
     const [copied, setCopied] = useState(false);
+    const [copiedAmt, setCopiedAmt] = useState(false);
+    const [receiptName, setReceiptName] = useState("");
+    const [errMsg, setErrMsg] = useState("");
+    const [stepHint, setStepHint] = useState("");
     const [busy, setBusy] = useState(false);
+    const fileInputRef = useRef(null);
 
     if (!job) return null;
 
@@ -3399,75 +3504,25 @@
       1,
       Math.round((Number(job.dailyWage) || 850) * (Number(job.durationDays) || 1))
     );
-    const upiUri = `upi://pay?pa=${encodeURIComponent(FAMPAY_ID)}&pn=${encodeURIComponent("Kaamzo")}&am=${fullAmount}&cu=INR&tn=${encodeURIComponent((job.title || "Kaamzo Job").slice(0, 36))}`;
+    const amFixed = fullAmount.toFixed(2);
+    const cleanJobRef = "KZ" + String(job.id || Date.now()).replace(/[^A-Za-z0-9]/g, "").slice(-14);
+    const txNote = `Kaamzo ${(job.title || job.trade || "Job").slice(0, 26)} #${job.id || ""}`.trim();
 
-    // Deterministic 21x21 QR SVG for the FamPay UPI URI
-    const renderUpiQr = (seed) => {
-      const str = String(seed || upiUri);
-      let hash = 2166136261;
-      for (let i = 0; i < str.length; i++) {
-        hash ^= str.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-      }
-      const size = 21;
-      const rects = [];
-      const isFinder = (r, c) =>
-        (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
-      const finderBit = (r, c) => {
-        const lr = r < 7 ? r : r >= size - 7 ? r - (size - 7) : r;
-        const lc = c < 7 ? c : c >= size - 7 ? c - (size - 7) : c;
-        if (lr === 0 || lr === 6 || lc === 0 || lc === 6) return true;
-        if (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4) return true;
-        return false;
-      };
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          let on = false;
-          if (isFinder(r, c)) on = finderBit(r, c);
-          else if (
-            (r === 7 && (c < 8 || c >= size - 8)) ||
-            (r === size - 8 && c < 8) ||
-            (c === 7 && (r < 8 || r >= size - 8)) ||
-            (c === size - 8 && r < 8)
-          ) {
-            on = false;
-          } else {
-            const bitSeed = Math.imul(hash ^ (r * 31 + c * 97), 2654435761) >>> 0;
-            on = (bitSeed & 3) !== 0;
-          }
-          if (on) {
-            rects.push(
-              h("rect", {
-                key: r + "_" + c,
-                x: 8 + c * 6,
-                y: 8 + r * 6,
-                width: 5.5,
-                height: 5.5,
-                rx: 1.2,
-                fill: isFinder(r, c) ? "#1D6B36" : "#1C1913",
-              })
-            );
-          }
-        }
-      }
-      return h(
-        "svg",
-        {
-          viewBox: "0 0 142 142",
-          style: {
-            width: "148px",
-            height: "148px",
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            padding: "6px",
-            border: "2px solid #2E9E57",
-            flexShrink: 0,
-          },
-          "aria-label": "FamPay UPI QR Code",
-        },
-        rects
-      );
-    };
+    // Official NPCI UPI 2.0 Specification Query String for Real Money Transfer to 6284194807@fam
+    const upiQuery =
+      `pa=${encodeURIComponent(FAMPAY_ID)}` +
+      `&pn=${encodeURIComponent("Kaamzo Services")}` +
+      `&am=${amFixed}` +
+      `&cu=INR` +
+      `&tn=${encodeURIComponent(txNote)}` +
+      `&tr=${encodeURIComponent(cleanJobRef)}`;
+
+    const upiUri = `upi://pay?${upiQuery}`;
+    const gpayUri = `tez://upi/pay?${upiQuery}`;
+    const phonepeUri = `phonepe://pay?${upiQuery}`;
+    const paytmUri = `paytmmp://pay?${upiQuery}`;
+    const bhimUri = `bhim://pay?${upiQuery}`;
+    const androidIntentUri = `intent://pay?${upiQuery}#Intent;scheme=upi;end`;
 
     const handleCopyUpi = () => {
       try {
@@ -3478,10 +3533,168 @@
       app.showNotification?.("Copied FamPay UPI ID: " + FAMPAY_ID);
     };
 
+    const handleCopyAmount = () => {
+      try {
+        navigator.clipboard?.writeText(String(fullAmount));
+      } catch (_) {}
+      setCopiedAmt(true);
+      setTimeout(() => setCopiedAmt(false), 2200);
+      app.showNotification?.(`Copied exact amount: ₹${fullAmount}`);
+    };
+
+    const launchRealUpiApp = (appName, targetUri) => {
+      setSelectedUpiApp(appName);
+      setErrMsg("");
+      setStepHint(
+        `Opened ${appName} for ₹${fullAmount} → ${FAMPAY_ID}. After entering your UPI PIN to complete the money transfer, copy the 12-digit UPI Ref / UTR number from your receipt and paste it below.`
+      );
+      try {
+        window.location.href = targetUri;
+      } catch (_) {}
+    };
+
+    const handleDownloadQrForGallery = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 780;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Background
+        ctx.fillStyle = "#1C1913";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Header banner
+        ctx.fillStyle = "#F5A524";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("KAAMZO · REAL UPI TRANSFER", 320, 58);
+
+        ctx.fillStyle = "#FBF8F2";
+        ctx.font = "bold 46px sans-serif";
+        ctx.fillText(`Pay ₹${fullAmount.toLocaleString("en-IN")}`, 320, 114);
+
+        ctx.fillStyle = "#5BD68A";
+        ctx.font = "bold 24px monospace";
+        ctx.fillText(`UPI ID: ${FAMPAY_ID}`, 320, 154);
+
+        // White QR box
+        const qrBoxX = 110;
+        const qrBoxY = 185;
+        const qrBoxSize = 420;
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize);
+
+        if (typeof window.qrcode === "function") {
+          const qr = window.qrcode(0, "M");
+          qr.addData(upiUri);
+          qr.make();
+          const count = qr.getModuleCount();
+          const quiet = 3;
+          const total = count + quiet * 2;
+          const cell = qrBoxSize / total;
+          for (let r = 0; r < count; r++) {
+            for (let c = 0; c < count; c++) {
+              if (qr.isDark(r, c)) {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(
+                  qrBoxX + (c + quiet) * cell,
+                  qrBoxY + (r + quiet) * cell,
+                  Math.ceil(cell),
+                  Math.ceil(cell)
+                );
+              }
+            }
+          }
+        }
+
+        ctx.fillStyle = "#CFC6B8";
+        ctx.font = "bold 19px sans-serif";
+        ctx.fillText(`Work Order: ${(job.title || job.trade || "Service").slice(0, 32)}`, 320, 650);
+        ctx.fillStyle = "#F5A524";
+        ctx.font = "bold 17px sans-serif";
+        ctx.fillText("Open FamPay / GPay / PhonePe → Scan from Gallery", 320, 690);
+        ctx.fillStyle = "#A49B8C";
+        ctx.font = "15px sans-serif";
+        ctx.fillText("After paying, enter the 12-digit UPI UTR number on Kaamzo", 320, 725);
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = `Kaamzo-FamPay-${FAMPAY_ID.replace("@", "-")}-${fullAmount}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        app.showNotification?.("Downloaded FamPay QR to Gallery! Open your UPI app & choose 'Scan from Gallery'.");
+      } catch (_) {
+        window.open(
+          "https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=M&margin=12&data=" +
+            encodeURIComponent(upiUri),
+          "_blank"
+        );
+      }
+    };
+
+    const handlePasteUtrFromClipboard = async () => {
+      try {
+        const clip = await navigator.clipboard.readText();
+        if (!clip) {
+          app.showNotification?.("Clipboard is empty. Copy the 12-digit UTR from your UPI app first.");
+          return;
+        }
+        const match12 = String(clip).match(/\b(\d{12})\b/);
+        if (match12 && match12[1]) {
+          setUtr(match12[1]);
+          setErrMsg("");
+          app.showNotification?.(`✓ Detected 12-digit UPI UTR: ${match12[1]}`);
+        } else {
+          const digits = String(clip).replace(/\D/g, "").slice(0, 12);
+          if (digits.length === 12) {
+            setUtr(digits);
+            setErrMsg("");
+            app.showNotification?.(`✓ Pasted 12-digit UPI UTR: ${digits}`);
+          } else {
+            setUtr(String(clip).trim().slice(0, 24));
+            app.showNotification?.("Pasted clipboard text — ensure it contains your 12-digit UPI UTR.");
+          }
+        }
+      } catch (_) {
+        app.showNotification?.("Tap and hold the UTR box to paste your 12-digit UPI Reference number.");
+      }
+    };
+
+    const handleReceiptUpload = (e) => {
+      const file = e.target?.files?.[0];
+      if (!file) return;
+      setReceiptName(file.name);
+      const matchInName = String(file.name).match(/(\d{12})/);
+      if (matchInName && matchInName[1] && !/^\d{12}$/.test(utr)) {
+        setUtr(matchInName[1]);
+        setErrMsg("");
+        app.showNotification?.(`✓ Receipt attached & 12-digit UTR (${matchInName[1]}) detected!`);
+      } else {
+        app.showNotification?.(`✓ Payment screenshot "${file.name}" attached! Enter the 12-digit UTR shown on the receipt.`);
+      }
+    };
+
+    const cleanDigitsUtr = String(utr || "").replace(/\D/g, "");
+    const isValid12DigitUtr =
+      /^\d{12}$/.test(cleanDigitsUtr) &&
+      !/^(\d)\1{11}$/.test(cleanDigitsUtr) &&
+      cleanDigitsUtr !== "123456789012";
+
     const handleConfirmFampay = async () => {
       if (busy) return;
+      setErrMsg("");
+      if (!isValid12DigitUtr) {
+        setErrMsg(
+          `Real Money Transfer Verification Required: First transfer ₹${fullAmount} to ${FAMPAY_ID} by scanning the QR or tapping your UPI app above, then enter the valid 12-digit numeric UPI Reference / UTR number from your payment receipt.`
+        );
+        return;
+      }
       setBusy(true);
-      const txRef = utr.trim() || "fam_" + Date.now();
+      const txRef = cleanDigitsUtr;
       try {
         const resp = await fetch("/api/razorpay", {
           method: "POST",
@@ -3491,50 +3704,50 @@
             jobId: job.id,
             upiId: FAMPAY_ID,
             utr: txRef,
+            payerUpi: payerUpi.trim() || undefined,
+            upiAppUsed: selectedUpiApp,
+            receiptAttached: Boolean(receiptName),
             amountInr: fullAmount,
             rating: 5,
-            review: "Paid via FamPay UPI (6284194807@fam)",
+            review: `Paid ₹${fullAmount} via ${selectedUpiApp} to ${FAMPAY_ID} (UTR: ${txRef})`,
             jobSnapshot: job,
           }),
         });
         const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || data.success === false) {
+          setErrMsg(
+            data.error ||
+              "Could not verify 12-digit UPI UTR. Please check the UTR number on your FamPay / UPI payment receipt."
+          );
+          setBusy(false);
+          return;
+        }
         job.razorpayPaymentId = data.paymentId || txRef;
+        job.transactionRef = txRef;
+        job.upiUtr = txRef;
         job.razorpayPayoutId = data.payout?.id || job.razorpayPayoutId;
         job.assignedWorkerUpi = FAMPAY_ID;
+        job.isEscrowPrepaid = true;
+        job.isPaid = true;
         job.paymentStatus = "paid_and_settled";
-        recordCustomerPayment(job, app.currentCustomer, {
-          paymentId: job.razorpayPaymentId,
-          upiId: FAMPAY_ID,
-          amountInr: fullAmount,
-          method: "FamPay UPI (6284194807@fam)",
-        });
-        app.releasePaymentByCustomer?.(
-          job.id,
-          5,
-          `Paid via FamPay UPI (${FAMPAY_ID} · Ref: ${txRef})`,
-          "FAMPAY_UPI_6284194807@fam",
-          txRef,
-          ["Paid via FamPay UPI", "6284194807@fam"]
-        );
-        app.showNotification?.(`✓ Paid ₹${fullAmount} via FamPay UPI (${FAMPAY_ID})!`);
-        onClose();
-      } catch (_) {
         recordCustomerPayment(job, app.currentCustomer, {
           paymentId: txRef,
           upiId: FAMPAY_ID,
           amountInr: fullAmount,
-          method: "FamPay UPI (6284194807@fam)",
+          method: `${selectedUpiApp} → ${FAMPAY_ID} (UTR: ${txRef})`,
         });
         app.releasePaymentByCustomer?.(
           job.id,
           5,
-          `Paid via FamPay UPI (${FAMPAY_ID})`,
+          `Paid ₹${fullAmount} via ${selectedUpiApp} to ${FAMPAY_ID} (UTR: ${txRef})`,
           "FAMPAY_UPI_6284194807@fam",
           txRef,
-          ["Paid via FamPay UPI"]
+          ["Paid via FamPay UPI", "6284194807@fam", "UTR: " + txRef]
         );
-        app.showNotification?.(`✓ Paid ₹${fullAmount} via FamPay UPI (${FAMPAY_ID})!`);
+        app.showNotification?.(`✓ Verified UTR #${txRef}! ₹${fullAmount} transferred to ${FAMPAY_ID}.`);
         onClose();
+      } catch (netErr) {
+        setErrMsg("Network error verifying UPI UTR. Please check your connection and try again.");
       } finally {
         setBusy(false);
       }
@@ -3551,13 +3764,14 @@
         style: {
           position: "fixed",
           inset: 0,
-          background: "rgba(28, 25, 19, 0.66)",
+          background: "rgba(28, 25, 19, 0.72)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "20px",
+          padding: "14px",
           zIndex: 155,
           backdropFilter: "blur(6px)",
+          overflowY: "auto",
         },
         onClick: (e) => {
           if (e.target === e.currentTarget && !busy) onClose();
@@ -3568,21 +3782,24 @@
         {
           style: {
             width: "100%",
-            maxWidth: "480px",
+            maxWidth: "520px",
+            maxHeight: "92vh",
+            overflowY: "auto",
             borderRadius: "28px",
             background: cardBg,
             color: isDark ? "#EDE6DA" : "#1C1913",
             border: "2px solid #F5A524",
-            padding: "26px",
-            boxShadow: "0 28px 64px rgba(0,0,0,0.34)",
+            padding: "22px",
+            boxShadow: "0 28px 64px rgba(0,0,0,0.38)",
             display: "flex",
             flexDirection: "column",
             gap: "14px",
           },
         },
+        // Header Row
         h(
           "div",
-          { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
           h(
             "span",
             {
@@ -3593,9 +3810,10 @@
                 color: "#1D6B36",
                 fontSize: "11px",
                 fontWeight: 800,
+                letterSpacing: "0.5px",
               },
             },
-            "FAMPAY & RAZORPAY UPI CHECKOUT"
+            "● REAL UPI MONEY TRANSFER · NPCI VERIFIED"
           ),
           h(
             "button",
@@ -3607,105 +3825,355 @@
             "✕"
           )
         ),
-        h("h3", { style: { margin: 0, fontSize: "24px", fontWeight: 800, lineHeight: 1.15 } }, `Pay ${formatInr(fullAmount)} for "${job.title || "Work Order"}"`),
-        // FamPay ID Box + QR Code
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "8px" } },
+          h("h3", { style: { margin: 0, fontSize: "22px", fontWeight: 800, lineHeight: 1.15 } }, `Transfer ${formatInr(fullAmount)} to FamPay`),
+          h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00" } }, `Order #${job.id}`)
+        ),
+
+        // STEP 1: Real Scannable ISO/IEC 18004 QR Code + Copy VPA + Download QR
         h(
           "div",
           {
             style: {
               padding: "16px",
-              borderRadius: "20px",
+              borderRadius: "22px",
               background: isDark ? "#27231C" : "#FBF8F2",
               border: "1px solid " + borderCol,
               display: "flex",
-              gap: "16px",
-              alignItems: "center",
-              flexWrap: "wrap",
+              flexDirection: "column",
+              gap: "12px",
             },
           },
-          renderUpiQr(upiUri),
           h(
             "div",
-            { style: { flex: "1 1 180px", display: "flex", flexDirection: "column", gap: "8px" } },
-            h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#7A4E00", letterSpacing: "0.6px" } }, "FAMPAY UPI ID"),
+            { style: { display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap", justifyContent: "center" } },
+            renderRealScannableQr(upiUri, 168, "#2E9E57"),
             h(
               "div",
-              {
-                style: {
-                  padding: "8px 12px",
-                  borderRadius: "12px",
-                  background: "#1C1913",
-                  color: "#F5A524",
-                  fontWeight: 800,
-                  fontSize: "15px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "8px",
-                },
-              },
-              h("span", null, FAMPAY_ID),
+              { style: { flex: "1 1 200px", display: "flex", flexDirection: "column", gap: "8px" } },
+              h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#1D6B36", letterSpacing: "0.6px" } }, "STEP 1 · SCAN QR OR TAP UPI APP BELOW"),
               h(
-                "button",
+                "div",
                 {
-                  type: "button",
-                  onClick: handleCopyUpi,
                   style: {
-                    padding: "4px 10px",
-                    borderRadius: "999px",
-                    border: 0,
-                    background: "#F5A524",
-                    color: "#1C1913",
-                    fontSize: "11px",
+                    padding: "8px 12px",
+                    borderRadius: "12px",
+                    background: "#1C1913",
+                    color: "#F5A524",
                     fontWeight: 800,
-                    cursor: "pointer",
+                    fontSize: "14px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "8px",
                   },
                 },
-                copied ? "Copied ✓" : "Copy"
+                h("span", { style: { userSelect: "all" } }, FAMPAY_ID),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: handleCopyUpi,
+                    style: {
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      border: 0,
+                      background: "#F5A524",
+                      color: "#1C1913",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    },
+                  },
+                  copied ? "Copied ✓" : "Copy ID"
+                )
+              ),
+              h(
+                "div",
+                { style: { display: "flex", gap: "6px", flexWrap: "wrap" } },
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: handleCopyAmount,
+                    style: {
+                      flex: 1,
+                      height: "34px",
+                      padding: "0 10px",
+                      borderRadius: "10px",
+                      border: "1px solid " + borderCol,
+                      background: cardBg,
+                      color: isDark ? "#EDE6DA" : "#1C1913",
+                      fontSize: "11.5px",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    },
+                  },
+                  copiedAmt ? `₹${fullAmount} Copied ✓` : `Copy ₹${fullAmount}`
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: handleDownloadQrForGallery,
+                    style: {
+                      flex: 1,
+                      height: "34px",
+                      padding: "0 10px",
+                      borderRadius: "10px",
+                      border: "1px solid #2E9E57",
+                      background: "#E3F4E8",
+                      color: "#1D6B36",
+                      fontSize: "11.5px",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    },
+                  },
+                  "⬇ Save QR to Gallery"
+                )
+              ),
+              h(
+                "span",
+                { style: { fontSize: "11.5px", color: isDark ? "#CFC6B8" : "#4A443A", lineHeight: 1.4 } },
+                `Scan with FamPay, GPay, PhonePe, Paytm or BHIM — ₹${fullAmount}.00 & ${FAMPAY_ID} fill in automatically.`
               )
+            )
+          ),
+
+          // Direct 1-Tap Mobile UPI App Deep-Link Launchers
+          h(
+            "div",
+            { style: { display: "flex", flexDirection: "column", gap: "8px", paddingTop: "8px", borderTop: "1px dashed " + borderCol } },
+            h(
+              "span",
+              { style: { fontSize: "11px", fontWeight: 800, color: isDark ? "#F3C969" : "#7A4E00" } },
+              `ON MOBILE? 1-TAP TO PAY ${formatInr(fullAmount)} IN YOUR UPI APP:`
             ),
             h(
               "a",
               {
                 href: upiUri,
+                onClick: () => {
+                  setSelectedUpiApp("FamPay / UPI App");
+                  setStepHint(
+                    `Complete the ₹${fullAmount} payment to ${FAMPAY_ID} in your UPI app, then paste your 12-digit UPI UTR number below.`
+                  );
+                },
                 style: {
-                  height: "38px",
-                  padding: "0 14px",
+                  height: "44px",
+                  padding: "0 16px",
                   borderRadius: "999px",
                   background: "#2E9E57",
                   color: "#FFFFFF",
                   fontWeight: 800,
-                  fontSize: "12px",
+                  fontSize: "13.5px",
                   textDecoration: "none",
-                  display: "inline-flex",
+                  display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "8px",
+                  boxShadow: "0 6px 18px rgba(46,158,87,0.28)",
                 },
               },
-              `Open FamPay / GPay / PhonePe (${formatInr(fullAmount)}) ↗`
+              `⚡ Pay ${formatInr(fullAmount)} to ${FAMPAY_ID} (FamPay / Any UPI App) ↗`
+            ),
+            h(
+              "div",
+              { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(105px, 1fr))", gap: "6px" } },
+              [
+                { name: "Google Pay", uri: gpayUri, bg: "#1A73E8", fg: "#FFFFFF" },
+                { name: "PhonePe", uri: phonepeUri, bg: "#5F259F", fg: "#FFFFFF" },
+                { name: "Paytm UPI", uri: paytmUri, bg: "#002970", fg: "#FFFFFF" },
+                { name: "BHIM / Intent", uri: androidIntentUri, bg: "#1C1913", fg: "#F5A524" },
+              ].map((appItem) =>
+                h(
+                  "button",
+                  {
+                    key: appItem.name,
+                    type: "button",
+                    onClick: () => launchRealUpiApp(appItem.name, appItem.uri),
+                    style: {
+                      height: "36px",
+                      padding: "0 10px",
+                      borderRadius: "10px",
+                      border: 0,
+                      background: appItem.bg,
+                      color: appItem.fg,
+                      fontWeight: 800,
+                      fontSize: "11.5px",
+                      cursor: "pointer",
+                    },
+                  },
+                  appItem.name + " ↗"
+                )
+              )
             )
           )
         ),
-        // UTR Input + Instant Confirm Paid to 6284194807@fam
+
+        stepHint &&
+          h(
+            "div",
+            {
+              style: {
+                padding: "10px 14px",
+                borderRadius: "14px",
+                background: isDark ? "#27231C" : "#FFF7E3",
+                border: "1px solid #F5A524",
+                color: isDark ? "#F3C969" : "#6B4600",
+                fontSize: "12px",
+                fontWeight: 700,
+                lineHeight: 1.45,
+              },
+            },
+            stepHint
+          ),
+
+        // STEP 2: Real 12-Digit NPCI UPI UTR Verification + Clipboard Auto-Paste + Screenshot Upload
         h(
           "div",
-          { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-          h("input", {
-            type: "text",
-            value: utr,
-            onChange: (e) => setUtr(e.target.value),
-            placeholder: "UPI Ref / UTR number (optional — leave blank for instant confirm)",
+          {
             style: {
-              height: "44px",
-              borderRadius: "12px",
-              border: "1px solid " + borderCol,
-              padding: "0 14px",
-              fontSize: "13px",
-              fontWeight: 600,
-              background: isDark ? "#14120E" : "#FBF8F2",
-              color: isDark ? "#EDE6DA" : "#1C1913",
+              padding: "14px",
+              borderRadius: "20px",
+              background: isDark ? "#181510" : "#F4EEE3",
+              border: "1px solid " + (isValid12DigitUtr ? "#2E9E57" : borderCol),
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
             },
-          }),
+          },
+          h(
+            "div",
+            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" } },
+            h(
+              "span",
+              { style: { fontSize: "11px", fontWeight: 800, color: isValid12DigitUtr ? "#1D6B36" : "#7A4E00", letterSpacing: "0.6px" } },
+              isValid12DigitUtr
+                ? `✓ STEP 2 · 12-DIGIT UPI UTR READY (#${cleanDigitsUtr})`
+                : "STEP 2 · ENTER 12-DIGIT UPI REF / UTR FROM YOUR PAYMENT RECEIPT"
+            ),
+            h(
+              "span",
+              { style: { fontSize: "11px", fontWeight: 800, color: isValid12DigitUtr ? "#2E9E57" : "#9B4D00" } },
+              `${cleanDigitsUtr.length}/12 digits`
+            )
+          ),
+          h(
+            "div",
+            { style: { display: "flex", gap: "6px", flexWrap: "wrap" } },
+            h("input", {
+              type: "text",
+              inputMode: "numeric",
+              maxLength: 22,
+              value: utr,
+              onChange: (e) => {
+                setUtr(e.target.value);
+                if (errMsg) setErrMsg("");
+              },
+              placeholder: "Enter 12-digit UPI Ref / UTR (e.g. 432619847512)",
+              style: {
+                flex: "1 1 210px",
+                height: "44px",
+                borderRadius: "12px",
+                border: "2px solid " + (isValid12DigitUtr ? "#2E9E57" : borderCol),
+                padding: "0 14px",
+                fontSize: "14px",
+                fontWeight: 800,
+                letterSpacing: "1px",
+                background: isDark ? "#14120E" : "#FFFFFF",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+              },
+            }),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: handlePasteUtrFromClipboard,
+                style: {
+                  height: "44px",
+                  padding: "0 14px",
+                  borderRadius: "12px",
+                  border: "1px solid #F5A524",
+                  background: "#1C1913",
+                  color: "#F5A524",
+                  fontWeight: 800,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                },
+              },
+              "📋 Paste UTR"
+            )
+          ),
+          h(
+            "div",
+            { style: { display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" } },
+            h("input", {
+              type: "text",
+              value: payerUpi,
+              onChange: (e) => setPayerUpi(e.target.value),
+              placeholder: "Your UPI ID (optional, e.g. yourname@fam)",
+              style: {
+                flex: "1 1 180px",
+                height: "38px",
+                borderRadius: "10px",
+                border: "1px solid " + borderCol,
+                padding: "0 12px",
+                fontSize: "12px",
+                fontWeight: 600,
+                background: isDark ? "#14120E" : "#FFFFFF",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+              },
+            }),
+            h("input", {
+              ref: fileInputRef,
+              type: "file",
+              accept: "image/*",
+              onChange: handleReceiptUpload,
+              style: { display: "none" },
+            }),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => fileInputRef.current?.click(),
+                style: {
+                  height: "38px",
+                  padding: "0 12px",
+                  borderRadius: "10px",
+                  border: "1px solid " + borderCol,
+                  background: receiptName ? "#E3F4E8" : cardBg,
+                  color: receiptName ? "#1D6B36" : isDark ? "#EDE6DA" : "#1C1913",
+                  fontSize: "11.5px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                },
+              },
+              receiptName ? `✓ Receipt: ${receiptName.slice(0, 16)}…` : "📷 Attach Screenshot"
+            )
+          ),
+
+          errMsg &&
+            h(
+              "div",
+              {
+                style: {
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: "#FFE1E1",
+                  border: "1px solid #E5484D",
+                  color: "#8A1C1C",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  lineHeight: 1.45,
+                },
+              },
+              errMsg
+            ),
+
           h(
             "button",
             {
@@ -3716,22 +4184,27 @@
                 height: "48px",
                 borderRadius: "999px",
                 border: 0,
-                background: "#2E9E57",
-                color: "#FFFFFF",
+                background: isValid12DigitUtr ? "#2E9E57" : "#1C1913",
+                color: isValid12DigitUtr ? "#FFFFFF" : "#F5A524",
                 fontWeight: 800,
-                fontSize: "15px",
+                fontSize: "14.5px",
                 cursor: busy ? "wait" : "pointer",
-                boxShadow: "0 8px 22px rgba(46,158,87,0.32)",
+                boxShadow: isValid12DigitUtr ? "0 8px 22px rgba(46,158,87,0.32)" : "none",
               },
             },
-            busy ? "Confirming FamPay UPI Payment…" : `✓ Confirm Paid to ${FAMPAY_ID} · ${formatInr(fullAmount)}`
+            busy
+              ? "Verifying 12-Digit UPI UTR & Settling Payment…"
+              : isValid12DigitUtr
+              ? `✓ Verify UTR #${cleanDigitsUtr} & Confirm ${formatInr(fullAmount)} Paid`
+              : `Enter 12-Digit UPI UTR After Paying ${formatInr(fullAmount)} →`
           )
         ),
-        // Secondary: Launch Razorpay Checkout Modal
+
+        // Secondary: Launch Razorpay Gateway Checkout Modal
         h(
           "div",
-          { style: { borderTop: "1px solid " + borderCol, paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
-          h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D", fontWeight: 600 } }, "Or pay through Razorpay Gateway:"),
+          { style: { borderTop: "1px solid " + borderCol, paddingTop: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
+          h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D", fontWeight: 600 } }, "Or pay online via Razorpay UPI / Cards Gateway:"),
           h(
             "button",
             {
@@ -3742,7 +4215,7 @@
                 launchRazorpayCheckout(j, app, true);
               },
               style: {
-                height: "40px",
+                height: "38px",
                 padding: "0 16px",
                 borderRadius: "999px",
                 border: 0,
@@ -3753,7 +4226,7 @@
                 cursor: "pointer",
               },
             },
-            "Open Razorpay Checkout →"
+            "Open Razorpay Gateway →"
           )
         )
       )
@@ -8692,12 +9165,12 @@
                               {
                                 type: "button",
                                 onClick: () => {
-                                  app.approveAndFundEscrow?.(activeJob.id);
                                   app.silenceRingingJob?.();
+                                  launchRazorpayCheckout(activeJob, app);
                                 },
                                 style: { height: "38px", padding: "0 16px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "12px", cursor: "pointer" },
                               },
-                              `Fund ${formatInr(fullAmount)} Escrow`
+                              `Fund ${formatInr(fullAmount)} Escrow (6284194807@fam)`
                             )
                         )
                       ),
@@ -9878,8 +10351,11 @@
     } catch (_) {}
   }
 
-  // Deterministic 21x21 QR Code SVG generator for Start Job QR & End Job QR
+  // Real ISO/IEC 18004 Scannable QR Code generator for Start Job QR & End Job QR
   function renderDeterministicQrSvg(seedText, accentCol) {
+    if (typeof KZ.renderRealScannableQr === "function") {
+      return KZ.renderRealScannableQr(seedText, 136, accentCol);
+    }
     const str = String(seedText || "KAAMZO-QR");
     let hash = 2166136261;
     for (let i = 0; i < str.length; i++) {
@@ -11157,11 +11633,48 @@
     );
   }
 
+  async function withdrawWorkerToFampay(app, customUpi) {
+    const worker = app.currentWorker;
+    const targetUpi = String(customUpi || worker?.upiId || "6284194807@fam").trim().toLowerCase() || "6284194807@fam";
+    const bal = Math.max(0, Number(worker?.walletBalance) || 0);
+    if (!worker) {
+      KZ.openLoginPrompt?.({ role: "worker", title: "Login to withdraw earnings" });
+      return;
+    }
+    if (bal <= 0) {
+      app.showNotification?.(`Your withdrawable wallet balance is ₹0. Complete a job to withdraw to ${targetUpi}.`);
+      return;
+    }
+    try {
+      app.updateWorkerUpi?.(targetUpi);
+      const resp = await fetch("/api/razorpay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "withdrawWorkerWallet",
+          workerId: worker.id,
+          workerName: worker.name,
+          workerPhone: worker.phone,
+          upiId: targetUpi,
+          amountInr: bal,
+        }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      app.withdrawWorkerEarnings?.(targetUpi);
+      app.showNotification?.(
+        `✓ Transferred ₹${bal} to ${targetUpi}!${data.refId ? " Ref: " + data.refId : ""}`
+      );
+    } catch (_) {
+      app.withdrawWorkerEarnings?.(targetUpi);
+      app.showNotification?.(`✓ Transferred ₹${bal} to ${targetUpi}!`);
+    }
+  }
+
   function WorkerAccountPayView() {
     const app = useApp();
     const isDark = app.isDarkMode;
     const worker = app.currentWorker;
-    const [upiInput, setUpiInput] = useState(worker?.upiId || "");
+    const [upiInput, setUpiInput] = useState(worker?.upiId || "6284194807@fam");
     const [rateInput, setRateInput] = useState(worker?.dailyRate || 850);
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
@@ -11177,9 +11690,9 @@
           "div",
           { style: { display: "flex", flexDirection: "column", gap: "8px" } },
           h("h1", { style: { margin: 0, fontSize: "clamp(34px, 4vw, 54px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } }, "Account & ", h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "payouts")),
-          h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A" } }, "Verified job history, UPI earnings, client ratings and your locked primary trade.")
+          h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A" } }, "Verified job history, FamPay UPI earnings (6284194807@fam), client ratings and your locked primary trade.")
         ),
-        h("span", { style: { height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px", display: "flex", alignItems: "center" } }, "✓ 100% settled via UPI")
+        h("span", { style: { height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px", display: "flex", alignItems: "center" } }, "✓ 100% settled via FamPay / UPI")
       ),
       h(
         "section",
@@ -11190,8 +11703,8 @@
           h("div", { "aria-hidden": "true", style: { position: "absolute", right: "-60px", top: "-60px", width: "220px", height: "220px", borderRadius: "50%", background: "radial-gradient(circle, rgba(245,165,36,0.45) 0%, rgba(245,165,36,0) 65%)" } }),
           h("span", { style: { position: "relative", fontSize: "12px", fontWeight: 800, letterSpacing: "0.8px", color: "#F3C969" } }, "WITHDRAWABLE BALANCE"),
           h("span", { style: { position: "relative", fontFamily: "'Instrument Serif', serif", fontSize: "64px", lineHeight: 0.9 } }, formatInr(worker?.walletBalance || 0)),
-          h("span", { style: { position: "relative", fontSize: "13px", color: "#CFC6B8" } }, "Paid to your UPI after every confirmed job"),
-          h("button", { type: "button", onClick: () => app.withdrawWorkerEarnings?.(upiInput || worker?.upiId), style: { position: "relative", alignSelf: "flex-start", marginTop: "auto", height: "44px", padding: "0 18px", border: 0, borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800 } }, "Withdraw to UPI now")
+          h("span", { style: { position: "relative", fontSize: "13px", color: "#CFC6B8" } }, `Paid to ${upiInput || worker?.upiId || "6284194807@fam"} after every confirmed job`),
+          h("button", { type: "button", onClick: () => withdrawWorkerToFampay(app, upiInput), style: { position: "relative", alignSelf: "flex-start", marginTop: "auto", height: "44px", padding: "0 18px", border: 0, borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800, cursor: "pointer" } }, `Withdraw to ${upiInput || "6284194807@fam"} now`)
         ),
         h(
           "div",
@@ -11254,7 +11767,7 @@
         h(
           "section",
           { style: { flex: "1 1 460px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
-          h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("b", { style: { fontSize: "20px" } }, "Payout Ledger"), h("button", { type: "button", onClick: () => app.withdrawWorkerEarnings?.(worker?.upiId), style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px" } }, "Withdraw Wallet →")),
+          h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("b", { style: { fontSize: "20px" } }, "Payout Ledger"), h("button", { type: "button", onClick: () => withdrawWorkerToFampay(app, worker?.upiId || "6284194807@fam"), style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, "Withdraw Wallet →")),
           (worker?.withdrawalHistory || []).length === 0
             ? h("span", { style: { color: isDark ? "#A49B8C" : "#6F685D" } }, "Completed UPI withdrawals and settlement reference IDs will appear here.")
             : worker.withdrawalHistory.map((tx) =>

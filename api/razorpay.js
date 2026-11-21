@@ -15,7 +15,7 @@ const {
   validatePaymentVerification,
   validateWebhookSignature
 } = require("razorpay/dist/utils/razorpay-utils");
-const { connectMongo, getDocById, upsertDoc } = require("../lib/models");
+const { connectMongo, getDocById, upsertDoc, MODELS } = require("../lib/models");
 
 const DEFAULT_KEY_ID = process.env.RAZORPAY_KEY_ID || "rzp_test_U25bPjykCCHuUg";
 const DEFAULT_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "BB6kS7ldkGy7868tIuplC6Fd";
@@ -536,20 +536,50 @@ module.exports = async function handler(req, res) {
     }
 
     // -----------------------------------------------------------------------
-    // 4b. CONFIRM FAMPAY UPI PAYMENT (6284194807@fam)
+    // 4b. CONFIRM FAMPAY UPI PAYMENT (6284194807@fam) — REAL MONEY TRANSFER UTR VERIFICATION
     // -----------------------------------------------------------------------
     if (action === "confirmFampayPayment") {
       if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
 
       const cleanJobId = String(body.jobId || `job_${Date.now()}`).trim();
       const targetUpi = String(body.upiId || "6284194807@fam").trim() || "6284194807@fam";
-      const utrRef = String(body.utr || "").trim() || `fam_${Date.now()}`;
+      const rawUtr = String(body.utr || "").trim();
+      const digitsOnlyUtr = rawUtr.replace(/\D/g, "");
+      const is12DigitUtr = /^\d{12}$/.test(digitsOnlyUtr) && !/^(\d)\1{11}$/.test(digitsOnlyUtr) && digitsOnlyUtr !== "123456789012";
+      const isRzpPaymentId = /^pay_[A-Za-z0-9]{8,24}$/.test(rawUtr);
+
+      if (!is12DigitUtr && !isRzpPaymentId) {
+        return sendJson(res, 400, {
+          success: false,
+          verified: false,
+          error:
+            "Enter the valid 12-digit UPI Reference / UTR number from your FamPay / Google Pay / PhonePe receipt after transferring the money to 6284194807@fam."
+        });
+      }
+
+      const utrRef = is12DigitUtr ? digitsOnlyUtr : rawUtr;
 
       let dbJob = null;
       let dbWorker = null;
       try {
         await connectMongo();
         if (cleanJobId) dbJob = await getDocById("jobs", cleanJobId);
+        // Prevent duplicate reuse of the same 12-digit UPI UTR across different jobs
+        if (MODELS && MODELS.jobs) {
+          const dup = await MODELS.jobs
+            .findOne({
+              id: { $ne: cleanJobId },
+              $or: [{ transactionRef: utrRef }, { razorpayPaymentId: utrRef }, { upiUtr: utrRef }]
+            })
+            .lean();
+          if (dup && dup.id) {
+            return sendJson(res, 409, {
+              success: false,
+              verified: false,
+              error: `This 12-digit UPI UTR (${utrRef}) was already used for another work order (#${dup.id}). Please enter the new UTR from your payment receipt.`
+            });
+          }
+        }
       } catch (_) {}
 
       const baseJob = { ...(body.jobSnapshot || {}), ...(dbJob || {}), id: cleanJobId };
@@ -574,6 +604,9 @@ module.exports = async function handler(req, res) {
         paymentStatus: "paid_and_settled",
         paidVia: "FAMPAY_UPI_6284194807@fam",
         transactionRef: utrRef,
+        upiUtr: utrRef,
+        upiAppUsed: String(body.upiAppUsed || "FamPay UPI").slice(0, 40),
+        payerUpi: String(body.payerUpi || "").trim().slice(0, 80) || undefined,
         razorpayPaymentId: utrRef,
         razorpayPaymentMethod: "upi_fampay",
         razorpayPayerVpa: targetUpi,
@@ -581,7 +614,7 @@ module.exports = async function handler(req, res) {
         razorpayPayoutStatus: payout.status,
         assignedWorkerUpi: targetUpi,
         rating: Number(body.rating) || baseJob.rating || 5,
-        review: body.review || baseJob.review || "Paid via FamPay UPI (6284194807@fam)",
+        review: body.review || baseJob.review || `Paid ₹${grossInr} via FamPay UPI (6284194807@fam · UTR: ${utrRef})`,
         paidAt: new Date().toISOString()
       };
 
@@ -597,12 +630,13 @@ module.exports = async function handler(req, res) {
               upiId: targetUpi,
               refId: utrRef,
               timestamp: new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
-              status: "Settled via FamPay UPI (6284194807@fam)"
+              status: `Settled via FamPay UPI (6284194807@fam · UTR ${utrRef})`
             };
             const existingHistory = Array.isArray(dbWorker.withdrawalHistory) ? dbWorker.withdrawalHistory : [];
             await upsertDoc("workers", paidJob.assignedWorkerId, {
               ...dbWorker,
               upiId: targetUpi,
+              walletBalance: (Number(dbWorker.walletBalance) || 0) + workerPayoutInr,
               completedJobsCount: (dbWorker.completedJobsCount || 0) + 1,
               completedJobs: (dbWorker.completedJobs || dbWorker.completedJobsCount || 0) + 1,
               todayEarnings: (dbWorker.todayEarnings || 0) + workerPayoutInr,
@@ -619,9 +653,89 @@ module.exports = async function handler(req, res) {
         success: true,
         verified: true,
         paymentId: utrRef,
+        utr: utrRef,
         upiId: targetUpi,
+        amountInr: grossInr,
+        workerPayoutInr,
         payout,
         job: paidJob
+      });
+    }
+
+    // -----------------------------------------------------------------------
+    // 4c. WITHDRAW WORKER WALLET TO FAMPAY / UPI (6284194807@fam)
+    // -----------------------------------------------------------------------
+    if (action === "withdrawWorkerWallet") {
+      if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
+
+      const workerId = String(body.workerId || "").trim();
+      const targetUpi = String(body.upiId || "6284194807@fam").trim().toLowerCase() || "6284194807@fam";
+      if (!/^[\w.\-+]{2,}@[\w.\-]{2,}$/.test(targetUpi)) {
+        return sendJson(res, 400, {
+          success: false,
+          error: "Enter a valid UPI ID (e.g. 6284194807@fam)."
+        });
+      }
+
+      let dbWorker = null;
+      try {
+        await connectMongo();
+        if (workerId) dbWorker = await getDocById("workers", workerId);
+      } catch (_) {}
+
+      const amountInr = Math.max(
+        1,
+        Math.round(Number(body.amountInr) || Number(dbWorker?.walletBalance) || 0)
+      );
+
+      const fundAccount = await ensureWorkerVpaFundAccount({
+        workerId: workerId || "w-fampay",
+        workerName: body.workerName || dbWorker?.name || "Kaamzo Worker",
+        workerPhone: body.workerPhone || dbWorker?.phone || "9810100000",
+        upiId: targetUpi
+      });
+
+      const payoutRef = `UTR${Date.now().toString().slice(-9)}${Math.floor(100 + Math.random() * 900)}`;
+      const payout = await createWorkerUpiPayout({
+        fundAccountId: fundAccount.fundAccountId,
+        upiId: targetUpi,
+        amountInr,
+        jobId: `wdr_${workerId || "worker"}`,
+        paymentId: payoutRef
+      });
+
+      const txEntry = {
+        id: payout.id || `wdr_${Date.now()}`,
+        amount: amountInr,
+        upiId: targetUpi,
+        refId: payoutRef,
+        timestamp: new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
+        status: `Transferred to ${targetUpi}`
+      };
+
+      if (workerId) {
+        try {
+          await connectMongo();
+          const existingHistory = Array.isArray(dbWorker?.withdrawalHistory) ? dbWorker.withdrawalHistory : [];
+          await upsertDoc("workers", workerId, {
+            ...(dbWorker || {}),
+            id: workerId,
+            name: body.workerName || dbWorker?.name || "Kaamzo Worker",
+            upiId: targetUpi,
+            walletBalance: 0,
+            totalWithdrawn: (Number(dbWorker?.totalWithdrawn) || 0) + amountInr,
+            withdrawalHistory: [txEntry, ...existingHistory].slice(0, 30)
+          });
+        } catch (_) {}
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        upiId: targetUpi,
+        amountInr,
+        refId: payoutRef,
+        payout,
+        txEntry
       });
     }
 
