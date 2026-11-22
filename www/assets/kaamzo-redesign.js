@@ -4918,14 +4918,14 @@
             {
               style: {
                 margin: 0,
-                fontSize: "clamp(52px, 8.4vw, 116px)",
-                lineHeight: 0.95,
-                letterSpacing: "-3px",
+                fontSize: "clamp(40px, 6.4vw, 88px)",
+                lineHeight: 1.0,
+                letterSpacing: "-2px",
                 fontWeight: 800,
                 maxWidth: "1000px",
               },
             },
-            "Kaam ",
+            "Ghar ka kaam, ",
             h(
               "span",
               {
@@ -4936,7 +4936,7 @@
                   letterSpacing: "-1px",
                 },
               },
-              "ho jayega."
+              "Kaamzo ke naam."
             )
           ),
           h(
