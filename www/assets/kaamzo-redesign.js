@@ -2770,6 +2770,7 @@
     navigate,
     useRoute,
     launchRazorpayCheckout,
+    validateUpiSmart,
   });
 
   Object.assign(KZ.components, {
@@ -2782,6 +2783,7 @@
     HelpAndSupportFloating,
     KaamzoFooter,
     JobProgressPipeline,
+    UpiStatusLine,
   });
 
   function FallbackView({ path }) {
@@ -4562,8 +4564,8 @@
   const KZ = window.__KZ_REDESIGN__;
   const U = KZ.utils;
   const C = KZ.components;
-  const { h, useApp, useState, useEffect, useRef, ICON_PATHS, TRADES, getLiveTradeRate, formatInr, navigate } = U;
-  const { HeroWorkSceneSvg, TradeIllustration, SvgIcon, TopUtilityBar, KaamzoFooter } = C;
+  const { h, useApp, useState, useEffect, useRef, ICON_PATHS, TRADES, getLiveTradeRate, formatInr, navigate, validateUpiSmart } = U;
+  const { HeroWorkSceneSvg, TradeIllustration, SvgIcon, TopUtilityBar, KaamzoFooter, UpiStatusLine } = C;
 
   // =========================================================================
   // HOME PAGE (/) — pixel-exact port of home/index.html
@@ -9279,7 +9281,7 @@
                     },
                     style: { height: "54px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "16px", cursor: "pointer", marginTop: "4px" },
                   },
-                  `Broadcast Job Now · ${formatInr(baseLabor)} →`
+                  `Broadcast Job Now · ${formatInr(totalCustomer)} →`
                 ),
                 h("span", { style: { fontSize: "12px", color: "#CFC6B8", lineHeight: 1.5 } }, "Payment releases to worker UPI only after Start & End QR completion check.")
               )
@@ -10680,8 +10682,9 @@
     isJobWithin10Km,
     getJobDistanceKm,
     navigate,
+    validateUpiSmart,
   } = U;
-  const { SvgIcon, TopUtilityBar, KaamzoFooter, JobProgressPipeline } = C;
+  const { SvgIcon, TopUtilityBar, KaamzoFooter, JobProgressPipeline, UpiStatusLine } = C;
 
   // Check if worker is blocked by Admin or under 24-hour offline penalty after rejecting an accepted job
   function getWorkerRestriction(worker) {
@@ -10758,33 +10761,12 @@
   async function acceptJobForWorker(job, app) {
     if (!job || !app) return;
 
-    // 1. Resolve or auto-activate a verified worker so 1-Tap Accept never fails silently
-    let w = app.currentWorker;
+    // 1. Require an authenticated worker account — never impersonate another worker
+    const w = app.currentWorker;
     if (!w) {
-      const pool = Array.isArray(app.workers) ? app.workers : [];
-      const jTrade = normalizeTrade(job.trade);
-      w =
-        pool.find((cand) => cand && !cand.isBlocked && !cand.isBanned && normalizeTrade(cand.primaryTrade) === jTrade) ||
-        pool.find((cand) => cand && !cand.isBlocked && !cand.isBanned) || {
-          id: "w-live-" + Date.now().toString().slice(-4),
-          name: "Gurpreet Singh",
-          phone: "+91 98101 55678",
-          primaryTrade: job.trade || "Plumber",
-          dailyRate: job.dailyWage || 850,
-          isVerified: true,
-          isOnline: true,
-          upiId: "6284194807@fam",
-          area: job.area || "Model Town",
-          city: "Ludhiana",
-          location: { area: job.area || "Model Town", city: "Ludhiana", distanceKm: 1.2 },
-          gpsLocation: { lat: 30.8926, lng: 75.8415, area: job.area || "Model Town", city: "Ludhiana" },
-        };
-      w.isVerified = true;
-      w.isOnline = true;
-      try {
-        localStorage.setItem("kaamzo_current_worker_v8", JSON.stringify(w));
-      } catch (_) {}
-      app.loginWorker?.(w);
+      app.showNotification?.("Please sign in or register as a verified worker to accept jobs.");
+      navigate("/register", { role: "register" });
+      return;
     }
 
     // 2. Check Admin Block or 24-Hour Offline Penalty
@@ -13609,7 +13591,7 @@
   const KZ = window.__KZ_REDESIGN__;
   const U = KZ.utils;
   const C = KZ.components;
-  const { h, useApp, useState, useMemo, getCtx, navigate } = U;
+  const { h, useApp, useState, useMemo, getCtx, navigate, formatInr } = U;
   const { TopUtilityBar, KaamzoFooter } = C;
 
   KZ.views.AdminPortal = function AdminPortal() {
@@ -14055,8 +14037,8 @@
           )
         ),
 
-        // LIVE REVENUE EARNED & ADMIN COMMISSION (20%) SIDE-BY-SIDE DASHBOARD
-        h(
+        // LIVE REVENUE EARNED & ADMIN COMMISSION (20%) SIDE-BY-SIDE DASHBOARD (Gated behind verified Admin login)
+        Boolean(app.currentAdmin) && h(
           "section",
           {
             style: {
@@ -14392,9 +14374,9 @@
           )
         ),
 
-        // Worker Policy Compliance & Block/Ban Console (CTO Policy Enforcement)
+        // Worker Policy Compliance & Block/Ban Console (CTO Policy Enforcement — Gated behind verified Admin login)
         h("style", null, `[title="Reset Platform Records"] { display: none !important; }`),
-        h(
+        Boolean(app.currentAdmin) && h(
           "section",
           {
             style: {

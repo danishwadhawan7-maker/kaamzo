@@ -105,7 +105,7 @@ async function findAccountDocs(identifier, role = "") {
   return decrypted;
 }
 
-function sanitizePublicDoc(collectionName, doc) {
+function sanitizePublicDoc(collectionName, doc, allowPrivateKyc = false) {
   if (!doc || typeof doc !== "object") return doc;
   const copy = { ...doc };
   delete copy.phoneHash;
@@ -117,6 +117,14 @@ function sanitizePublicDoc(collectionName, doc) {
   if (collectionName === "accounts") {
     delete copy.passwordHash;
     delete copy.password;
+  }
+  if (!allowPrivateKyc && (collectionName === "workers" || collectionName === "verifications")) {
+    delete copy.aadhaarNumber;
+    delete copy.aadhaar;
+    delete copy.aadhaarFrontPhoto;
+    delete copy.aadhaarBackPhoto;
+    delete copy.emergencyContactPhone;
+    delete copy.emergencyContactName;
   }
   return copy;
 }
@@ -196,6 +204,13 @@ module.exports = async function handler(req, res, io = null) {
 
     const authResult = await verifyFirebaseIdToken(req, body);
     const isAdmin = hasValidAdminCookie(req);
+    const adminEmailsList = (process.env.ADMIN_EMAILS || "bhavnoorsinghkochar@gmail.com,danishwadhawan7@gmail.com")
+      .split(",")
+      .map((s) => s.trim().toLowerCase());
+    const isFirebaseAdmin = Boolean(
+      authResult.verified && authResult.email && adminEmailsList.includes(authResult.email.toLowerCase())
+    );
+    const isPrivilegedAdmin = isAdmin || isFirebaseAdmin;
 
     // 1. Health & Encryption Status Check
     if (action === "health") {
@@ -343,7 +358,7 @@ module.exports = async function handler(req, res, io = null) {
         success: true,
         collection,
         count: docs.length,
-        docs: docs.map((d) => sanitizePublicDoc(collection, d))
+        docs: docs.map((d) => sanitizePublicDoc(collection, d, isPrivilegedAdmin))
       });
     }
 
@@ -357,7 +372,7 @@ module.exports = async function handler(req, res, io = null) {
         success: true,
         collection,
         exists: !!doc,
-        doc: sanitizePublicDoc(collection, doc)
+        doc: sanitizePublicDoc(collection, doc, isPrivilegedAdmin)
       });
     }
 
