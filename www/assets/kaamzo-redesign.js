@@ -261,6 +261,61 @@
     return typeof job.distanceKm === "number" ? job.distanceKm : 1.8;
   }
 
+  // Deduplicate worker records (prevents repeated cards when the same person registers multiple times during testing)
+  function dedupeWorkersList(list) {
+    if (!Array.isArray(list) || list.length === 0) return [];
+    const seenByKey = new Map();
+    const scoreWorker = (w) => {
+      let s = 0;
+      if (w.isOnline) s += 4;
+      if (w.isVerified) s += 3;
+      if (w.photoUrl || w.avatar) s += 2;
+      if (w.aadhaarFrontPhoto && w.aadhaarBackPhoto) s += 2;
+      if (w.syncedAt) s += 1;
+      return s;
+    };
+    for (let i = 0; i < list.length; i++) {
+      const w = list[i];
+      if (!w || !w.name) continue;
+      const cleanName = String(w.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const cleanTrade = normalizeTrade(w.primaryTrade || w.trade || "");
+      const rawPhone = String(w.phone || "").replace(/[^0-9]/g, "").slice(-10);
+      const validPhone =
+        rawPhone.length === 10 && rawPhone !== "9810100000" && rawPhone !== "9999999999" ? rawPhone : "";
+      const cleanEmail = String(w.email || "").trim().toLowerCase();
+
+      // Primary dedupe key: exact (name + trade), plus secondary lookup by phone/email
+      const nameTradeKey = `nt:${cleanName}|${cleanTrade}`;
+      const phoneKey = validPhone ? `ph:${validPhone}|${cleanTrade}` : null;
+      const emailKey = cleanEmail ? `em:${cleanEmail}|${cleanTrade}` : null;
+
+      const existing =
+        seenByKey.get(nameTradeKey) ||
+        (phoneKey && seenByKey.get(phoneKey)) ||
+        (emailKey && seenByKey.get(emailKey));
+
+      if (!existing) {
+        seenByKey.set(nameTradeKey, w);
+        if (phoneKey) seenByKey.set(phoneKey, w);
+        if (emailKey) seenByKey.set(emailKey, w);
+      } else if (scoreWorker(w) >= scoreWorker(existing)) {
+        seenByKey.set(nameTradeKey, w);
+        if (phoneKey) seenByKey.set(phoneKey, w);
+        if (emailKey) seenByKey.set(emailKey, w);
+      }
+    }
+    const out = [];
+    const addedIds = new Set();
+    seenByKey.forEach((w) => {
+      const uid = String(w.id || w.name + "|" + w.primaryTrade);
+      if (!addedIds.has(uid)) {
+        addedIds.add(uid);
+        out.push(w);
+      }
+    });
+    return out;
+  }
+
   const NPCI_UPI_HANDLES = {
     fam: "FamPay",
     okaxis: "Google Pay (Axis)",
@@ -2746,6 +2801,7 @@
     nextMilestoneTarget,
     isJobWithin10Km,
     getJobDistanceKm,
+    dedupeWorkersList,
     getCustomerAccountKey,
     rememberCustomerJob,
     recordCustomerPayment,
@@ -4558,7 +4614,7 @@
     const isDark = app.isDarkMode;
     const [searchText, setSearchText] = useState("");
 
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
 
     const flowers = U.useMemo(() => {
       const list = [];
@@ -7711,7 +7767,7 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const cust = app.currentCustomer;
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
     const jobs = app.jobs || [];
 
     const myCustomerJobs = useMemo(() => {
@@ -7736,7 +7792,7 @@
     };
 
     const filteredWorkers = useMemo(() => {
-      return workers
+      return U.dedupeWorkersList(workers)
         .map((w) => {
           const wGps = w.gpsLocation || {};
           const km =
@@ -8748,7 +8804,7 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const cust = app.currentCustomer;
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
 
     const prefill = KZ.prefillPostJob || null;
     const [trade, setTrade] = useState(() => prefill?.trade || "Plumber");
@@ -10056,7 +10112,7 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const cust = app.currentCustomer;
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
     const jobs = app.jobs || [];
 
     const pastPros = useMemo(() => {
@@ -10387,7 +10443,7 @@
   function CustomerMapRadarView() {
     const app = useApp();
     const isDark = app.isDarkMode;
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
     const [tab, setTab] = useState("radar"); // "map" | "radar"
     const nearby = workers.filter((w) => w.isVerified !== false).slice(0, 12);
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
@@ -10496,7 +10552,7 @@
   function CustomerScanChatView() {
     const app = useApp();
     const isDark = app.isDarkMode;
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
 
     const [badgeInput, setBadgeInput] = useState("");
     const [matchedWorker, setMatchedWorker] = useState(null);
@@ -13605,7 +13661,7 @@
     const [policySearch, setPolicySearch] = useState("");
     const [blockTick, setBlockTick] = useState(0);
 
-    const workers = app.workers || [];
+    const workers = U.dedupeWorkersList(app.workers || []);
     const verifiedCount = workers.filter((w) => w.isVerified).length;
     const activeJobsCount = (app.jobs || []).filter((j) =>
       ["broadcast", "accepted", "approved", "in_progress"].includes(j.status)
