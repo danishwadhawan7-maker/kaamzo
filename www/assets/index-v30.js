@@ -5455,7 +5455,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
     const completedJobs = workerJobs.filter(j => j.status === "completed" || j.status === "paid_and_closed" || j.escrowStatus === "released" || j.isPaid);
     
     const grossRevenue = completedJobs.reduce((acc, j) => acc + ((j.dailyWage || worker.dailyRate || 650) * (j.durationDays || 1)), 0);
-    const commissionEarned = completedJobs.reduce((acc, j) => acc + (j.platformFee || Math.round((j.dailyWage || worker.dailyRate || 650) * 0.10)), 0);
+    const commissionEarned = completedJobs.reduce((acc, j) => acc + (j.platformFee || Math.round((j.dailyWage || worker.dailyRate || 650) * 0.20)), 0);
     const walletMoney = worker.walletBalance || 0;
     const todayEarn = worker.todayEarnings || 0;
     const customersFulfilled = completedJobs.length;
@@ -5467,7 +5467,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
       customerName: j.customerName || "Customer",
       date: j.createdAt ? new Date(j.createdAt).toLocaleDateString("en-IN") :"Recent Order",
       wage: j.dailyWage || worker.dailyRate || 650,
-      commission: j.platformFee || Math.round((j.dailyWage || worker.dailyRate || 650) * 0.10),
+      commission: j.platformFee || Math.round((j.dailyWage || worker.dailyRate || 650) * 0.20),
       rating: j.rating || 5,
       review: j.review || "Punctual, skillful, and verified work."
     }));
@@ -6131,7 +6131,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                     children: [
                       r.jsx("span", { className:"text-[10px] font-bold text-[#6F685D] uppercase tracking-wider", children:"Commission Earned" }),
                       r.jsx("p", { className:"text-lg font-black text-[#7A4E00] dark:text-amber-400 font-mono", children:"₹" + totalPlatformCommissionFromWorkers.toLocaleString("en-IN") }),
-                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"10% Platform Revenue" })
+                      r.jsx("p", { className:"text-[10px] text-[#6F685D]", children:"20% Platform Revenue" })
                     ]
                   }),
                   r.jsxs("div", {
@@ -6370,7 +6370,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                 children: [
                                   r.jsx("span", { className:"text-[#6F685D] text-[10px] block font-semibold", children:"Commission Earned" }),
                                   r.jsxs("p", { className:"font-mono font-black text-[#7A4E00] dark:text-amber-400 text-xs", children: ["₹", wrk.commissionEarned.toLocaleString("en-IN")] }),
-                                  r.jsx("p", { className:"text-[9px] text-[#6F685D]", children:"10% Platform Fee" })
+                                  r.jsx("p", { className:"text-[9px] text-[#6F685D]", children:"20% Platform Fee" })
                                 ]
                               }),
                               r.jsxs("div", {
@@ -6426,7 +6426,7 @@ end`};e.events.push(["putFont",function(o){(function(c){var u=c.font,d=c.out,x=c
                                     className:"flex items-center justify-between text-[11px] bg-[#FBF8F2] dark:bg-[#27231C] px-2.5 py-1 rounded-lg text-[#4A443A] dark:text-slate-300 font-mono",
                                     children: [
                                       r.jsxs("span", { children: ["Wage Earned: ₹", ord.wage || wrk.dailyRate] }),
-                                      r.jsxs("span", { children: ["Commission Deducted: ₹", ord.commission || Math.round((ord.wage || wrk.dailyRate) * 0.10)] })
+                                      r.jsxs("span", { children: ["Commission Deducted: ₹", ord.commission || Math.round((ord.wage || wrk.dailyRate) * 0.20)] })
                                     ]
                                   }),
                                   ord.review && r.jsxs("p", {

@@ -13619,14 +13619,120 @@
     const LegacyAdmin = ctx && ctx.LegacyAdmin;
     const [policySearch, setPolicySearch] = useState("");
     const [blockTick, setBlockTick] = useState(0);
+    const [ledgerFilter, setLedgerFilter] = useState("paid_or_escrow");
+    const [ledgerSearch, setLedgerSearch] = useState("");
 
     const workers = U.dedupeWorkersList(app.workers || []);
+    const allJobs = Array.isArray(app.jobs) ? app.jobs : [];
     const verifiedCount = workers.filter((w) => w.isVerified).length;
-    const activeJobsCount = (app.jobs || []).filter((j) =>
+    const activeJobsCount = allJobs.filter((j) =>
       ["broadcast", "accepted", "approved", "in_progress"].includes(j.status)
     ).length;
     const pendingKycCount = (app.verifications || []).filter((v) => v.status === "pending").length;
     const openDisputesCount = (app.disputes || []).filter((d) => d.status !== "resolved").length;
+
+    // Live Side-by-Side Revenue Earned & Admin Commission (20%) Analytics
+    const financeData = useMemo(() => {
+      const workerById = new Map();
+      workers.forEach((w) => {
+        if (w && w.id) workerById.set(w.id, w);
+      });
+
+      const rows = allJobs.map((j) => {
+        const w = j.acceptedWorkerId ? workerById.get(j.acceptedWorkerId) : null;
+        const days = Math.max(1, Number(j.durationDays || 1));
+        const dailyWage = Number(j.dailyWage || j.rate || (w && w.dailyRate) || 650);
+        const baseLabor = Math.round(dailyWage * days);
+        const isZeroComm = Boolean(j.zeroCommissionApplied);
+        const explicitFee = Number(j.platformFee || 0);
+        const adminCommission = isZeroComm ? 0 : (explicitFee > 0 ? Math.round(explicitFee) : Math.round(baseLabor * 0.2));
+        const explicitTotal = Number(j.totalAmount || j.escrowAmount || 0);
+        const revenueEarned = explicitTotal > 0 ? Math.round(explicitTotal) : baseLabor + adminCommission;
+        const workerShare = Math.max(0, revenueEarned - adminCommission);
+
+        const isSettled =
+          j.status === "completed" ||
+          j.status === "paid_and_closed" ||
+          Boolean(j.isPaid) ||
+          j.escrowStatus === "released";
+        const isEscrowHeld =
+          !isSettled &&
+          (Boolean(j.isEscrowPrepaid) ||
+            j.escrowStatus === "held" ||
+            j.escrowStatus === "funded" ||
+            Boolean(j.fampayUtr || j.utr || j.upiRef || j.razorpayPaymentId));
+
+        const utr = j.fampayUtr || j.utr || j.upiRef || j.razorpayPaymentId || j.paymentId || "";
+        const paymentState = isSettled ? "settled" : isEscrowHeld ? "escrow" : "unpaid";
+
+        return {
+          id: j.id || ("JOB-" + Math.random().toString(36).slice(2, 6)),
+          trade: j.trade || j.category || "Worker",
+          area: j.area || j.location || "Ludhiana",
+          customerName: j.customerName || j.customerEmail || "Customer",
+          workerName: j.acceptedWorkerName || (w && w.name) || "Awaiting Worker",
+          status: j.status || "broadcast",
+          paymentState,
+          isSettled,
+          isEscrowHeld,
+          isZeroComm,
+          baseLabor,
+          revenueEarned,
+          adminCommission,
+          workerShare,
+          utr,
+          createdAt: j.paidAt || j.completedAt || j.updatedAt || j.createdAt || j.startDate || "",
+        };
+      });
+
+      const settledRows = rows.filter((r) => r.isSettled);
+      const escrowRows = rows.filter((r) => r.isEscrowHeld);
+      const paidOrEscrowRows = rows.filter((r) => r.isSettled || r.isEscrowHeld);
+
+      const subRevenue = Math.round(Number(app.adminSubscriptionRevenue || 0));
+      const settledRevenue = settledRows.reduce((s, r) => s + r.revenueEarned, 0);
+      const escrowRevenue = escrowRows.reduce((s, r) => s + r.revenueEarned, 0);
+      const totalRevenueEarned = settledRevenue + escrowRevenue + subRevenue;
+
+      const settledCommission = settledRows.reduce((s, r) => s + r.adminCommission, 0);
+      const escrowCommission = escrowRows.reduce((s, r) => s + r.adminCommission, 0);
+      const totalAdminCommission = settledCommission + escrowCommission + subRevenue;
+
+      const workerShareFromJobs = paidOrEscrowRows.reduce((s, r) => s + r.workerShare, 0);
+      const totalWorkerPayouts = Math.max(workerShareFromJobs, Math.round(Number(app.adminWorkerPayoutsDisbursed || 0)));
+
+      return {
+        rows,
+        settledCount: settledRows.length,
+        escrowCount: escrowRows.length,
+        totalRevenueEarned,
+        settledRevenue,
+        escrowRevenue,
+        totalAdminCommission,
+        settledCommission,
+        escrowCommission,
+        totalWorkerPayouts,
+        subRevenue,
+      };
+    }, [allJobs, workers, app.adminSubscriptionRevenue, app.adminWorkerPayoutsDisbursed]);
+
+    const filteredLedgerRows = useMemo(() => {
+      const q = ledgerSearch.trim().toLowerCase();
+      return financeData.rows.filter((r) => {
+        if (ledgerFilter === "paid_or_escrow" && !r.isSettled && !r.isEscrowHeld) return false;
+        if (ledgerFilter === "settled" && !r.isSettled) return false;
+        if (ledgerFilter === "escrow" && !r.isEscrowHeld) return false;
+        if (!q) return true;
+        return (
+          String(r.id).toLowerCase().includes(q) ||
+          String(r.trade).toLowerCase().includes(q) ||
+          String(r.customerName).toLowerCase().includes(q) ||
+          String(r.workerName).toLowerCase().includes(q) ||
+          String(r.utr).toLowerCase().includes(q) ||
+          String(r.area).toLowerCase().includes(q)
+        );
+      });
+    }, [financeData.rows, ledgerFilter, ledgerSearch]);
 
     const isWorkerBlocked = (w) => {
       if (!w) return false;
@@ -13946,6 +14052,343 @@
                 h("div", { style: { fontFamily: "'Instrument Serif', serif", fontSize: "30px", lineHeight: 1.1, color: stat.col } }, stat.val)
               )
             )
+          )
+        ),
+
+        // LIVE REVENUE EARNED & ADMIN COMMISSION (20%) SIDE-BY-SIDE DASHBOARD
+        h(
+          "section",
+          {
+            style: {
+              borderRadius: "30px",
+              background: cardBg,
+              border: "1px solid " + borderCol,
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "18px",
+            },
+          },
+          h(
+            "div",
+            { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "12px" } },
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+              h(
+                "span",
+                { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#7A4E00" } },
+                "LIVE FINANCIAL TREASURY · REVENUE EARNED VS. ADMIN COMMISSION (20%)"
+              ),
+              h(
+                "h2",
+                { style: { margin: 0, fontSize: "24px", fontWeight: 800, letterSpacing: "-0.4px" } },
+                "Revenue earned & admin commission side by side"
+              )
+            ),
+            h(
+              "span",
+              {
+                style: {
+                  padding: "6px 12px",
+                  borderRadius: "999px",
+                  background: isDark ? "#2A2417" : "#FFF0BF",
+                  color: isDark ? "#F5A524" : "#6B4600",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                },
+              },
+              `${financeData.settledCount} Settled · ${financeData.escrowCount} Escrow Held · 20% Platform Fee`
+            )
+          ),
+
+          // 5 Side-by-Side KPI Cards
+          h(
+            "div",
+            {
+              style: {
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
+                gap: "12px",
+              },
+            },
+            [
+              {
+                label: "TOTAL REVENUE EARNED",
+                val: formatInr(financeData.totalRevenueEarned),
+                sub: `Settled ${formatInr(financeData.settledRevenue)} + Escrow ${formatInr(financeData.escrowRevenue)}`,
+                bg: isDark ? "#23201A" : "#1C1913",
+                ink: "#FBF8F2",
+                subInk: "#CFC6B8",
+                border: isDark ? "#3A3428" : "#1C1913",
+              },
+              {
+                label: "ADMIN COMMISSION (20%)",
+                val: formatInr(financeData.totalAdminCommission),
+                sub: `Settled ${formatInr(financeData.settledCommission)} · Escrow ${formatInr(financeData.escrowCommission)}`,
+                bg: isDark ? "#33260F" : "#FFF0BF",
+                ink: isDark ? "#F7C88E" : "#6B4600",
+                subInk: isDark ? "#E6B97A" : "#7A4E00",
+                border: "#F5A524",
+              },
+              {
+                label: "WORKER PAYOUTS (80%)",
+                val: formatInr(financeData.totalWorkerPayouts),
+                sub: "Direct worker labour share",
+                bg: isDark ? "#17291E" : "#E3F4E8",
+                ink: isDark ? "#5BD68A" : "#1D6B36",
+                subInk: isDark ? "#9AE6B4" : "#256D3B",
+                border: isDark ? "#264B34" : "#B8E6C6",
+              },
+              {
+                label: "PENDING ESCROW",
+                val: formatInr(financeData.escrowRevenue),
+                sub: `${financeData.escrowCount} active prepaid order${financeData.escrowCount === 1 ? "" : "s"}`,
+                bg: isDark ? "#27231C" : "#FBF8F2",
+                ink: isDark ? "#EDE6DA" : "#1C1913",
+                subInk: isDark ? "#A49B8C" : "#6F685D",
+                border: borderCol,
+              },
+              {
+                label: "SUBSCRIPTION REVENUE",
+                val: formatInr(financeData.subRevenue),
+                sub: "Gold & Zero-Fee passes",
+                bg: isDark ? "#27231C" : "#FBF8F2",
+                ink: isDark ? "#EDE6DA" : "#1C1913",
+                subInk: isDark ? "#A49B8C" : "#6F685D",
+                border: borderCol,
+              },
+            ].map((k) =>
+              h(
+                "div",
+                {
+                  key: k.label,
+                  style: {
+                    padding: "16px 18px",
+                    borderRadius: "22px",
+                    background: k.bg,
+                    border: "1px solid " + k.border,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "5px",
+                  },
+                },
+                h("span", { style: { fontSize: "10px", fontWeight: 800, letterSpacing: "0.7px", color: k.subInk } }, k.label),
+                h("b", { style: { fontSize: "26px", fontWeight: 800, lineHeight: 1.1, color: k.ink, fontVariantNumeric: "tabular-nums" } }, k.val),
+                h("span", { style: { fontSize: "11px", fontWeight: 600, color: k.subInk } }, k.sub)
+              )
+            )
+          ),
+
+          // Visual Split Bar (Admin Commission % vs Worker Share %)
+          (() => {
+            const totalSplit = Math.max(1, financeData.totalAdminCommission + financeData.totalWorkerPayouts);
+            const commPct = financeData.totalRevenueEarned > 0
+              ? Math.min(100, Math.round((financeData.totalAdminCommission / totalSplit) * 100))
+              : 20;
+            const workerPct = 100 - commPct;
+            return h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+              h(
+                "div",
+                { style: { display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 700 } },
+                h("span", { style: { color: isDark ? "#5BD68A" : "#1D6B36" } }, `Worker Share: ${workerPct}% (${formatInr(financeData.totalWorkerPayouts)})`),
+                h("span", { style: { color: isDark ? "#F5A524" : "#7A4E00" } }, `Admin Commission: ${commPct}% (${formatInr(financeData.totalAdminCommission)})`)
+              ),
+              h(
+                "div",
+                { style: { height: "10px", borderRadius: "999px", overflow: "hidden", display: "flex", background: isDark ? "#2E2A22" : "#EFE7DA" } },
+                h("div", { style: { width: workerPct + "%", background: "#2E9E57", transition: "width 0.3s ease" } }),
+                h("div", { style: { width: commPct + "%", background: "#F5A524", transition: "width 0.3s ease" } })
+              )
+            );
+          })(),
+
+          // Filter Tabs & Search for Side-by-Side Order Ledger
+          h(
+            "div",
+            { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "10px" } },
+            h(
+              "div",
+              { style: { display: "flex", flexWrap: "wrap", gap: "6px" } },
+              [
+                { id: "paid_or_escrow", label: `Paid & Escrow (${financeData.settledCount + financeData.escrowCount})` },
+                { id: "settled", label: `Settled (${financeData.settledCount})` },
+                { id: "escrow", label: `Escrow Held (${financeData.escrowCount})` },
+                { id: "all", label: `All Jobs (${financeData.rows.length})` },
+              ].map((tab) => {
+                const active = ledgerFilter === tab.id;
+                return h(
+                  "button",
+                  {
+                    key: tab.id,
+                    type: "button",
+                    onClick: () => setLedgerFilter(tab.id),
+                    style: {
+                      padding: "7px 13px",
+                      borderRadius: "999px",
+                      border: "1px solid " + (active ? (isDark ? "#F5A524" : "#1C1913") : borderCol),
+                      background: active ? (isDark ? "#F5A524" : "#1C1913") : "transparent",
+                      color: active ? (isDark ? "#14120E" : "#FBF8F2") : (isDark ? "#EDE6DA" : "#4A443A"),
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    },
+                  },
+                  tab.label
+                );
+              })
+            ),
+            h("input", {
+              type: "text",
+              value: ledgerSearch,
+              onChange: (e) => setLedgerSearch(e.target.value),
+              placeholder: "Search job, customer, worker, or UTR…",
+              style: {
+                width: "260px",
+                maxWidth: "100%",
+                height: "38px",
+                borderRadius: "999px",
+                border: "1px solid " + borderCol,
+                padding: "0 14px",
+                fontSize: "12px",
+                background: isDark ? "#14120E" : "#FBF8F2",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+              },
+            })
+          ),
+
+          // Side-by-Side Revenue & Admin Commission Order Ledger Table
+          h(
+            "div",
+            { style: { overflowX: "auto", borderRadius: "18px", border: "1px solid " + borderCol } },
+            filteredLedgerRows.length === 0
+              ? h(
+                  "div",
+                  { style: { padding: "24px", textAlign: "center", fontSize: "13px", color: isDark ? "#A49B8C" : "#6F685D" } },
+                  "No orders match this filter yet. Paid and FamPay escrow orders will appear here side by side automatically."
+                )
+              : h(
+                  "table",
+                  { style: { width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: "720px" } },
+                  h(
+                    "thead",
+                    null,
+                    h(
+                      "tr",
+                      { style: { background: isDark ? "#27231C" : "#FBF8F2", textAlign: "left", borderBottom: "1px solid " + borderCol } },
+                      ["Job / Trade", "Customer → Worker", "Revenue Earned", "Admin Commission (20%)", "Worker Share (80%)", "FamPay / UTR", "Status"].map((col) =>
+                        h(
+                          "th",
+                          {
+                            key: col,
+                            style: {
+                              padding: "11px 12px",
+                              fontSize: "10px",
+                              fontWeight: 800,
+                              letterSpacing: "0.6px",
+                              textTransform: "uppercase",
+                              color: isDark ? "#B0A899" : "#6F685D",
+                            },
+                          },
+                          col
+                        )
+                      )
+                    )
+                  ),
+                  h(
+                    "tbody",
+                    null,
+                    filteredLedgerRows.slice(0, 50).map((row) =>
+                      h(
+                        "tr",
+                        { key: row.id, style: { borderBottom: "1px solid " + borderCol } },
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px" } },
+                          h("b", { style: { display: "block", fontSize: "13px" } }, row.trade),
+                          h("span", { style: { fontSize: "11px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${row.area} · #${String(row.id).slice(-6)}`)
+                        ),
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px" } },
+                          h("span", { style: { fontWeight: 700 } }, row.customerName),
+                          h("span", { style: { color: "#E8930C", margin: "0 5px", fontWeight: 800 } }, "→"),
+                          h("span", { style: { fontWeight: 600, color: isDark ? "#CFC6B8" : "#4A443A" } }, row.workerName)
+                        ),
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px", fontWeight: 800, fontVariantNumeric: "tabular-nums" } },
+                          formatInr(row.revenueEarned)
+                        ),
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px", fontVariantNumeric: "tabular-nums" } },
+                          h(
+                            "span",
+                            {
+                              style: {
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "4px 10px",
+                                borderRadius: "999px",
+                                background: row.isZeroComm ? (isDark ? "#27231C" : "#EFE7DA") : (isDark ? "#33260F" : "#FFF0BF"),
+                                color: row.isZeroComm ? (isDark ? "#A49B8C" : "#6F685D") : (isDark ? "#F7C88E" : "#6B4600"),
+                                fontWeight: 800,
+                                fontSize: "12px",
+                              },
+                            },
+                            formatInr(row.adminCommission),
+                            h("span", { style: { fontSize: "10px", opacity: 0.85 } }, row.isZeroComm ? "0% Pass" : "20%")
+                          )
+                        ),
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px", fontWeight: 800, color: isDark ? "#5BD68A" : "#1D6B36", fontVariantNumeric: "tabular-nums" } },
+                          formatInr(row.workerShare)
+                        ),
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px", fontFamily: "ui-monospace, monospace", fontSize: "11px", color: isDark ? "#CFC6B8" : "#4A443A" } },
+                          row.utr || "—"
+                        ),
+                        h(
+                          "td",
+                          { style: { padding: "11px 12px" } },
+                          h(
+                            "span",
+                            {
+                              style: {
+                                padding: "4px 9px",
+                                borderRadius: "999px",
+                                fontSize: "10px",
+                                fontWeight: 800,
+                                background: row.isSettled ? "#E3F4E8" : row.isEscrowHeld ? "#FFF0BF" : (isDark ? "#27231C" : "#EFE7DA"),
+                                color: row.isSettled ? "#1D6B36" : row.isEscrowHeld ? "#6B4600" : (isDark ? "#A49B8C" : "#6F685D"),
+                              },
+                            },
+                            row.isSettled ? "✓ SETTLED" : row.isEscrowHeld ? "🔒 ESCROW HELD" : String(row.status || "OPEN").toUpperCase()
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  h(
+                    "tfoot",
+                    null,
+                    h(
+                      "tr",
+                      { style: { background: isDark ? "#27231C" : "#FBF8F2", fontWeight: 800 } },
+                      h("td", { colSpan: 2, style: { padding: "12px" } }, `FILTERED TOTAL (${filteredLedgerRows.length} orders)`),
+                      h("td", { style: { padding: "12px", fontVariantNumeric: "tabular-nums" } }, formatInr(filteredLedgerRows.reduce((s, r) => s + r.revenueEarned, 0))),
+                      h("td", { style: { padding: "12px", color: isDark ? "#F5A524" : "#7A4E00", fontVariantNumeric: "tabular-nums" } }, formatInr(filteredLedgerRows.reduce((s, r) => s + r.adminCommission, 0))),
+                      h("td", { style: { padding: "12px", color: isDark ? "#5BD68A" : "#1D6B36", fontVariantNumeric: "tabular-nums" } }, formatInr(filteredLedgerRows.reduce((s, r) => s + r.workerShare, 0))),
+                      h("td", { colSpan: 2, style: { padding: "12px", fontSize: "11px", color: isDark ? "#A49B8C" : "#6F685D" } }, "20% Commission · 80% Worker")
+                    )
+                  )
+                )
           )
         ),
 
