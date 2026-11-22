@@ -5762,9 +5762,17 @@
     const [rate, setRate] = useState(850);
     const [exp, setExp] = useState(3);
     const [aadhaar, setAadhaar] = useState("");
+    const [aadhaarFrontPhoto, setAadhaarFrontPhoto] = useState("");
+    const [aadhaarBackPhoto, setAadhaarBackPhoto] = useState("");
+    const [toolsStatus, setToolsStatus] = useState(""); // "own_full" | "basic_only" | "needs_tools"
+    const [transportMode, setTransportMode] = useState("Bike / Scooter");
+    const [preferredLanguage, setPreferredLanguage] = useState(() => app.currentLanguage || "hi");
+    const [emergencyName, setEmergencyName] = useState("");
+    const [emergencyPhone, setEmergencyPhone] = useState("");
     const [age, setAge] = useState("26");
     const [dob, setDob] = useState("1999-05-15");
     const [declare, setDeclare] = useState(true);
+    const [policyConsent, setPolicyConsent] = useState(false);
     const [photoUrl, setPhotoUrl] = useState(() => app.ssoGoogleUser?.photoURL || "");
     const [upiId, setUpiId] = useState("");
     const [password, setPassword] = useState("");
@@ -5782,6 +5790,8 @@
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const fileInputRef = useRef(null);
+    const aadhaarFrontInputRef = useRef(null);
+    const aadhaarBackInputRef = useRef(null);
 
     useEffect(() => {
       if (app.ssoGoogleUser) {
@@ -5808,8 +5818,11 @@
       "phone",
       "email",
       "trade",
+      "tools",
+      "logistics",
       "wage",
       "area",
+      "emergency",
       "aadhaar",
       "age",
       "photo",
@@ -5822,6 +5835,7 @@
     const currentStepKey = role ? steps[stepIdx] || "name" : null;
 
     const cleanPhone = phone.replace(/[^0-9]/g, "").slice(-10);
+    const cleanEmergencyPhone = emergencyPhone.replace(/[^0-9]/g, "").slice(-10);
     const cleanAadhaar = aadhaar.replace(/[^0-9]/g, "");
 
     const validateCurrentStep = () => {
@@ -5835,14 +5849,24 @@
           return !email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
         case "trade":
           return Boolean(trade);
+        case "tools":
+          return toolsStatus === "own_full" || toolsStatus === "basic_only";
+        case "logistics":
+          return Boolean(transportMode) && Boolean(preferredLanguage);
         case "wage":
           return Number(rate) >= 300;
         case "area":
           return area.trim().length >= 2 && address.trim().length >= 3;
+        case "emergency":
+          return (
+            emergencyName.trim().length >= 2 &&
+            cleanEmergencyPhone.length === 10 &&
+            cleanEmergencyPhone !== cleanPhone
+          );
         case "aadhaar":
-          return cleanAadhaar.length === 12;
+          return cleanAadhaar.length === 12 && Boolean(aadhaarFrontPhoto) && Boolean(aadhaarBackPhoto);
         case "age":
-          return Number(age) >= 18 && declare;
+          return Number(age) >= 18 && declare && policyConsent;
         case "photo":
           return Boolean(photoUrl);
         case "upi":
@@ -5913,6 +5937,37 @@
       reader.readAsDataURL(file);
     };
 
+    const handleAadhaarPhotoUpload = (side, e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxW = 720;
+            const scale = img.width > maxW ? maxW / img.width : 1;
+            const c = document.createElement("canvas");
+            c.width = Math.round(img.width * scale);
+            c.height = Math.round(img.height * scale);
+            c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+            const compressed = c.toDataURL("image/jpeg", 0.78);
+            if (side === "front") setAadhaarFrontPhoto(compressed);
+            else setAadhaarBackPhoto(compressed);
+          } catch (_) {
+            if (side === "front") setAadhaarFrontPhoto(String(reader.result || ""));
+            else setAadhaarBackPhoto(String(reader.result || ""));
+          }
+        };
+        img.onerror = () => {
+          if (side === "front") setAadhaarFrontPhoto(String(reader.result || ""));
+          else setAadhaarBackPhoto(String(reader.result || ""));
+        };
+        img.src = String(reader.result || "");
+      };
+      reader.readAsDataURL(file);
+    };
+
     const handleSubmitStep = (e) => {
       e.preventDefault();
       if (!validateCurrentStep()) return;
@@ -5927,6 +5982,7 @@
         cleanPhone ||
         name.trim().toLowerCase().replace(/\s+/g, "_");
       if (role === "worker") {
+        app.setCurrentLanguage?.(preferredLanguage || "hi");
         app.registerWorkerWithAuth?.({
           name: name.trim(),
           phone: "+91 " + cleanPhone,
@@ -5939,12 +5995,21 @@
           primaryTrade: trade,
           dailyRate: Number(rate) || 850,
           experienceYears: Number(exp) || 1,
+          toolsStatus: toolsStatus === "own_full" ? "Own Full Toolkit" : "Basic Tools Only",
+          transportMode,
+          preferredLanguage,
+          emergencyContactName: emergencyName.trim(),
+          emergencyContactPhone: "+91 " + cleanEmergencyPhone,
           aadhaarNumber: cleanAadhaar,
+          aadhaarFrontPhoto,
+          aadhaarBackPhoto,
           upiId: upiId.trim() || `${cleanPhone}@upi`,
           photoUrl,
           age: Number(age) || 26,
           dateOfBirth: dob,
           childLabourConsent: declare,
+          policyConsent,
+          policyConsentAt: new Date().toISOString(),
           isPhoneVerified: true,
           isEmailVerified: emailVerified || Boolean(app.ssoGoogleUser?.email),
         });
@@ -6000,13 +6065,16 @@
       phone: { q: "Your mobile", qAccent: "number?", sub: "Used for OTP updates, arrival alerts, and direct UPI payout." },
       email: { q: "Gmail", qAccent: "address?", sub: "Optional — verifies your account with a 6-digit Gmail OTP." },
       trade: { q: "Pick your primary", qAccent: "trade.", sub: "Once set, jobs and your QR Gate Pass lock to this trade." },
+      tools: { q: "Do you bring your", qAccent: "own tools?", sub: "Customers expect verified workers to bring at least basic tools (toolkit, wrench, drill, ladder) for their trade." },
+      logistics: { q: "Vehicle & voice", qAccent: "language.", sub: "Helps calculate real ETA across 10 km and speak job alerts in your language." },
       wage: { q: "Daily wage", qAccent: "expectation?", sub: "Customers see your rate upfront. You keep 80% + milestone bonuses." },
       area: { q: "Where in Ludhiana", qAccent: "are you?", sub: "We match jobs strictly within a 10 km GPS radius." },
-      aadhaar: { q: "12-digit", qAccent: "Aadhaar ID.", sub: "Encrypted at rest for Admin KYC verification." },
-      age: { q: "Confirm age", qAccent: "(18+ only).", sub: "Zero-tolerance compliance against child labour." },
-      photo: { q: "Live face", qAccent: "photo.", sub: "Shown to customers before job start OTP and audited by Admin." },
+      emergency: { q: "Emergency / family", qAccent: "contact.", sub: "Mandatory for your safety and SOS 112 alerts while working at customer sites." },
+      aadhaar: { q: "Aadhaar ID +", qAccent: "Front & Back Photo.", sub: "Enter your 12-digit Aadhaar number and upload clear Front & Back photos so Admin can verify your selfie against your ID." },
+      age: { q: "Age (18+) &", qAccent: "Safety Policy.", sub: "Mandatory legal age confirmation, workplace conduct, escrow rules, and 24-hour job penalty warning." },
+      photo: { q: "Live face", qAccent: "photo.", sub: "Shown to customers before job start OTP and matched by Admin against your Aadhaar card photos." },
       upi: { q: "Your UPI", qAccent: "ID?", sub: role === "worker" ? "Payouts go straight to this UPI ID via IMPS/UPI." : "Optional for instant refunds & escrow checkout." },
-      password: { q: "Set a account", qAccent: "password.", sub: "At least 4 characters so you can sign in anytime." },
+      password: { q: "Set an account", qAccent: "password.", sub: "At least 4 characters so you can sign in anytime." },
       review: { q: "Everything look", qAccent: "good?", sub: "Tap any row to edit before creating your Kaamzo account." },
     };
 
@@ -6026,11 +6094,14 @@
           { k: "Phone", v: cleanPhone ? "+91 " + cleanPhone : "—", step: 1 },
           { k: "Email", v: email || "Not set", step: 2 },
           { k: "Primary trade", v: trade, step: 3 },
-          { k: "Daily rate", v: formatInr(rate) + "/day", step: 4 },
-          { k: "Location", v: area + " (" + address + ")", step: 5 },
-          { k: "Aadhaar", v: cleanAadhaar.length === 12 ? "XXXX-XXXX-" + cleanAadhaar.slice(-4) : "—", step: 6 },
-          { k: "Age", v: age + " yrs", step: 7 },
-          { k: "UPI ID", v: upiId || (cleanPhone ? cleanPhone + "@upi" : "—"), step: 9 },
+          { k: "Own tools", v: toolsStatus === "own_full" ? "Yes · Full Toolkit" : toolsStatus === "basic_only" ? "Basic Tools Only" : "—", step: 4 },
+          { k: "Vehicle & Language", v: `${transportMode} · ${preferredLanguage === "hi" ? "हिंदी" : preferredLanguage === "pa" ? "ਪੰਜਾਬੀ" : "English"}`, step: 5 },
+          { k: "Daily rate", v: formatInr(rate) + "/day", step: 6 },
+          { k: "Location", v: area + " (" + address + ")", step: 7 },
+          { k: "Emergency contact", v: cleanEmergencyPhone ? `${emergencyName} (+91 ${cleanEmergencyPhone})` : "—", step: 8 },
+          { k: "Aadhaar + Front/Back", v: cleanAadhaar.length === 12 ? `XXXX-${cleanAadhaar.slice(-4)} · ${aadhaarFrontPhoto && aadhaarBackPhoto ? "Front & Back ✓" : "Photos missing"}` : "—", step: 9 },
+          { k: "Age & Safety Policy", v: `${age} yrs · ${policyConsent ? "Policy Accepted ✓" : "Pending"}`, step: 10 },
+          { k: "UPI ID", v: upiId || (cleanPhone ? cleanPhone + "@upi" : "—"), step: 12 },
         ]
       : [
           { k: "Name", v: name || "—", step: 0 },
@@ -6041,7 +6112,7 @@
         ];
 
     const stepLabels = isWorker
-      ? ["Name", "Phone", "Email", "Trade", "Wage", "Area", "Aadhaar", "18+", "Photo", "UPI", "Password", "Review"]
+      ? ["Name", "Phone", "Email", "Trade", "Tools", "Vehicle", "Wage", "Area", "SOS Contact", "Aadhaar", "Policy", "Photo", "UPI", "Password", "Review"]
       : ["Name", "Phone", "Email", "Area", "UPI", "Password", "Review"];
 
     const activeTradeObj = U.getTradeMeta(trade);
@@ -6638,6 +6709,186 @@
                   })
                 ),
 
+              currentStepKey === "tools" &&
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "12px" } },
+                  [
+                    {
+                      id: "own_full",
+                      title: "✅ Yes — I bring my own full toolkit",
+                      sub: "Drill, wrench set, multimeter, ladder or full trade tools ready.",
+                      bg: "#E3F4E8",
+                      border: "#2E9E57",
+                    },
+                    {
+                      id: "basic_only",
+                      title: "🔧 Basic tools only",
+                      sub: "I bring essential hand tools needed for standard work.",
+                      bg: "#FFF7E3",
+                      border: "#F5A524",
+                    },
+                    {
+                      id: "needs_tools",
+                      title: "❌ No — I need customer's tools",
+                      sub: "I do not have my own tools right now.",
+                      bg: "#FFE1E1",
+                      border: "#E5484D",
+                    },
+                  ].map((opt) => {
+                    const sel = toolsStatus === opt.id;
+                    return h(
+                      "button",
+                      {
+                        key: opt.id,
+                        type: "button",
+                        onClick: () => setToolsStatus(opt.id),
+                        style: {
+                          textAlign: "left",
+                          padding: "16px 18px",
+                          borderRadius: "20px",
+                          border: "2px solid " + (sel ? opt.border : "#E9DFCC"),
+                          background: sel ? opt.bg : "#FFFFFF",
+                          color: "#1C1913",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                          cursor: "pointer",
+                        },
+                      },
+                      h("b", { style: { fontSize: "15px" } }, opt.title),
+                      h("span", { style: { fontSize: "13px", color: "#4A443A" } }, opt.sub)
+                    );
+                  }),
+                  toolsStatus === "own_full" &&
+                    h(
+                      "div",
+                      { style: { padding: "12px 14px", borderRadius: "14px", background: "#E3F4E8", border: "1px solid #2E9E57", color: "#1D6B36", fontSize: "13px", fontWeight: 800 } },
+                      "✓ Approved! Workers who bring their own full toolkit get hired faster and avoid on-site cancellations."
+                    ),
+                  toolsStatus === "basic_only" &&
+                    h(
+                      "div",
+                      { style: { padding: "12px 14px", borderRadius: "14px", background: "#FFF7E3", border: "1px solid #F5A524", color: "#6B4600", fontSize: "13px", fontWeight: 800 } },
+                      "✓ Accepted — Basic tools approved. Always inform the customer before arriving if special heavy equipment is required."
+                    ),
+                  toolsStatus === "needs_tools" &&
+                    h(
+                      "div",
+                      {
+                        role: "alert",
+                        style: {
+                          padding: "16px",
+                          borderRadius: "18px",
+                          background: "#FFE1E1",
+                          border: "2px solid #E5484D",
+                          color: "#8A1C1C",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                        },
+                      },
+                      h("b", { style: { fontSize: "15px" } }, "⛔ Sorry, you need your own tools to register on Kaamzo."),
+                      h(
+                        "span",
+                        { style: { fontSize: "13px", lineHeight: 1.45, fontWeight: 600 } },
+                        "Customers expect verified Kaamzo workers to bring at least basic tools (screwdriver, pliers, wrench, tape, etc.) for their trade. Please arrange your own tools before joining — you cannot proceed without your own tools."
+                      )
+                    )
+                ),
+
+              currentStepKey === "logistics" &&
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "16px" } },
+                  h(
+                    "div",
+                    { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+                    h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00", letterSpacing: "0.6px" } }, "VEHICLE / TRANSPORT MODE"),
+                    h(
+                      "div",
+                      { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "8px" } },
+                      [
+                        { id: "Bike / Scooter", icon: "🏍️", sub: "Fast 10 km ETA" },
+                        { id: "Cycle", icon: "🚲", sub: "3–6 km nearby" },
+                        { id: "Walking / Public Transport", icon: "🚶", sub: "Local 2–4 km" },
+                      ].map((v) => {
+                        const sel = transportMode === v.id;
+                        return h(
+                          "button",
+                          {
+                            key: v.id,
+                            type: "button",
+                            onClick: () => setTransportMode(v.id),
+                            style: {
+                              padding: "14px 10px",
+                              borderRadius: "18px",
+                              border: "2px solid " + (sel ? "#1C1913" : "#E9DFCC"),
+                              background: sel ? "#FFF0BF" : "#FFFFFF",
+                              color: "#1C1913",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: "4px",
+                              cursor: "pointer",
+                            },
+                          },
+                          h("span", { style: { fontSize: "24px" } }, v.icon),
+                          h("b", { style: { fontSize: "13px", textAlign: "center" } }, v.id),
+                          h("span", { style: { fontSize: "11px", color: "#6F685D", fontWeight: 700 } }, v.sub)
+                        );
+                      })
+                    )
+                  ),
+                  h(
+                    "div",
+                    { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+                    h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00", letterSpacing: "0.6px" } }, "PREFERRED VOICE & JOB ALERT LANGUAGE"),
+                    h(
+                      "div",
+                      { style: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" } },
+                      [
+                        { code: "hi", label: "हिंदी", sub: "Hindi" },
+                        { code: "pa", label: "ਪੰਜਾਬੀ", sub: "Punjabi" },
+                        { code: "en", label: "English", sub: "EN" },
+                      ].map((lg) => {
+                        const sel = preferredLanguage === lg.code;
+                        return h(
+                          "button",
+                          {
+                            key: lg.code,
+                            type: "button",
+                            onClick: () => {
+                              setPreferredLanguage(lg.code);
+                              app.setCurrentLanguage?.(lg.code);
+                              if (typeof window.kaamzoSetLanguage === "function") {
+                                try {
+                                  window.kaamzoSetLanguage(lg.code);
+                                } catch (_) {}
+                              }
+                            },
+                            style: {
+                              padding: "14px 8px",
+                              borderRadius: "18px",
+                              border: "2px solid " + (sel ? "#2E9E57" : "#E9DFCC"),
+                              background: sel ? "#E3F4E8" : "#FFFFFF",
+                              color: "#1C1913",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: "2px",
+                              cursor: "pointer",
+                            },
+                          },
+                          h("b", { style: { fontSize: "16px" } }, lg.label),
+                          h("span", { style: { fontSize: "11px", color: "#4A443A", fontWeight: 700 } }, lg.sub)
+                        );
+                      })
+                    ),
+                    h("span", { style: { fontSize: "12px", color: "#6F685D" } }, "Job notifications and audio reader guides will speak automatically in your chosen language.")
+                  )
+                ),
+
               currentStepKey === "wage" &&
                 h(
                   "div",
@@ -6730,16 +6981,113 @@
                   )
                 ),
 
+              currentStepKey === "emergency" &&
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "12px" } },
+                  h(
+                    "div",
+                    { style: { padding: "12px 14px", borderRadius: "16px", background: "#FFF7E3", border: "1px solid #F5A524", color: "#6B4600", fontSize: "12.5px", fontWeight: 700, lineHeight: 1.45 } },
+                    "⚠️ Safety Warning: Because you work at private customer homes, a trusted family/emergency contact is mandatory in case of an SOS 112 alert or site emergency."
+                  ),
+                  h("input", {
+                    type: "text",
+                    placeholder: "Family / Emergency Contact Name (e.g. Father / Wife / Brother)",
+                    value: emergencyName,
+                    onChange: (e) => setEmergencyName(e.target.value),
+                    style: { height: "56px", borderRadius: "18px", border: "2px solid " + (emergencyName.trim().length >= 2 ? "#2E9E57" : "#E9DFCC"), background: "#FFFFFF", padding: "0 16px", fontSize: "16px", fontWeight: 600 },
+                  }),
+                  h(
+                    "div",
+                    { style: { display: "flex", alignItems: "center", gap: "8px", height: "58px", padding: "0 16px", borderRadius: "18px", border: "2px solid " + (cleanEmergencyPhone.length === 10 && cleanEmergencyPhone !== cleanPhone ? "#2E9E57" : cleanEmergencyPhone.length === 10 ? "#E5484D" : "#E9DFCC"), background: "#FFFFFF" } },
+                    h("span", { style: { padding: "6px 10px", borderRadius: "10px", background: "#F4EEE3", fontWeight: 800, fontSize: "15px" } }, "+91"),
+                    h("input", {
+                      type: "tel",
+                      inputMode: "numeric",
+                      placeholder: "10-digit Family / Emergency Mobile",
+                      value: emergencyPhone,
+                      onChange: (e) => setEmergencyPhone(e.target.value),
+                      style: { flex: 1, minWidth: 0, height: "100%", border: 0, outline: "none", fontSize: "18px", fontWeight: 600, background: "transparent" },
+                    })
+                  ),
+                  cleanEmergencyPhone.length === 10 &&
+                    cleanEmergencyPhone === cleanPhone &&
+                    h("span", { style: { fontSize: "12.5px", fontWeight: 800, color: "#B42318" } }, "⚠️ Emergency contact must be a family member or friend's number — not your own phone number.")
+                ),
+
               currentStepKey === "aadhaar" &&
-                h("input", {
-                  type: "text",
-                  inputMode: "numeric",
-                  maxLength: 14,
-                  placeholder: "1234 5678 9012",
-                  value: aadhaar,
-                  onChange: (e) => setAadhaar(e.target.value),
-                  style: { height: "60px", borderRadius: "18px", border: "2px solid " + (cleanAadhaar.length === 12 ? "#2E9E57" : "#E9DFCC"), background: "#FFFFFF", padding: "0 16px", fontSize: "20px", fontWeight: 700, letterSpacing: "2px" },
-                }),
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "14px" } },
+                  h(
+                    "div",
+                    { style: { padding: "12px 14px", borderRadius: "16px", background: "#FFF7E3", border: "1px solid #F5A524", color: "#6B4600", fontSize: "12.5px", fontWeight: 700, lineHeight: 1.45 } },
+                    "⚠️ KYC Verification Warning: Typing 12 digits alone is not enough. You MUST upload clear Front & Back photos of your Aadhaar card so Admin can match your live selfie against your official ID."
+                  ),
+                  h("input", {
+                    type: "text",
+                    inputMode: "numeric",
+                    maxLength: 14,
+                    placeholder: "1234 5678 9012",
+                    value: aadhaar,
+                    onChange: (e) => setAadhaar(e.target.value),
+                    style: { height: "58px", borderRadius: "18px", border: "2px solid " + (cleanAadhaar.length === 12 ? "#2E9E57" : "#E9DFCC"), background: "#FFFFFF", padding: "0 16px", fontSize: "20px", fontWeight: 700, letterSpacing: "2px" },
+                  }),
+                  h(
+                    "div",
+                    { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" } },
+                    // Aadhaar Front Upload Box
+                    h(
+                      "div",
+                      {
+                        onClick: () => aadhaarFrontInputRef.current?.click?.(),
+                        style: {
+                          borderRadius: "20px",
+                          border: "2px dashed " + (aadhaarFrontPhoto ? "#2E9E57" : "#E8930C"),
+                          background: aadhaarFrontPhoto ? "#E3F4E8" : "#FFFFFF",
+                          padding: "14px",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "8px",
+                          cursor: "pointer",
+                          textAlign: "center",
+                        },
+                      },
+                      aadhaarFrontPhoto
+                        ? h("img", { src: aadhaarFrontPhoto, alt: "Aadhaar Front", style: { width: "100%", height: "96px", objectFit: "cover", borderRadius: "12px", border: "1px solid #2E9E57" } })
+                        : h("span", { style: { fontSize: "28px" } }, "🪪"),
+                      h("b", { style: { fontSize: "13px", color: aadhaarFrontPhoto ? "#1D6B36" : "#1C1913" } }, aadhaarFrontPhoto ? "✓ Aadhaar Front Uploaded" : "Upload Aadhaar FRONT *"),
+                      h("span", { style: { fontSize: "11px", color: "#6F685D" } }, "Tap to take photo or select from gallery"),
+                      h("input", { ref: aadhaarFrontInputRef, type: "file", accept: "image/*", capture: "environment", style: { display: "none" }, onChange: (e) => handleAadhaarPhotoUpload("front", e) })
+                    ),
+                    // Aadhaar Back Upload Box
+                    h(
+                      "div",
+                      {
+                        onClick: () => aadhaarBackInputRef.current?.click?.(),
+                        style: {
+                          borderRadius: "20px",
+                          border: "2px dashed " + (aadhaarBackPhoto ? "#2E9E57" : "#E8930C"),
+                          background: aadhaarBackPhoto ? "#E3F4E8" : "#FFFFFF",
+                          padding: "14px",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "8px",
+                          cursor: "pointer",
+                          textAlign: "center",
+                        },
+                      },
+                      aadhaarBackPhoto
+                        ? h("img", { src: aadhaarBackPhoto, alt: "Aadhaar Back", style: { width: "100%", height: "96px", objectFit: "cover", borderRadius: "12px", border: "1px solid #2E9E57" } })
+                        : h("span", { style: { fontSize: "28px" } }, "🔄"),
+                      h("b", { style: { fontSize: "13px", color: aadhaarBackPhoto ? "#1D6B36" : "#1C1913" } }, aadhaarBackPhoto ? "✓ Aadhaar Back Uploaded" : "Upload Aadhaar BACK *"),
+                      h("span", { style: { fontSize: "11px", color: "#6F685D" } }, "Address side must be clearly readable"),
+                      h("input", { ref: aadhaarBackInputRef, type: "file", accept: "image/*", capture: "environment", style: { display: "none" }, onChange: (e) => handleAadhaarPhotoUpload("back", e) })
+                    )
+                  )
+                ),
 
               currentStepKey === "age" &&
                 h(
@@ -6757,7 +7105,7 @@
                         inputMode: "numeric",
                         value: age,
                         onChange: (e) => setAge(e.target.value),
-                        style: { height: "60px", borderRadius: "18px", border: "2px solid " + (Number(age) >= 18 ? "#2E9E57" : "#E5484D"), background: "#FFFFFF", padding: "0 16px", fontSize: "18px", fontWeight: 600 },
+                        style: { height: "56px", borderRadius: "18px", border: "2px solid " + (Number(age) >= 18 ? "#2E9E57" : "#E5484D"), background: "#FFFFFF", padding: "0 16px", fontSize: "18px", fontWeight: 600 },
                       })
                     ),
                     h(
@@ -6768,16 +7116,44 @@
                         type: "date",
                         value: dob,
                         onChange: (e) => setDob(e.target.value),
-                        style: { height: "60px", borderRadius: "18px", border: "2px solid #E9DFCC", background: "#FFFFFF", padding: "0 14px", fontSize: "16px", fontWeight: 600 },
+                        style: { height: "56px", borderRadius: "18px", border: "2px solid #E9DFCC", background: "#FFFFFF", padding: "0 14px", fontSize: "16px", fontWeight: 600 },
                       })
                     )
                   ),
                   Number(age) < 18 && h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#B42318" } }, "Workers must be at least 18 years old."),
+                  // Prominent Company Policy & Penalty Warning Box
+                  h(
+                    "div",
+                    {
+                      style: {
+                        padding: "14px 16px",
+                        borderRadius: "18px",
+                        background: "#FFE1E1",
+                        border: "2px solid #E5484D",
+                        color: "#8A1C1C",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                        fontSize: "12.5px",
+                        lineHeight: 1.45,
+                      },
+                    },
+                    h("b", { style: { fontSize: "14px" } }, "⚠️ STRICT KAAMZO POLICY & SAFETY WARNING"),
+                    h("span", null, "• Zero tolerance for alcohol, drugs, misbehavior, or theft — Admin will permanently BAN your account."),
+                    h("span", null, "• 24-Hour Offline Penalty: Rejecting or cancelling an accepted job locks your account OFFLINE for 24 hours."),
+                    h("span", null, "• Escrow & QR Rules: Payout releases to your UPI only after customer Start QR & End QR verification.")
+                  ),
                   h(
                     "label",
-                    { style: { display: "flex", gap: "12px", alignItems: "flex-start", padding: "14px", borderRadius: "18px", background: "#FFF7E3", fontSize: "13px", lineHeight: 1.5, color: "#3D3830", cursor: "pointer" } },
-                    h("input", { type: "checkbox", checked: declare, onChange: (e) => setDeclare(e.target.checked), style: { width: "22px", height: "22px", margin: 0, accentColor: "#E8930C", flex: "0 0 auto" } }),
-                    "I declare that I am 18 years of age or older. I understand that child labour is strictly prohibited on Kaamzo and my face photo will be audited."
+                    { style: { display: "flex", gap: "12px", alignItems: "flex-start", padding: "12px 14px", borderRadius: "16px", background: "#FFF7E3", fontSize: "12.5px", lineHeight: 1.45, color: "#3D3830", cursor: "pointer" } },
+                    h("input", { type: "checkbox", checked: declare, onChange: (e) => setDeclare(e.target.checked), style: { width: "20px", height: "20px", margin: 0, accentColor: "#E8930C", flex: "0 0 auto" } }),
+                    "I declare that I am 18 years or older (anti-child-labour compliance) and my Aadhaar card & live selfie will be audited."
+                  ),
+                  h(
+                    "label",
+                    { style: { display: "flex", gap: "12px", alignItems: "flex-start", padding: "12px 14px", borderRadius: "16px", background: policyConsent ? "#E3F4E8" : "#FFFFFF", border: "2px solid " + (policyConsent ? "#2E9E57" : "#E5484D"), fontSize: "12.5px", lineHeight: 1.45, color: "#1C1913", fontWeight: 700, cursor: "pointer" } },
+                    h("input", { type: "checkbox", checked: policyConsent, onChange: (e) => setPolicyConsent(e.target.checked), style: { width: "20px", height: "20px", margin: 0, accentColor: "#2E9E57", flex: "0 0 auto" } }),
+                    "I have read the warning above and strictly accept Kaamzo's Workplace Conduct (No Alcohol/Misbehavior), Escrow QR Rules, and 24-Hour Job Rejection Penalty."
                   )
                 ),
 
@@ -13632,55 +14008,79 @@
                     background: blocked ? (isDark ? "#2D1818" : "#FFF1F1") : isDark ? "#27231C" : "#FBF8F2",
                     border: "1px solid " + (blocked ? "#E5484D" : borderCol),
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "12px",
+                    flexDirection: "column",
+                    gap: "10px",
                   },
                 },
                 h(
                   "div",
-                  { style: { display: "flex", flexDirection: "column", gap: "3px", minWidth: 0 } },
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" } },
                   h(
                     "div",
-                    { style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" } },
-                    h("b", { style: { fontSize: "15px" } }, w.name),
+                    { style: { display: "flex", flexDirection: "column", gap: "3px", minWidth: 0 } },
                     h(
-                      "span",
-                      {
-                        style: {
-                          padding: "2px 8px",
-                          borderRadius: "999px",
-                          background: blocked ? "#E5484D" : penalized ? "#FFF0BF" : "#E3F4E8",
-                          color: blocked ? "#FFFFFF" : penalized ? "#6B4600" : "#1D6B36",
-                          fontSize: "10px",
-                          fontWeight: 800,
+                      "div",
+                      { style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" } },
+                      h("b", { style: { fontSize: "15px" } }, w.name),
+                      h(
+                        "span",
+                        {
+                          style: {
+                            padding: "2px 8px",
+                            borderRadius: "999px",
+                            background: blocked ? "#E5484D" : penalized ? "#FFF0BF" : "#E3F4E8",
+                            color: blocked ? "#FFFFFF" : penalized ? "#6B4600" : "#1D6B36",
+                            fontSize: "10px",
+                            fontWeight: 800,
+                          },
                         },
-                      },
-                      blocked ? "🚫 BLOCKED" : penalized ? "⏳ 24H PENALTY" : "ACTIVE"
-                    )
+                        blocked ? "🚫 BLOCKED" : penalized ? "⏳ 24H PENALTY" : "ACTIVE"
+                      )
+                    ),
+                    h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${w.primaryTrade || "Worker"} · ${w.phone || w.id}`),
+                    (w.toolsStatus || w.transportMode || w.emergencyContactPhone) &&
+                      h(
+                        "span",
+                        { style: { fontSize: "11px", fontWeight: 700, color: isDark ? "#CFC6B8" : "#4A443A" } },
+                        [
+                          w.toolsStatus ? `🔧 ${w.toolsStatus}` : null,
+                          w.transportMode ? `🛵 ${w.transportMode}` : null,
+                          w.emergencyContactPhone ? `🆘 ${w.emergencyContactName || "SOS"}: ${w.emergencyContactPhone}` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")
+                      )
                   ),
-                  h("span", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${w.primaryTrade || "Worker"} · ${w.phone || w.id}`)
-                ),
-                h(
-                  "button",
-                  {
-                    type: "button",
-                    onClick: () => toggleBlockWorker(w),
-                    style: {
-                      height: "36px",
-                      padding: "0 14px",
-                      borderRadius: "999px",
-                      border: 0,
-                      background: blocked ? "#2E9E57" : "#E5484D",
-                      color: "#FFFFFF",
-                      fontWeight: 800,
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      flexShrink: 0,
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => toggleBlockWorker(w),
+                      style: {
+                        height: "36px",
+                        padding: "0 14px",
+                        borderRadius: "999px",
+                        border: 0,
+                        background: blocked ? "#2E9E57" : "#E5484D",
+                        color: "#FFFFFF",
+                        fontWeight: 800,
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      },
                     },
-                  },
-                  blocked ? "Unblock" : "Block Worker"
-                )
+                    blocked ? "Unblock" : "Block Worker"
+                  )
+                ),
+                (w.aadhaarFrontPhoto || w.aadhaarBackPhoto) &&
+                  h(
+                    "div",
+                    { style: { display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", paddingTop: "6px", borderTop: "1px solid " + borderCol } },
+                    w.photoUrl && h("img", { src: w.photoUrl, alt: "Selfie", title: "Live Selfie", style: { width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", border: "2px solid #F5A524" } }),
+                    w.aadhaarFrontPhoto && h("img", { src: w.aadhaarFrontPhoto, alt: "Aadhaar Front", title: "Aadhaar Front", style: { width: "74px", height: "46px", borderRadius: "8px", objectFit: "cover", border: "1px solid #2E9E57" } }),
+                    w.aadhaarBackPhoto && h("img", { src: w.aadhaarBackPhoto, alt: "Aadhaar Back", title: "Aadhaar Back", style: { width: "74px", height: "46px", borderRadius: "8px", objectFit: "cover", border: "1px solid #2E9E57" } }),
+                    h("span", { style: { fontSize: "11px", fontWeight: 800, color: "#1D6B36" } }, "✓ Aadhaar Front & Back + Selfie")
+                  )
               );
             })
           )
