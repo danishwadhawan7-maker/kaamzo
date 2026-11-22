@@ -3,6 +3,8 @@ const CACHE = new Map();
 function isValidTranslation(out) {
   if (!out || typeof out !== "string") return false;
   if (out.includes("MYMEMORY WARNING")) return false;
+  // Reject UTF-8-as-Latin-1 mojibake (e.g. "à¨—à©±à¨²à¨¬à¨¾à¨¤" from MyMemory) and replacement chars
+  if (/[àÀÃÂ][¨©¤¥\x80-\xBF]|Ã[\x80-\xBF]|â€|\uFFFD/.test(out)) return false;
   // Reject Cyrillic (e.g. Ukrainian/Russian) or CJK/Arabic garbage from crowdsourced TM
   if (/[\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF]/.test(out)) return false;
   return true;
@@ -113,6 +115,7 @@ module.exports = async function handler(req, res) {
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("X-Content-Type-Options", "nosniff");
 
   if (req.method === "OPTIONS") return res.status(204).end();

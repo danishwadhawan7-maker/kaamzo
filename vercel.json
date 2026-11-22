@@ -13,6 +13,15 @@
       ]
     },
     {
+      "source": "/assets/(.*\\.js)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
       "source": "/(.*\\.html|admin.*|worker.*|customer.*|register.*|jobs.*|pitch.*|^/$)",
       "headers": [
         {
