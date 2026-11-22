@@ -1333,35 +1333,6 @@
                     audioOn ? "STOP" : "PLAY"
                   )
                 ),
-                // Admin portal link
-                h(
-                  "button",
-                  {
-                    type: "button",
-                    onClick: () => {
-                      setOpenMenu(null);
-                      navigate("/admin", { role: "admin" });
-                    },
-                    style: {
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "12px",
-                      borderRadius: "14px",
-                      border: 0,
-                      background: "transparent",
-                      textAlign: "left",
-                      color: isDark ? "#EDE6DA" : "#1C1913",
-                    },
-                  },
-                  h(
-                    "span",
-                    { style: { flex: 1, display: "flex", flexDirection: "column" } },
-                    h("b", { style: { fontSize: "14px" } }, "Admin Portal"),
-                    h("span", { style: { fontSize: "12px", color: isDark ? "#B0A899" : "#6F685D" } }, "KYC verification & escrow console")
-                  ),
-                  h("span", { style: { padding: "5px 10px", borderRadius: "999px", background: "#FFF0BF", color: "#6B4600", fontSize: "11px", fontWeight: 800 } }, "ADMIN")
-                ),
                 // Investor Pitch
                 h(
                   "button",
@@ -2505,18 +2476,6 @@
               },
             },
             "Jobs"
-          ),
-          h(
-            "a",
-            {
-              href: "/admin",
-              style: linkStyle,
-              onClick: (e) => {
-                e.preventDefault();
-                navigate("/admin", { role: "admin" });
-              },
-            },
-            "Admin"
           ),
           h(
             "a",
