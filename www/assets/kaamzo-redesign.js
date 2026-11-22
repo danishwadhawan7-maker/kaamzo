@@ -261,6 +261,137 @@
     return typeof job.distanceKm === "number" ? job.distanceKm : 1.8;
   }
 
+  const NPCI_UPI_HANDLES = {
+    fam: "FamPay",
+    okaxis: "Google Pay (Axis)",
+    okicici: "Google Pay (ICICI)",
+    okhdfcbank: "Google Pay (HDFC)",
+    oksbi: "Google Pay (SBI)",
+    ybl: "PhonePe (Yes Bank)",
+    ibl: "PhonePe (ICICI)",
+    axl: "PhonePe (Axis)",
+    paytm: "Paytm UPI",
+    ptsbi: "Paytm (SBI)",
+    pthdfc: "Paytm (HDFC)",
+    ptaxis: "Paytm (Axis)",
+    ptyes: "Paytm (Yes Bank)",
+    upi: "BHIM / NPCI UPI",
+    apl: "Amazon Pay",
+    rapl: "Amazon Pay (RBL)",
+    waaxis: "WhatsApp Pay (Axis)",
+    wahdfcbank: "WhatsApp Pay (HDFC)",
+    waicici: "WhatsApp Pay (ICICI)",
+    wasbi: "WhatsApp Pay (SBI)",
+    sbi: "SBI YONO UPI",
+    icici: "ICICI iMobile UPI",
+    hdfcbank: "HDFC Bank UPI",
+    axisbank: "Axis Bank UPI",
+    kotak: "Kotak Bank UPI",
+    kmbl: "Kotak Bank UPI",
+    indus: "IndusInd Bank UPI",
+    federal: "Federal Bank UPI",
+    fbl: "Federal Bank UPI",
+    slice: "Slice UPI",
+    jupiteraxis: "Jupiter UPI",
+    naviaxis: "CRED / Navi UPI",
+    airtel: "Airtel Payments Bank",
+    jio: "JioPay UPI",
+    barodampay: "Bank of Baroda UPI",
+    pnb: "PNB UPI",
+    cnrb: "Canara Bank UPI",
+    unionbank: "Union Bank UPI",
+    uboi: "Union Bank UPI",
+    boi: "Bank of India UPI",
+    idbi: "IDBI Bank UPI",
+    yesbank: "Yes Bank UPI",
+    rbl: "RBL Bank UPI",
+    idfcbank: "IDFC FIRST Bank UPI",
+    equitas: "Equitas Bank UPI",
+    au: "AU Bank UPI",
+    sib: "South Indian Bank UPI",
+    kvb: "Karur Vysya Bank UPI",
+    cub: "City Union Bank UPI",
+    dcb: "DCB Bank UPI",
+    bandhan: "Bandhan Bank UPI",
+    ippb: "India Post Payments Bank",
+    postbank: "India Post Payments Bank",
+    freecharge: "Freecharge UPI",
+    mobikwik: "MobiKwik UPI",
+    ikwik: "MobiKwik UPI",
+    cred: "CRED UPI",
+    razorpay: "Razorpay Test UPI",
+  };
+
+  const UPI_TYPO_MAP = {
+    "gmail.com": "That's an email address, not a UPI ID. Try @fam, @okaxis, @ybl, or @paytm.",
+    "yahoo.com": "That's an email address, not a UPI ID.",
+    "outlook.com": "That's an email address, not a UPI ID.",
+    "hotmail.com": "That's an email address, not a UPI ID.",
+    fampay: "FamPay uses @fam (not @fampay).",
+    fampayupi: "FamPay uses @fam.",
+    gpay: "Google Pay uses @okaxis, @okicici, @okhdfcbank, or @oksbi.",
+    googlepay: "Google Pay uses @okaxis, @okicici, @okhdfcbank, or @oksbi.",
+    phonepe: "PhonePe uses @ybl, @ibl, or @axl.",
+    okhdfc: "Google Pay HDFC handle is @okhdfcbank (not @okhdfc).",
+    axis: "Try @okaxis or @axisbank.",
+    hdfc: "Try @okhdfcbank or @hdfcbank.",
+    sbiupi: "Try @oksbi or @sbi.",
+    bhim: "BHIM uses @upi (not @bhim).",
+  };
+
+  function validateUpiSmart(raw) {
+    const clean = String(raw || "").trim().toLowerCase();
+    if (!clean) {
+      return { valid: false, empty: true, vpa: "", error: "Enter a UPI ID (e.g. 6284194807@fam or name@okaxis)." };
+    }
+    if (/\s/.test(clean)) {
+      return { valid: false, vpa: clean, error: "Wrong UPI ID: spaces are not allowed." };
+    }
+    const parts = clean.split("@");
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      return { valid: false, vpa: clean, error: "Wrong UPI ID: must contain '@' (e.g. 6284194807@fam)." };
+    }
+    const [userPart, handle] = parts;
+    if (userPart.length < 2 || !/^[a-z0-9._-]+$/.test(userPart) || /^\.|\.$|\.\./.test(userPart)) {
+      return { valid: false, vpa: clean, error: "Wrong UPI username before '@'." };
+    }
+    if (UPI_TYPO_MAP[handle]) {
+      return { valid: false, vpa: clean, handle, error: `Wrong UPI handle (@${handle}): ${UPI_TYPO_MAP[handle]}` };
+    }
+    const appName = NPCI_UPI_HANDLES[handle];
+    if (!appName) {
+      return {
+        valid: false,
+        vpa: clean,
+        handle,
+        error: `Unknown UPI handle "@${handle}". Use a real handle like @fam, @okaxis, @okicici, @oksbi, @ybl, @ibl, @axl, @paytm, or @upi.`,
+      };
+    }
+    return { valid: true, vpa: clean, handle, appName };
+  }
+
+  function UpiStatusLine({ upi }) {
+    const txt = String(upi || "").trim();
+    if (!txt) return null;
+    const res = validateUpiSmart(txt);
+    return h(
+      "div",
+      {
+        style: {
+          padding: "7px 11px",
+          borderRadius: "10px",
+          background: res.valid ? "#E3F4E8" : "#FFE1E1",
+          border: "1px solid " + (res.valid ? "#2E9E57" : "#E5484D"),
+          color: res.valid ? "#1D6B36" : "#8A1C1C",
+          fontSize: "12px",
+          fontWeight: 700,
+          lineHeight: 1.35,
+        },
+      },
+      res.valid ? `✓ Verified UPI Format · ${res.appName} (@${res.handle})` : `✕ ${res.error}`
+    );
+  }
+
   function getCustomerAccountKey(cust) {
     if (!cust) return "";
     const email = String(cust.email || "").trim().toLowerCase();
@@ -2887,11 +3018,12 @@
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-      const cleanUpi = String(upiId || "").trim().toLowerCase();
-      if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(cleanUpi)) {
-        setErr("Enter a valid UPI ID (e.g. raju@okaxis or success@razorpay).");
+      const vpaCheck = validateUpiSmart(upiId);
+      if (!vpaCheck.valid) {
+        setErr(vpaCheck.error);
         return;
       }
+      const cleanUpi = vpaCheck.vpa;
       setErr("");
       setBusy(true);
       try {
@@ -3035,7 +3167,7 @@
             required: true,
             value: upiId,
             onChange: (e) => setUpiId(e.target.value),
-            placeholder: "e.g. name@okaxis or success@razorpay",
+            placeholder: "e.g. 6284194807@fam or name@okaxis",
             style: {
               height: "48px",
               borderRadius: "14px",
@@ -3048,6 +3180,7 @@
             },
           })
         ),
+        h(UpiStatusLine, { upi: upiId }),
         h(
           "div",
           { style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" } },
@@ -4126,6 +4259,7 @@
                 color: isDark ? "#EDE6DA" : "#1C1913",
               },
             }),
+            payerUpi.trim() && h(UpiStatusLine, { upi: payerUpi }),
             h("input", {
               ref: fileInputRef,
               type: "file",
@@ -5712,7 +5846,7 @@
         case "photo":
           return Boolean(photoUrl);
         case "upi":
-          return upiId.trim().includes("@") || role === "customer";
+          return validateUpiSmart(upiId).valid || role === "customer";
         case "password":
           return password.trim().length >= 4;
         case "review":
@@ -6677,13 +6811,18 @@
                 ),
 
               currentStepKey === "upi" &&
-                h("input", {
-                  type: "text",
-                  placeholder: cleanPhone ? cleanPhone + "@upi" : "name@okaxis",
-                  value: upiId,
-                  onChange: (e) => setUpiId(e.target.value),
-                  style: { height: "60px", borderRadius: "18px", border: "2px solid #E9DFCC", background: "#FFFFFF", padding: "0 16px", fontSize: "18px", fontWeight: 600 },
-                }),
+                h(
+                  "div",
+                  { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+                  h("input", {
+                    type: "text",
+                    placeholder: cleanPhone ? cleanPhone + "@fam" : "6284194807@fam",
+                    value: upiId,
+                    onChange: (e) => setUpiId(e.target.value),
+                    style: { height: "60px", borderRadius: "18px", border: "2px solid " + (upiId.trim() ? (validateUpiSmart(upiId).valid ? "#2E9E57" : "#E5484D") : "#E9DFCC"), background: "#FFFFFF", padding: "0 16px", fontSize: "18px", fontWeight: 600 },
+                  }),
+                  h(UpiStatusLine, { upi: upiId })
+                ),
 
               currentStepKey === "password" &&
                 h(
@@ -11633,7 +11772,13 @@
 
   async function withdrawWorkerToFampay(app, customUpi) {
     const worker = app.currentWorker;
-    const targetUpi = String(customUpi || worker?.upiId || "6284194807@fam").trim().toLowerCase() || "6284194807@fam";
+    const rawTarget = String(customUpi || worker?.upiId || "6284194807@fam").trim().toLowerCase() || "6284194807@fam";
+    const vpaCheck = validateUpiSmart(rawTarget);
+    if (!vpaCheck.valid) {
+      app.showNotification?.("✕ " + vpaCheck.error);
+      return;
+    }
+    const targetUpi = vpaCheck.vpa;
     const bal = Math.max(0, Number(worker?.walletBalance) || 0);
     if (!worker) {
       KZ.openLoginPrompt?.({ role: "worker", title: "Login to withdraw earnings" });
@@ -11710,17 +11855,25 @@
           h("b", { style: { fontSize: "18px" } }, "Trade & Daily Rate Settings"),
           h("div", { style: { padding: "10px 14px", borderRadius: "14px", background: isDark ? "#27231C" : "#FFF7E3", fontSize: "13px", fontWeight: 800 } }, `Locked Trade: ${worker?.primaryTrade || "Register to set"} (Immutable)`),
           h("label", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 700 } }, "Daily Base Rate (₹)", h("input", { type: "number", min: 300, step: 50, value: rateInput, onChange: (e) => setRateInput(Number(e.target.value)), style: { width: "110px", height: "40px", borderRadius: "10px", border: "1px solid " + borderCol, padding: "0 10px", fontWeight: 800 } })),
-          h("input", { type: "text", value: upiInput, onChange: (e) => setUpiInput(e.target.value), placeholder: "name@okaxis", style: { height: "44px", borderRadius: "12px", border: "1px solid " + borderCol, padding: "0 12px" } }),
+          h("input", { type: "text", value: upiInput, onChange: (e) => setUpiInput(e.target.value), placeholder: "6284194807@fam or name@okaxis", style: { height: "44px", borderRadius: "12px", border: "1px solid " + borderCol, padding: "0 12px" } }),
+          h(UpiStatusLine, { upi: upiInput }),
           h(
             "button",
             {
               type: "button",
               onClick: () => {
-                if (upiInput.trim()) app.updateWorkerUpi?.(upiInput.trim());
+                if (upiInput.trim()) {
+                  const vpaCheck = validateUpiSmart(upiInput);
+                  if (!vpaCheck.valid) {
+                    app.showNotification?.("✕ " + vpaCheck.error);
+                    return;
+                  }
+                  app.updateWorkerUpi?.(vpaCheck.vpa);
+                }
                 if (rateInput >= 300) app.updateWorkerProfile?.({ dailyRate: Number(rateInput) });
-                app.showNotification?.("Payout rate & UPI updated!");
+                app.showNotification?.("✓ Verified UPI & Payout rate saved!");
               },
-              style: { height: "44px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800 },
+              style: { height: "44px", borderRadius: "999px", border: 0, background: "#1C1913", color: "#FBF8F2", fontWeight: 800, cursor: "pointer" },
             },
             "Save Rate & UPI"
           )
@@ -12034,11 +12187,13 @@
         setCamError("Invalid End Code. Please scan the customer's End QR or enter the 4-digit End OTP.");
         return false;
       }
-      const cleanUpi = String(endUpi || worker?.upiId || "6284194807@fam").trim().toLowerCase();
-      if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(cleanUpi)) {
-        app.showNotification?.("Enter a valid UPI ID (e.g. 6284194807@fam or success@razorpay) to complete End QR.");
+      const vpaCheck = validateUpiSmart(endUpi || worker?.upiId || "6284194807@fam");
+      if (!vpaCheck.valid) {
+        app.showNotification?.("✕ " + vpaCheck.error);
+        setCamError(vpaCheck.error);
         return false;
       }
+      const cleanUpi = vpaCheck.vpa;
       setEndBusy(true);
       try {
         app.updateWorkerUpi?.(cleanUpi);
@@ -12777,6 +12932,7 @@
                           color: isDark ? "#EDE6DA" : "#1C1913",
                         },
                       }),
+                    !isStep2Done && h(UpiStatusLine, { upi: endUpi }),
                     !isStep2Done &&
                       isStep1Done &&
                       h(

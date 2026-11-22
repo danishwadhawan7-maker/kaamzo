@@ -208,6 +208,124 @@ function computeQuotedAmountInr(job, explicitAmountInr) {
   return 850;
 }
 
+const NPCI_UPI_HANDLES = {
+  fam: "FamPay",
+  okaxis: "Google Pay (Axis Bank)",
+  okicici: "Google Pay (ICICI Bank)",
+  okhdfcbank: "Google Pay (HDFC Bank)",
+  oksbi: "Google Pay (SBI)",
+  ybl: "PhonePe (Yes Bank)",
+  ibl: "PhonePe (ICICI Bank)",
+  axl: "PhonePe (Axis Bank)",
+  paytm: "Paytm UPI",
+  ptsbi: "Paytm (SBI)",
+  pthdfc: "Paytm (HDFC)",
+  ptaxis: "Paytm (Axis)",
+  ptyes: "Paytm (Yes Bank)",
+  upi: "BHIM / NPCI UPI",
+  apl: "Amazon Pay",
+  rapl: "Amazon Pay (RBL)",
+  waaxis: "WhatsApp Pay (Axis)",
+  wahdfcbank: "WhatsApp Pay (HDFC)",
+  waicici: "WhatsApp Pay (ICICI)",
+  wasbi: "WhatsApp Pay (SBI)",
+  sbi: "SBI YONO UPI",
+  icici: "ICICI iMobile UPI",
+  hdfcbank: "HDFC Bank UPI",
+  axisbank: "Axis Bank UPI",
+  kotak: "Kotak Mahindra UPI",
+  kmbl: "Kotak Bank UPI",
+  indus: "IndusInd Bank UPI",
+  federal: "Federal Bank UPI",
+  fbl: "Federal Bank UPI",
+  slice: "Slice UPI",
+  jupiteraxis: "Jupiter UPI",
+  naviaxis: "CRED / Navi UPI",
+  airtel: "Airtel Payments Bank",
+  jio: "JioPay UPI",
+  barodampay: "Bank of Baroda UPI",
+  pnb: "PNB UPI",
+  cnrb: "Canara Bank UPI",
+  unionbank: "Union Bank UPI",
+  uboi: "Union Bank UPI",
+  boi: "Bank of India UPI",
+  idbi: "IDBI Bank UPI",
+  yesbank: "Yes Bank UPI",
+  rbl: "RBL Bank UPI",
+  idfcbank: "IDFC FIRST Bank UPI",
+  equitas: "Equitas Bank UPI",
+  au: "AU Small Finance Bank",
+  sib: "South Indian Bank UPI",
+  kvb: "Karur Vysya Bank UPI",
+  cub: "City Union Bank UPI",
+  dcb: "DCB Bank UPI",
+  bandhan: "Bandhan Bank UPI",
+  ippb: "India Post Payments Bank",
+  postbank: "India Post Payments Bank",
+  freecharge: "Freecharge UPI",
+  mobikwik: "MobiKwik UPI",
+  ikwik: "MobiKwik UPI",
+  cred: "CRED UPI",
+  razorpay: "Razorpay Test UPI"
+};
+
+const UPI_TYPO_SUGGESTIONS = {
+  "gmail.com": "That looks like an email address, not a UPI ID. Use @fam, @okaxis, @ybl, or @paytm.",
+  "yahoo.com": "That looks like an email address, not a UPI ID.",
+  "outlook.com": "That looks like an email address, not a UPI ID.",
+  "hotmail.com": "That looks like an email address, not a UPI ID.",
+  fampay: "FamPay UPI IDs end with @fam (not @fampay).",
+  fampayupi: "FamPay UPI IDs end with @fam.",
+  gpay: "Google Pay uses @okaxis, @okicici, @okhdfcbank, or @oksbi (not @gpay).",
+  googlepay: "Google Pay uses @okaxis, @okicici, @okhdfcbank, or @oksbi.",
+  phonepe: "PhonePe uses @ybl, @ibl, or @axl (not @phonepe).",
+  okhdfc: "Google Pay HDFC handle is @okhdfcbank (not @okhdfc).",
+  axis: "Try @okaxis or @axisbank.",
+  hdfc: "Try @okhdfcbank or @hdfcbank.",
+  sbiupi: "SBI / GPay SBI uses @oksbi or @sbi.",
+  bhim: "BHIM UPI IDs end with @upi (not @bhim)."
+};
+
+function validateUpiVpa(rawVpa) {
+  const clean = String(rawVpa || "").trim().toLowerCase();
+  if (!clean) {
+    return { valid: false, vpa: "", error: "UPI ID is required (e.g. 6284194807@fam or name@okaxis)." };
+  }
+  if (/\s/.test(clean)) {
+    return { valid: false, vpa: clean, error: "Wrong UPI ID: UPI IDs cannot contain spaces." };
+  }
+  const parts = clean.split("@");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    return { valid: false, vpa: clean, error: "Wrong UPI ID format: must contain one '@' (e.g. 6284194807@fam)." };
+  }
+  const [userPart, handle] = parts;
+  if (userPart.length < 2 || !/^[a-z0-9._-]+$/.test(userPart) || /^\.|\.$|\.\./.test(userPart)) {
+    return {
+      valid: false,
+      vpa: clean,
+      error: "Wrong UPI username before '@'. Only letters, numbers, dots, hyphens, and underscores are allowed."
+    };
+  }
+  if (UPI_TYPO_SUGGESTIONS[handle]) {
+    return {
+      valid: false,
+      vpa: clean,
+      handle,
+      error: `Wrong UPI handle (@${handle}): ${UPI_TYPO_SUGGESTIONS[handle]}`
+    };
+  }
+  const appName = NPCI_UPI_HANDLES[handle];
+  if (!appName) {
+    return {
+      valid: false,
+      vpa: clean,
+      handle,
+      error: `Unrecognized UPI bank/app handle "@${handle}". Use a real NPCI handle like @fam, @okaxis, @okicici, @oksbi, @ybl, @ibl, @axl, @paytm, or @upi.`
+    };
+  }
+  return { valid: true, vpa: clean, handle, appName };
+}
+
 module.exports = async function handler(req, res) {
   applyCors(req, res);
 
@@ -262,18 +380,62 @@ module.exports = async function handler(req, res) {
     }
 
     // -----------------------------------------------------------------------
+    // 1b. VALIDATE VPA: Detect Wrong / Fake / Typo UPI IDs (+ Live NPCI lookup if enabled)
+    // -----------------------------------------------------------------------
+    if (action === "validateVpa") {
+      const rawVpa = parsedUrl.searchParams.get("vpa") || body.vpa || body.upiId || "";
+      const check = validateUpiVpa(rawVpa);
+      if (!check.valid) {
+        return sendJson(res, 200, {
+          success: true,
+          valid: false,
+          vpa: check.vpa,
+          mode: "npci_syntax_check",
+          error: check.error
+        });
+      }
+
+      // Attempt Razorpay Live NPCI VPA Existence Check when merchant account supports it
+      try {
+        const liveRes = await rzpxRequest("/v1/payments/validate/vpa", "POST", { vpa: check.vpa });
+        if (typeof liveRes.success === "boolean") {
+          return sendJson(res, 200, {
+            success: true,
+            valid: liveRes.success,
+            vpa: check.vpa,
+            appName: check.appName,
+            customerName: liveRes.customer_name || null,
+            mode: "razorpay_npci_live",
+            error: liveRes.success
+              ? null
+              : `UPI ID "${check.vpa}" does not exist on NPCI (${check.appName}). Please double-check the spelling.`
+          });
+        }
+      } catch (_) {}
+
+      return sendJson(res, 200, {
+        success: true,
+        valid: true,
+        vpa: check.vpa,
+        appName: check.appName,
+        mode: "npci_handle_verified"
+      });
+    }
+
+    // -----------------------------------------------------------------------
     // 2. MARK COMPLETED: Worker submits UPI ID (saved for next time) + Fund Account
     // -----------------------------------------------------------------------
     if (action === "markCompleted") {
       if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
 
-      const cleanUpi = String(body.upiId || "6284194807@fam").trim();
-      if (!/^[\w.\-+]{2,}@[\w.\-]{2,}$/.test(cleanUpi)) {
+      const vpaCheck = validateUpiVpa(body.upiId || "6284194807@fam");
+      if (!vpaCheck.valid) {
         return sendJson(res, 400, {
           success: false,
-          error: "Enter a valid UPI ID (e.g. name@okaxis or success@razorpay)."
+          error: vpaCheck.error
         });
       }
+      const cleanUpi = vpaCheck.vpa;
 
       const jobId = String(body.jobId || "").trim();
       if (!jobId) return sendJson(res, 400, { success: false, error: "jobId is required" });
@@ -669,13 +831,14 @@ module.exports = async function handler(req, res) {
       if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
 
       const workerId = String(body.workerId || "").trim();
-      const targetUpi = String(body.upiId || "6284194807@fam").trim().toLowerCase() || "6284194807@fam";
-      if (!/^[\w.\-+]{2,}@[\w.\-]{2,}$/.test(targetUpi)) {
+      const vpaCheck = validateUpiVpa(body.upiId || "6284194807@fam");
+      if (!vpaCheck.valid) {
         return sendJson(res, 400, {
           success: false,
-          error: "Enter a valid UPI ID (e.g. 6284194807@fam)."
+          error: vpaCheck.error
         });
       }
+      const targetUpi = vpaCheck.vpa;
 
       let dbWorker = null;
       try {
