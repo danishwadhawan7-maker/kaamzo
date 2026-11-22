@@ -47,6 +47,62 @@ async function translateSingle(text, tl) {
   return clean;
 }
 
+async function translateBatchFast(texts, tl) {
+  const uncached = [];
+  const results = {};
+
+  for (const raw of texts) {
+    const clean = String(raw || "").trim();
+    if (!clean) continue;
+    const cacheKey = `${tl}:${clean}`;
+    if (CACHE.has(cacheKey)) {
+      results[clean] = CACHE.get(cacheKey);
+    } else {
+      uncached.push(clean);
+    }
+  }
+
+  if (uncached.length === 0) return results;
+
+  // Fast Path: Join up to 25 strings with " ||| " or newline in a single Google GTX request (~150ms total)
+  const SEP = "\n";
+  for (let i = 0; i < uncached.length; i += 25) {
+    const slice = uncached.slice(i, i + 25);
+    let batchResolved = false;
+    if (slice.length > 1 && slice.every(s => !s.includes("\n"))) {
+      try {
+        const joinedPayload = slice.join(SEP);
+        const gUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(joinedPayload)}`;
+        const r = await fetch(gUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+        if (r.ok) {
+          const data = await r.json();
+          if (Array.isArray(data) && Array.isArray(data[0])) {
+            const fullTranslated = data[0].map(part => (Array.isArray(part) ? part[0] : "")).join("");
+            const lines = fullTranslated.split(/\r?\n/);
+            if (lines.length === slice.length && isValidTranslation(fullTranslated)) {
+              slice.forEach((src, idx) => {
+                const tr = (lines[idx] || "").trim() || src;
+                CACHE.set(`${tl}:${src}`, tr);
+                results[src] = tr;
+              });
+              batchResolved = true;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (!batchResolved) {
+      const fallbackRes = await Promise.all(slice.map(t => translateSingle(t, tl)));
+      slice.forEach((src, idx) => {
+        results[src] = fallbackRes[idx];
+      });
+    }
+  }
+
+  return results;
+}
+
 module.exports = async function handler(req, res) {
   const origin = req.headers && req.headers.origin;
   const allowed =
@@ -65,23 +121,14 @@ module.exports = async function handler(req, res) {
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
     const target = String(body.target || "").toLowerCase();
-    const texts = Array.isArray(body.texts) ? body.texts.slice(0, 60) : [];
+    const texts = Array.isArray(body.texts) ? body.texts.slice(0, 80) : [];
 
     if (!["hi", "pa"].includes(target)) {
       return res.status(400).json({ success: false, error: "Unsupported target language" });
     }
 
     const unique = [...new Set(texts.map(t => String(t || "").trim()).filter(t => t && t.length <= 400))];
-    const translations = {};
-
-    // Run in small batches of 8 concurrently for low latency
-    for (let i = 0; i < unique.length; i += 8) {
-      const chunk = unique.slice(i, i + 8);
-      const results = await Promise.all(chunk.map(t => translateSingle(t, target)));
-      chunk.forEach((src, idx) => {
-        translations[src] = results[idx];
-      });
-    }
+    const translations = await translateBatchFast(unique, target);
 
     return res.status(200).json({ success: true, target, translations });
   } catch (err) {

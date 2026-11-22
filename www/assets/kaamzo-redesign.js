@@ -1115,96 +1115,54 @@
             h("span", null, audioOn ? "Audio On" : "Listen")
           ),
 
-          // Language selector
+          // 1-Tap Instant Language Switcher (English | हिंदी | ਪੰਜਾਬੀ)
           h(
             "div",
-            { style: { position: "relative" } },
-            h(
-              "button",
-              {
-                type: "button",
-                onClick: () => setOpenMenu(openMenu === "lang" ? null : "lang"),
-                style: pillBtn,
+            {
+              className: "notranslate",
+              "data-no-translate": "1",
+              role: "group",
+              "aria-label": "Language selection",
+              style: {
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "3px",
+                padding: "3px",
+                borderRadius: "999px",
+                border: "1px solid " + (isDark ? "#3A342C" : "#E5DCCB"),
+                background: isDark ? "#1F1C17" : "#FFFFFF",
               },
-              h(
-                "span",
-                null,
-                app.currentLanguage === "hi"
-                  ? "हिंदी · HI"
-                  : app.currentLanguage === "pa"
-                  ? "ਪੰਜਾਬੀ · PA"
-                  : "EN · हिं · ਪੰ"
-              )
-            ),
-            openMenu === "lang" &&
-              h(
-                "div",
-                { style: popCardStyle },
-                h(
-                  "span",
-                  {
-                    style: {
-                      fontSize: "11px",
-                      fontWeight: 800,
-                      letterSpacing: "1px",
-                      color: isDark ? "#F5A524" : "#7A4E00",
-                      padding: "4px 12px 6px",
-                    },
+            },
+            [
+              { code: "en", label: "EN", title: "English" },
+              { code: "hi", label: "हिंदी", title: "Hindi (हिंदी)" },
+              { code: "pa", label: "ਪੰਜਾਬੀ", title: "Punjabi (ਪੰਜਾਬੀ)" },
+            ].map((lg) => {
+              const active = (app.currentLanguage || "en") === lg.code;
+              return h(
+                "button",
+                {
+                  key: lg.code,
+                  type: "button",
+                  title: lg.title,
+                  "aria-pressed": active,
+                  onClick: () => toggleLang(lg.code),
+                  style: {
+                    height: "28px",
+                    padding: "0 10px",
+                    borderRadius: "999px",
+                    border: 0,
+                    background: active ? (isDark ? "#F5A524" : "#1C1913") : "transparent",
+                    color: active ? (isDark ? "#14120E" : "#FBF8F2") : isDark ? "#EDE6DA" : "#3D3830",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
                   },
-                  "LANGUAGE"
-                ),
-                [
-                  { code: "en", label: "English", sub: "EN" },
-                  { code: "hi", label: "हिंदी", sub: "Hindi", hi: true },
-                  { code: "pa", label: "ਪੰਜਾਬੀ", sub: "Punjabi" },
-                ].map((lg) =>
-                  h(
-                    "button",
-                    {
-                      key: lg.code,
-                      type: "button",
-                      onClick: () => toggleLang(lg.code),
-                      style: {
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "12px",
-                        borderRadius: "14px",
-                        border: 0,
-                        textAlign: "left",
-                        background:
-                          app.currentLanguage === lg.code
-                            ? isDark
-                              ? "#2C2415"
-                              : "#FFF0BF"
-                            : "transparent",
-                        color: isDark ? "#EDE6DA" : "#1C1913",
-                      },
-                    },
-                    h(
-                      "span",
-                      { style: { flex: 1, display: "flex", flexDirection: "column" } },
-                      h(
-                        "b",
-                        {
-                          style: {
-                            fontSize: "14px",
-                            fontFamily: lg.hi ? "var(--kz-font-hindi)" : "inherit",
-                          },
-                        },
-                        lg.label
-                      ),
-                      h("span", { style: { fontSize: "12px", color: isDark ? "#B0A899" : "#6F685D" } }, lg.sub)
-                    ),
-                    app.currentLanguage === lg.code ? "✓" : ""
-                  )
-                ),
-                h(
-                  "span",
-                  { style: { padding: "8px 12px 4px", fontSize: "12px", color: isDark ? "#B0A899" : "#6F685D" } },
-                  "Trade names show in both languages, e.g. Mason (राजमिस्त्री)"
-                )
-              )
+                },
+                lg.label
+              );
+            })
           ),
 
           // Settings popover
@@ -4834,15 +4792,45 @@
                 "Jobs"
               ),
               h(
-                "button",
+                "div",
                 {
-                  type: "button",
-                  onClick: toggleLangQuick,
-                  "aria-label": "Switch language",
-                  style: { padding: "10px 14px", border: 0, background: "transparent", font: "inherit", fontSize: "14px", fontWeight: 700, color: "#3D3830", cursor: "pointer" },
+                  className: "notranslate",
+                  "data-no-translate": "1",
+                  style: { display: "inline-flex", alignItems: "center", gap: "2px", padding: "3px", borderRadius: "999px", background: "rgba(28,25,19,0.06)" },
                 },
-                "EN · ",
-                h("span", { style: { fontFamily: "'Noto Sans Devanagari', sans-serif" } }, "हिं")
+                [
+                  { code: "en", label: "EN" },
+                  { code: "hi", label: "हिं" },
+                  { code: "pa", label: "ਪੰ" },
+                ].map((lg) => {
+                  const act = (app.currentLanguage || "en") === lg.code;
+                  return h(
+                    "button",
+                    {
+                      key: lg.code,
+                      type: "button",
+                      onClick: () => {
+                        app.setCurrentLanguage(lg.code);
+                        if (typeof window.kaamzoSetLanguage === "function") {
+                          try {
+                            window.kaamzoSetLanguage(lg.code);
+                          } catch (_) {}
+                        }
+                      },
+                      style: {
+                        padding: "6px 10px",
+                        borderRadius: "999px",
+                        border: 0,
+                        background: act ? "#1C1913" : "transparent",
+                        color: act ? "#F5A524" : "#3D3830",
+                        fontSize: "12.5px",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      },
+                    },
+                    lg.label
+                  );
+                })
               )
             ),
             h(
