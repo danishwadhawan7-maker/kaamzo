@@ -35,8 +35,7 @@ function getFamPayGatewayConfig() {
     apiKey,
     apiBaseUrl,
     upiId,
-    configured: Boolean(apiKey),
-    keyPrefix: apiKey ? `${apiKey.slice(0, 8)}••••` : null
+    configured: Boolean(apiKey)
   };
 }
 
@@ -49,8 +48,7 @@ async function verifyUtrWithFamPayGateway({ utr, amountInr, jobId, upiId }) {
     return {
       gatewayConfigured: true,
       verifiedViaApi: false,
-      mode: "fampay_key_active_utr_verified",
-      keyPrefix: cfg.keyPrefix
+      mode: "fampay_key_active_utr_verified"
     };
   }
   try {
@@ -68,16 +66,13 @@ async function verifyUtrWithFamPayGateway({ utr, amountInr, jobId, upiId }) {
       return {
         gatewayConfigured: true,
         verifiedViaApi: true,
-        mode: "fampay_gateway_api_verified",
-        keyPrefix: cfg.keyPrefix,
-        gatewayResponse: data
+        mode: "fampay_gateway_api_verified"
       };
     }
     return {
       gatewayConfigured: true,
       verifiedViaApi: false,
       mode: "fampay_gateway_api_rejected",
-      keyPrefix: cfg.keyPrefix,
       error: data.error || data.message || `FamPay Gateway HTTP ${resp.status}`
     };
   } catch (err) {
@@ -85,8 +80,7 @@ async function verifyUtrWithFamPayGateway({ utr, amountInr, jobId, upiId }) {
       gatewayConfigured: true,
       verifiedViaApi: false,
       mode: "fampay_gateway_unreachable_fallback",
-      keyPrefix: cfg.keyPrefix,
-      error: err.message
+      error: "FamPay gateway temporarily unreachable"
     };
   }
 }
@@ -437,7 +431,6 @@ module.exports = async function handler(req, res) {
         mode: keyId.startsWith("rzp_test_") ? "test" : "live",
         fampayUpiId: famCfg.upiId,
         fampayGatewayConfigured: famCfg.configured,
-        fampayKeyPrefix: famCfg.keyPrefix,
         testUpiIds: {
           fampay: famCfg.upiId,
           success: "success@razorpay",
