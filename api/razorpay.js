@@ -27,6 +27,70 @@ function getRazorpayCredentials() {
   return { keyId, keySecret };
 }
 
+function getFamPayGatewayConfig() {
+  const apiKey = String(process.env.FAMPAY_API_KEY || "").trim();
+  const apiBaseUrl = String(process.env.FAMPAY_API_BASE_URL || "").trim().replace(/\/+$/, "");
+  const upiId = String(process.env.FAMPAY_UPI_ID || "6284194807@fam").trim() || "6284194807@fam";
+  return {
+    apiKey,
+    apiBaseUrl,
+    upiId,
+    configured: Boolean(apiKey),
+    keyPrefix: apiKey ? `${apiKey.slice(0, 8)}••••` : null
+  };
+}
+
+async function verifyUtrWithFamPayGateway({ utr, amountInr, jobId, upiId }) {
+  const cfg = getFamPayGatewayConfig();
+  if (!cfg.configured) {
+    return { gatewayConfigured: false, verifiedViaApi: false, mode: "utr_format_and_dedup" };
+  }
+  if (!cfg.apiBaseUrl) {
+    return {
+      gatewayConfigured: true,
+      verifiedViaApi: false,
+      mode: "fampay_key_active_utr_verified",
+      keyPrefix: cfg.keyPrefix
+    };
+  }
+  try {
+    const resp = await fetch(`${cfg.apiBaseUrl}/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${cfg.apiKey}`,
+        "X-API-Key": cfg.apiKey
+      },
+      body: JSON.stringify({ utr, amount: amountInr, jobId, upiId: upiId || cfg.upiId })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && (data.verified || data.success || data.status === "PAID" || data.status === "SUCCESS")) {
+      return {
+        gatewayConfigured: true,
+        verifiedViaApi: true,
+        mode: "fampay_gateway_api_verified",
+        keyPrefix: cfg.keyPrefix,
+        gatewayResponse: data
+      };
+    }
+    return {
+      gatewayConfigured: true,
+      verifiedViaApi: false,
+      mode: "fampay_gateway_api_rejected",
+      keyPrefix: cfg.keyPrefix,
+      error: data.error || data.message || `FamPay Gateway HTTP ${resp.status}`
+    };
+  } catch (err) {
+    return {
+      gatewayConfigured: true,
+      verifiedViaApi: false,
+      mode: "fampay_gateway_unreachable_fallback",
+      keyPrefix: cfg.keyPrefix,
+      error: err.message
+    };
+  }
+}
+
 function getRazorpayClient() {
   const { keyId, keySecret } = getRazorpayCredentials();
   return new Razorpay({ key_id: keyId, key_secret: keySecret });
@@ -366,13 +430,16 @@ module.exports = async function handler(req, res) {
     // 1. CONFIG: Return Public Test Key ID & Test UPI IDs
     // -----------------------------------------------------------------------
     if (action === "config") {
+      const famCfg = getFamPayGatewayConfig();
       return sendJson(res, 200, {
         success: true,
         keyId,
         mode: keyId.startsWith("rzp_test_") ? "test" : "live",
-        fampayUpiId: "6284194807@fam",
+        fampayUpiId: famCfg.upiId,
+        fampayGatewayConfigured: famCfg.configured,
+        fampayKeyPrefix: famCfg.keyPrefix,
         testUpiIds: {
-          fampay: "6284194807@fam",
+          fampay: famCfg.upiId,
           success: "success@razorpay",
           failure: "failure@razorpay"
         }
@@ -749,6 +816,20 @@ module.exports = async function handler(req, res) {
       const workerPayoutInr =
         Number(baseJob.workerPayout) > 0 ? Number(baseJob.workerPayout) : Math.round(grossInr * 0.8);
 
+      const famGatewayCheck = await verifyUtrWithFamPayGateway({
+        utr: utrRef,
+        amountInr: grossInr,
+        jobId: baseJob.id,
+        upiId: targetUpi
+      });
+      if (famGatewayCheck.mode === "fampay_gateway_api_rejected") {
+        return sendJson(res, 400, {
+          success: false,
+          verified: false,
+          error: famGatewayCheck.error || "FamPay Gateway could not verify this UTR."
+        });
+      }
+
       const payout = await createWorkerUpiPayout({
         fundAccountId: baseJob.razorpayFundAccountId,
         upiId: targetUpi,
@@ -765,6 +846,8 @@ module.exports = async function handler(req, res) {
         escrowStatus: "released_to_worker",
         paymentStatus: "paid_and_settled",
         paidVia: "FAMPAY_UPI_6284194807@fam",
+        fampayGatewayMode: famGatewayCheck.mode,
+        fampayGatewayVerified: Boolean(famGatewayCheck.verifiedViaApi || famGatewayCheck.gatewayConfigured),
         transactionRef: utrRef,
         upiUtr: utrRef,
         upiAppUsed: String(body.upiAppUsed || "FamPay UPI").slice(0, 40),
