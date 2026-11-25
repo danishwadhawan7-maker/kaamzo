@@ -4568,7 +4568,8 @@
   const { HeroWorkSceneSvg, TradeIllustration, SvgIcon, TopUtilityBar, KaamzoFooter, UpiStatusLine } = C;
 
   // =========================================================================
-  // HOME PAGE (/) — pixel-exact port of home/index.html
+  // HOME PAGE (/) — Editorial Neo-Retro Illustrated Landing Page
+  // (Inspired by Creative South poster aesthetic + Kaamzo Palette & Miniature Workers)
   // =========================================================================
   KZ.views.HomePage = function HomePage() {
     const app = useApp();
@@ -4576,26 +4577,6 @@
     const [searchText, setSearchText] = useState("");
 
     const workers = U.dedupeWorkersList(app.workers || []);
-
-    const flowers = U.useMemo(() => {
-      const list = [];
-      const cols = ["#FFE27A", "#FFFFFF", "#F59E3B", "#F3D24E", "#E7C3F0"];
-      let seed = 7;
-      const rnd = () => {
-        seed = (seed * 9301 + 49297) % 233280;
-        return seed / 233280;
-      };
-      for (let i = 0; i < 140; i++) {
-        const y = 440 + rnd() * 78;
-        list.push({
-          x: Math.round(rnd() * 1440),
-          y: Math.round(y),
-          r: +(1.5 + (y - 440) / 20).toFixed(1),
-          c: cols[Math.floor(rnd() * cols.length)],
-        });
-      }
-      return list;
-    }, []);
 
     const handleSearch = (e) => {
       e.preventDefault();
@@ -4618,16 +4599,6 @@
       }
     };
 
-    const toggleLangQuick = () => {
-      const next = app.currentLanguage === "en" ? "hi" : app.currentLanguage === "hi" ? "pa" : "en";
-      app.setCurrentLanguage(next);
-      if (typeof window.kaamzoSetLanguage === "function") {
-        try {
-          window.kaamzoSetLanguage(next);
-        } catch (_) {}
-      }
-    };
-
     const activeAccount =
       app.currentRole === "worker" && app.currentWorker
         ? { label: app.currentWorker.name.split(" ")[0] + " · Worker", href: "/worker", role: "worker" }
@@ -4642,160 +4613,681 @@
 
     const howSteps = [
       {
-        n: "1",
+        n: "01",
         title: "Broadcast your job",
         body: "Post your task & location — Kaamzo broadcasts instantly to verified workers within 10 km.",
-        bg: "#DCEAF5",
+        bg: "#DCEBFF",
+        accent: "#2F6FD6",
       },
       {
-        n: "2",
+        n: "02",
         title: "Worker arrives on live map",
         body: "Track your accepted worker live on GPS with ETA and confirm arrival using your 4-digit Start OTP.",
-        bg: "#FCEBCB",
+        bg: "#FFF0BF",
+        accent: "#E8930C",
       },
       {
-        n: "3",
+        n: "03",
         title: "Work in progress",
         body: "Watch live work progress and digital attendance while your verified neighbour completes the job.",
-        bg: "#FBE3D3",
+        bg: "#FBE0EE",
+        accent: "#D9478E",
       },
       {
-        n: "4",
-        title: "Pay via Razorpay UPI",
-        body: "Once the worker marks completed, tap Pay Now to settle cleanly via UPI with instant status updates.",
+        n: "04",
+        title: "Pay via UPI Escrow",
+        body: "Once completed, settle cleanly via FamPay / Razorpay UPI with 100% escrow protection.",
         bg: "#E3F4E8",
+        accent: "#2E9E57",
       },
     ];
 
     const trustItems = [
-      { title: "Aadhaar verified", body: "Every worker checks ID and face before taking jobs.", icon: ICON_PATHS.shield },
-      { title: "Escrow payments", body: "Money is released only with your OTP.", icon: ICON_PATHS.lock },
-      { title: "Live GPS on every job", body: "Both sides see where the job is in real time.", icon: ICON_PATHS.pin },
-      { title: "One-tap SOS", body: "Call 112 straight from an active job.", icon: ICON_PATHS.alert },
+      { title: "Aadhaar verified", body: "Every worker checks ID and face before taking jobs.", icon: ICON_PATHS.shield, bg: "#FFF0BF" },
+      { title: "Escrow payments", body: "Money is released only with your OTP confirmation.", icon: ICON_PATHS.lock, bg: "#DCEBFF" },
+      { title: "Live GPS on every job", body: "Both sides see where the job is in real time.", icon: ICON_PATHS.pin, bg: "#E3F4E8" },
+      { title: "One-tap SOS 112", body: "Emergency support & family SOS straight from any job.", icon: ICON_PATHS.alert, bg: "#FBE0EE" },
     ];
 
     const workerPerks = [
-      { title: "Free registration", body: "Phone number and UPI ID is all you need." },
-      { title: "Jobs within 10 km", body: "Less travel, more jobs in a day." },
-      { title: "Paid straight to UPI", body: "PhonePe, GPay or Paytm, as soon as the customer confirms." },
-      { title: "Bonuses as you grow", body: "Milestone bonus ladder from 10 to 100 jobs." },
+      { title: "Free registration", body: "Phone number, Aadhaar & UPI ID is all you need.", bg: "#FFF0BF" },
+      { title: "Jobs within 10 km", body: "Less travel, more jobs and higher daily savings.", bg: "#DCEBFF" },
+      { title: "Paid straight to UPI", body: "FamPay, PhonePe, GPay or Paytm as soon as work is confirmed.", bg: "#E3F4E8" },
+      { title: "Bonuses as you grow", body: "Milestone cash doubler ladder from 10 to 100 jobs.", bg: "#FBE0EE" },
     ];
 
-    const pageBg = isDark ? "#14120E" : "#FBF8F2";
-    const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
-    const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
-    const textCol = isDark ? "#EDE6DA" : "#1C1913";
-    const bodyCol = isDark ? "#CFC6B8" : "#4A443A";
-    const mutedCol = isDark ? "#A49B8C" : "#6F685D";
+    const creamCanvas = isDark ? "#181510" : "#F5EFE4";
+    const cardBg = isDark ? "#221E17" : "#FBF8F2";
+    const ink = "#1C1913";
+    const textOnCream = isDark ? "#FBF8F2" : "#1C1913";
+    const mutedOnCream = isDark ? "#BFB6A6" : "#5B5347";
+    const ribbonPath =
+      "M 930 -30 C 980 110, 1080 230, 1185 205 C 1275 184, 1270 65, 1360 110 " +
+      "M 1110 -20 C 1020 120, 820 190, 560 225 C 240 268, 70 375, 145 488 C 215 592, 560 510, 835 552 C 1045 585, 995 725, 760 765 C 575 796, 615 925, 865 965 C 1070 998, 1175 1060, 1265 1068";
+    const mainRibbon =
+      "M 1035 -25 C 965 135, 755 175, 485 215 C 175 262, -20 385, 115 505 C 235 612, 650 495, 885 565 C 1065 618, 965 738, 745 782 C 565 818, 635 942, 895 982 C 1095 1012, 1185 1065, 1275 1068";
+
+    const playAudioIntro = () => {
+      const lang = app.currentLanguage || "en";
+      if (lang === "hi") {
+        app.speak?.("घर का काम, कामज़ो के नाम। आपके 10 किलोमीटर के अंदर आधार सत्यापित इलेक्ट्रीशियन, प्लंबर, बढ़ई और पेंटर।", "hi-IN");
+      } else if (lang === "pa") {
+        app.speak?.("ਘਰ ਦਾ ਕੰਮ, ਕਾਮਜ਼ੋ ਦੇ ਨਾਮ। ਤੁਹਾਡੇ 10 ਕਿਲੋਮੀਟਰ ਦੇ ਅੰਦਰ ਆਧਾਰ ਤਸਦੀਕਸ਼ੁਦਾ ਕਾਰੀਗਰ।", "pa-IN");
+      } else {
+        app.speak?.("Ghar ka kaam, Kaamzo ke naam. Book 100% Aadhaar verified electricians, plumbers, carpenters and painters within 10 kilometers.", "en-IN");
+      }
+    };
+
+    const cityLabel = app.currentCity?.name || "Ludhiana";
 
     return h(
       "div",
       {
+        className: "kz-retro-home",
         style: {
           fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-          color: textCol,
-          background: pageBg,
+          color: textOnCream,
+          background: creamCanvas,
           minHeight: "100vh",
           overflowX: "clip",
         },
       },
+      // Scoped CSS for Poster Typography, Marquee, Tactile Ink Buttons & Mobile Scaling
+      h(
+        "style",
+        null,
+        `
+        @keyframes kzMarqueeScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes kzBobGentle {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-7px); }
+        }
+        @keyframes kzSteamPulse {
+          0%, 100% { transform: translateY(0px) scale(1); opacity: 0.92; }
+          50% { transform: translateY(-6px) scale(1.06); opacity: 1; }
+        }
+        .kz-marquee-track {
+          display: flex;
+          width: max-content;
+          animation: kzMarqueeScroll 28s linear infinite;
+        }
+        .kz-marquee-track:hover {
+          animation-play-state: paused;
+        }
+        .kz-bob-slow { animation: kzBobGentle 4.2s ease-in-out infinite; }
+        .kz-bob-delay { animation: kzBobGentle 4.8s ease-in-out 1.2s infinite; }
+        .kz-steam-anim { animation: kzSteamPulse 3.2s ease-in-out infinite; transform-origin: center; }
+        .kz-poster-title {
+          color: #FBF8F2;
+          -webkit-text-stroke: 2.5px #1C1913;
+          paint-order: stroke fill;
+          text-shadow:
+            0 3px 0 #1C1913,
+            -4px 5px 0 #F5A524,
+            -8px 9px 0 #E8930C,
+            -12px 13px 0 #C9643B,
+            -15px 16px 0 #1C1913;
+        }
+        .kz-ink-pill {
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .kz-ink-pill:hover {
+          transform: translate(-2px, -2px);
+          box-shadow: 0 8px 0 #1C1913 !important;
+        }
+        .kz-ink-pill:active {
+          transform: translate(0px, 2px);
+          box-shadow: 0 2px 0 #1C1913 !important;
+        }
+        .kz-ink-card {
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .kz-ink-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 0 #1C1913 !important;
+        }
+        @media (max-width: 860px) {
+          .kz-poster-nav-links { display: none !important; }
+          .kz-hero-audio-aside { position: static !important; margin: 18px auto 0 !important; max-width: 340px !important; justify-content: center; text-align: left; }
+          .kz-poster-title {
+            -webkit-text-stroke: 1.5px #1C1913;
+            text-shadow:
+              0 2px 0 #1C1913,
+              -3px 4px 0 #F5A524,
+              -6px 7px 0 #E8930C,
+              -8px 9px 0 #1C1913;
+          }
+          .kz-pipe-center-copy {
+            padding: 28px 16px 24px !important;
+          }
+        }
+        `
+      ),
+
       h(TopUtilityBar, null),
 
-      // ============ HERO SCENE ============
+      // ============ TOP SCROLLING TICKER BAR (Creative South Marquee Style) ============
+      h(
+        "div",
+        {
+          style: {
+            background: "#15120D",
+            color: "#F5D78E",
+            borderBottom: "2px solid #2E2920",
+            overflow: "hidden",
+            padding: "8px 0",
+            fontSize: "12px",
+            fontWeight: 800,
+            letterSpacing: "0.9px",
+            textTransform: "uppercase",
+          },
+        },
+        h(
+          "div",
+          { className: "kz-marquee-track" },
+          [0, 1].map((dup) =>
+            h(
+              "div",
+              { key: dup, style: { display: "flex", alignItems: "center", gap: "34px", paddingRight: "34px", whiteSpace: "nowrap" } },
+              h("span", null, `✦ Live in ${cityLabel} · 10 km GPS Dispatch`),
+              h("span", { style: { color: "#FBF8F2" } }, "✦ Ghar ka kaam, Kaamzo ke naam"),
+              h("span", { style: { color: "#5BD68A" } }, "✦ 100% Aadhaar & Face-ID Verified Workers"),
+              h("span", { style: { color: "#F3B47C" } }, "✦ Zero Advance Risk · UPI Escrow Protected"),
+              h("span", { style: { color: "#DCEBFF" } }, `✦ Electrician ${elecRate}/d · Plumber ${plumberRate}/d · Carpenter ${carpenterRate}/d`)
+            )
+          )
+        )
+      ),
+
+      // =========================================================================
+      // ACT 1 & ACT 2 MASTER ILLUSTRATED STAGE:
+      // Charcoal Night Sky (#1C1913) + 5-Color Kaamzo Ribbon + Miniature Workers
+      // Flowing Seamlessly into Warm Cream (#F5EFE4) Sewage Pipe Workshop Contraption!
+      // =========================================================================
       h(
         "section",
         {
           id: "top",
-          className: "kz-hero-section",
           style: {
             position: "relative",
-            minHeight: "940px",
+            background: "#1C1913",
+            color: "#FBF8F2",
             overflow: "hidden",
-            color: "#1C1913",
-            background: "linear-gradient(180deg, #BAD6EC 0%, #D9EAF6 36%, #F5EBDD 72%, #FBF8F2 100%)",
           },
         },
-        h("img", {
-          src: "/assets/kaamzo-hero-bg.jpg",
-          alt: "",
-          "aria-hidden": "true",
-          style: {
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center bottom",
-            pointerEvents: "none",
-            userSelect: "none",
-          },
-        }),
-        h("div", {
-          "aria-hidden": "true",
-          style: {
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: "160px",
-            zIndex: 2,
-            pointerEvents: "none",
-            background: isDark
-              ? "linear-gradient(180deg, rgba(20,18,14,0) 0%, rgba(20,18,14,0.45) 55%, #14120E 100%)"
-              : "linear-gradient(180deg, rgba(251,248,242,0) 0%, rgba(251,248,242,0.45) 55%, #FBF8F2 100%)",
-          },
-        }),
 
-        // Hidden reference SVG matching template structure
-        h(
-          "svg",
-          { "aria-hidden": "true", viewBox: "0 0 1440 520", preserveAspectRatio: "none", style: { display: "none" } },
-          flowers.map((f, idx) => h("circle", { key: idx, cx: f.x, cy: f.y, r: f.r, fill: f.c }))
-        ),
-
-        // Floating Glass Nav Pill
+        // ---- Editorial Poster Top Bar (Left Nav | Center Emblem | Right Pills) ----
         h(
           "header",
-          { style: { position: "relative", zIndex: 10, display: "flex", justifyContent: "center", padding: "22px 16px 0" } },
+          {
+            style: {
+              position: "relative",
+              zIndex: 12,
+              maxWidth: "1320px",
+              margin: "0 auto",
+              padding: "20px 24px 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+            },
+          },
+          // Left navigation links
           h(
             "nav",
-            {
-              "aria-label": "Main",
-              style: {
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "6px 6px 6px 18px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.72)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(255,255,255,0.9)",
-                boxShadow: "0 8px 30px rgba(80,60,30,0.10)",
-              },
-            },
+            { "aria-label": "Landing sections", className: "kz-poster-nav-links", style: { display: "flex", alignItems: "center", gap: "20px" } },
+            h("a", { href: "#services", style: { color: "#FBF8F2", textDecoration: "none", fontSize: "14px", fontWeight: 700 } }, "Services"),
+            h("a", { href: "#how", style: { color: "#FBF8F2", textDecoration: "none", fontSize: "14px", fontWeight: 700 } }, "How it works"),
+            h("a", { href: "#workers", style: { color: "#FBF8F2", textDecoration: "none", fontSize: "14px", fontWeight: 700 } }, "For workers"),
             h(
               "a",
               {
-                href: "#top",
+                href: "/jobs",
+                onClick: (e) => {
+                  e.preventDefault();
+                  navigate("/jobs", { role: "worker" });
+                },
+                style: { color: "#F5A524", textDecoration: "none", fontSize: "14px", fontWeight: 800 },
+              },
+              "10 km Jobs"
+            )
+          ),
+
+          // Center retro hand-lettered emblem
+          h(
+            "a",
+            {
+              href: "#top",
+              style: {
+                textDecoration: "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                lineHeight: 0.9,
+                color: "#FBF8F2",
+              },
+            },
+            h(
+              "span",
+              {
                 style: {
-                  textDecoration: "none",
-                  color: "#1C1913",
-                  fontWeight: 800,
-                  fontSize: "20px",
-                  letterSpacing: "-0.4px",
-                  marginRight: "14px",
+                  fontFamily: "'Instrument Serif', Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: "34px",
+                  fontWeight: 400,
+                  letterSpacing: "-0.5px",
+                  textShadow: "0 3px 0 #000",
                 },
               },
-              "kaamzo",
-              h("span", { style: { color: "#E8930C" } }, ".")
+              "Kaamzo",
+              h("span", { style: { color: "#F5A524", fontStyle: "normal", fontWeight: 800 } }, ".")
+            ),
+            h("span", { style: { fontSize: "9px", fontWeight: 800, letterSpacing: "2.2px", color: "#F5A524", marginTop: "2px" } }, "LOCAL HANDS")
+          ),
+
+          // Right tactile pill buttons (matching "Register" + "The fam" in poster)
+          h(
+            "div",
+            { style: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" } },
+            h(
+              "a",
+              {
+                href: "/register",
+                onClick: (e) => {
+                  e.preventDefault();
+                  navigate("/register");
+                },
+                className: "kz-ink-pill",
+                style: {
+                  padding: "9px 18px",
+                  borderRadius: "999px",
+                  background: "#FBF8F2",
+                  color: "#1C1913",
+                  border: "2.5px solid #1C1913",
+                  boxShadow: "0 4px 0 #F5A524",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  textDecoration: "none",
+                },
+              },
+              "Register"
             ),
             h(
+              "a",
+              {
+                href: activeAccount ? activeAccount.href : "/customer",
+                onClick: (e) => {
+                  e.preventDefault();
+                  if (activeAccount) navigate(activeAccount.href, { role: activeAccount.role });
+                  else navigate("/customer", { role: "customer" });
+                },
+                className: "kz-ink-pill",
+                style: {
+                  padding: "9px 18px",
+                  borderRadius: "999px",
+                  background: "#F5A524",
+                  color: "#1C1913",
+                  border: "2.5px solid #1C1913",
+                  boxShadow: "0 4px 0 #FBF8F2",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  textDecoration: "none",
+                },
+              },
+              activeAccount ? activeAccount.label : "Hire Pros ✦"
+            )
+          )
+        ),
+
+        // ---- Background Master Illustration SVG (Sky Ribbon + Floating Miniature Workers + Wavy Horizon) ----
+        h(
+          "div",
+          { style: { position: "relative", maxWidth: "1440px", margin: "0 auto" } },
+          h(
+            "svg",
+            {
+              "aria-hidden": "true",
+              viewBox: "0 0 1440 790",
+              preserveAspectRatio: "xMidYMid slice",
+              style: {
+                position: "absolute",
+                inset: "0 0 auto 0",
+                width: "100%",
+                height: "790px",
+                pointerEvents: "none",
+                zIndex: 1,
+              },
+            },
+            // Top-right decorative ribbon loop (like reference top-right rainbow curve)
+            [
+              { w: 74, c: "#1C1913" },
+              { w: 68, c: "#E5A4CB" },
+              { w: 54, c: "#7AB8F5" },
+              { w: 40, c: "#5BD68A" },
+              { w: 26, c: "#F3B47C" },
+              { w: 12, c: "#F5A524" },
+            ].map((b, idx) =>
+              h("path", {
+                key: "tr-" + idx,
+                d: "M 910 -20 C 975 135, 1085 245, 1170 210 C 1245 178, 1235 60, 1335 125 C 1395 164, 1425 190, 1465 195",
+                fill: "none",
+                stroke: b.c,
+                strokeWidth: b.w,
+                strokeLinecap: "round",
+              })
+            ),
+
+            // Main Sweeping 5-Color Kaamzo Craft Ribbon (behind headline -> curving around CTA -> down into cream horizon!)
+            [
+              { w: 118, c: "#1C1913" },
+              { w: 110, c: "#E3B8D8" },
+              { w: 88, c: "#1C1913" },
+              { w: 83, c: "#7AB8F5" },
+              { w: 62, c: "#1C1913" },
+              { w: 57, c: "#5BD68A" },
+              { w: 36, c: "#1C1913" },
+              { w: 31, c: "#F3B47C" },
+              { w: 13, c: "#1C1913" },
+              { w: 9, c: "#F5A524" },
+            ].map((b, idx) =>
+              h("path", {
+                key: "mr-" + idx,
+                d: "M -40 215 C 120 330, 345 430, 650 420 C 940 410, 1030 485, 915 575 C 820 650, 635 660, 685 755 C 725 830, 960 855, 1180 885",
+                fill: "none",
+                stroke: b.c,
+                strokeWidth: b.w,
+                strokeLinecap: "round",
+              })
+            ),
+
+            // Top-left retro layered clouds (#FBE0EE + #F3B47C)
+            h(
+              "g",
+              { transform: "translate(-10, 58)" },
+              h("path", {
+                d: "M 0 65 L 220 65 C 220 46, 196 38, 182 46 C 175 24, 142 20, 128 38 C 114 10, 64 8, 52 36 C 32 28, 8 40, 0 54 Z",
+                fill: "#FBE0EE",
+                stroke: "#1C1913",
+                strokeWidth: "3",
+              }),
+              h("path", {
+                d: "M 0 74 L 255 74 C 255 58, 230 52, 214 58 C 202 42, 170 44, 160 58 L 0 58 Z",
+                fill: "#F3B47C",
+                stroke: "#1C1913",
+                strokeWidth: "3",
+              })
+            ),
+
+            // Top-right warm sunset clouds
+            h(
+              "g",
+              { transform: "translate(1185, 225)" },
+              h("path", {
+                d: "M 25 60 L 265 60 L 265 20 C 240 16, 222 26, 214 38 C 198 18, 164 20, 152 40 C 134 26, 102 30, 94 46 C 72 38, 42 44, 25 60 Z",
+                fill: "#F3B47C",
+                stroke: "#1C1913",
+                strokeWidth: "3",
+              }),
+              h("path", {
+                d: "M 65 60 L 265 60 L 265 38 C 238 34, 218 44, 206 52 C 188 38, 156 42, 146 54 L 65 60 Z",
+                fill: "#FFF0BF",
+                stroke: "#1C1913",
+                strokeWidth: "2.5",
+              })
+            ),
+
+            // Smiling Marigold Sun Mascot with Worker Hard-Hat Visor (top-left, like reference moon!)
+            h(
+              "g",
+              { className: "kz-bob-slow", transform: "translate(405, 48)" },
+              h("circle", { cx: "44", cy: "44", r: "38", fill: "#F5A524", stroke: "#1C1913", strokeWidth: "3" }),
+              h("circle", { cx: "44", cy: "44", r: "31", fill: "#FFE08A" }),
+              // Cute retro cartoon eyes
+              h("ellipse", { cx: "36", cy: "46", rx: "5.5", ry: "7.5", fill: "#FFFFFF", stroke: "#1C1913", strokeWidth: "2.2" }),
+              h("ellipse", { cx: "49", cy: "46", rx: "5.5", ry: "7.5", fill: "#FFFFFF", stroke: "#1C1913", strokeWidth: "2.2" }),
+              h("circle", { cx: "37", cy: "47", r: "2.8", fill: "#1C1913" }),
+              h("circle", { cx: "50", cy: "47", r: "2.8", fill: "#1C1913" }),
+              h("path", { d: "M 35 58 Q 43 65 52 57", fill: "none", stroke: "#1C1913", strokeWidth: "2.5", strokeLinecap: "round" }),
+              // Little red/coral cap flag on top
+              h("path", { d: "M 44 6 L 44 -6 L 60 0 L 44 6 Z", fill: "#E5484D", stroke: "#1C1913", strokeWidth: "2" })
+            ),
+
+            // Floating Miniature Tool Tin / Multimeter (upper left)
+            h(
+              "g",
+              { className: "kz-bob-delay", transform: "translate(155, 165) rotate(-22)" },
+              h("rect", { x: "0", y: "12", width: "54", height: "68", rx: "10", fill: "#FBE0EE", stroke: "#1C1913", strokeWidth: "3" }),
+              h("rect", { x: "8", y: "22", width: "38", height: "24", rx: "5", fill: "#FFF0BF", stroke: "#1C1913", strokeWidth: "2.2" }),
+              h("path", { d: "M 16 38 L 27 26 L 34 35", fill: "none", stroke: "#E5484D", strokeWidth: "2.5", strokeLinecap: "round" }),
+              h("circle", { cx: "18", cy: "60", r: "6", fill: "#F5A524", stroke: "#1C1913", strokeWidth: "2" }),
+              h("circle", { cx: "36", cy: "60", r: "6", fill: "#5BD68A", stroke: "#1C1913", strokeWidth: "2" }),
+              h("path", { d: "M 12 12 Q 27 -4 42 12", fill: "none", stroke: "#F5A524", strokeWidth: "3.5" })
+            ),
+
+            // MINIATURE ELECTRICIAN RIDING THE RIBBON (left-mid, wearing Marigold hard-hat & holding glowing bulb!)
+            h(
+              "g",
+              { className: "kz-bob-slow", transform: "translate(86, 378) rotate(-8)" },
+              // Puff clouds behind boots
+              h("circle", { cx: "12", cy: "98", r: "14", fill: "#FBF8F2", stroke: "#1C1913", strokeWidth: "2.5" }),
+              h("circle", { cx: "32", cy: "104", r: "18", fill: "#FBF8F2", stroke: "#1C1913", strokeWidth: "2.5" }),
+              // Body & overalls
+              h("rect", { x: "26", y: "48", width: "42", height: "42", rx: "12", fill: "#DCEBFF", stroke: "#1C1913", strokeWidth: "3" }),
+              h("rect", { x: "32", y: "60", width: "30", height: "28", rx: "6", fill: "#2F6FD6", stroke: "#1C1913", strokeWidth: "2.4" }),
+              // Head
+              h("circle", { cx: "47", cy: "32", r: "18", fill: "#F3B47C", stroke: "#1C1913", strokeWidth: "3" }),
+              // Hard hat
+              h("path", { d: "M 26 28 C 26 10, 68 10, 68 28 Z", fill: "#F5A524", stroke: "#1C1913", strokeWidth: "3" }),
+              h("rect", { x: "22", y: "26", width: "50", height: "6", rx: "3", fill: "#FFE08A", stroke: "#1C1913", strokeWidth: "2.4" }),
+              // Eyes & smile
+              h("circle", { cx: "41", cy: "35", r: "2.5", fill: "#1C1913" }),
+              h("circle", { cx: "53", cy: "35", r: "2.5", fill: "#1C1913" }),
+              h("path", { d: "M 41 42 Q 47 47 53 42", fill: "none", stroke: "#1C1913", strokeWidth: "2.2", strokeLinecap: "round" }),
+              // Raised arm holding glowing bulb
+              h("path", { d: "M 66 56 L 88 36", stroke: "#1C1913", strokeWidth: "6", strokeLinecap: "round" }),
+              h("circle", { cx: "95", cy: "26", r: "13", fill: "#FFF0BF", stroke: "#1C1913", strokeWidth: "2.8" }),
+              h("line", { x1: "95", y1: "4", x2: "95", y2: "-4", stroke: "#F5A524", strokeWidth: "3", strokeLinecap: "round" }),
+              h("line", { x1: "112", y1: "14", x2: "119", y2: "9", stroke: "#F5A524", strokeWidth: "3", strokeLinecap: "round" }),
+              h("line", { x1: "115", y1: "30", x2: "123", y2: "32", stroke: "#F5A524", strokeWidth: "3", strokeLinecap: "round" })
+            ),
+
+            // Smiling Retro Marigold Daisy on Right (growing from the cream pipe knot, just like reference!)
+            h(
+              "g",
+              { className: "kz-bob-delay", transform: "translate(1175, 365)" },
+              // Stem going down into horizon
+              h("path", { d: "M 72 110 Q 96 185 88 280", fill: "none", stroke: "#7F9C48", strokeWidth: "10", strokeLinecap: "round" }),
+              h("path", { d: "M 72 110 Q 96 185 88 280", fill: "none", stroke: "#1C1913", strokeWidth: "2.5" }),
+              h("path", { d: "M 86 190 C 118 170, 138 195, 102 215 Z", fill: "#7F9C48", stroke: "#1C1913", strokeWidth: "2.8" }),
+              // 10 White Cream Petals
+              [0, 36, 72, 108, 144, 180, 216, 252, 288, 324].map((deg) =>
+                h("ellipse", {
+                  key: deg,
+                  cx: "70",
+                  cy: "30",
+                  rx: "15",
+                  ry: "34",
+                  fill: "#FBF8F2",
+                  stroke: "#1C1913",
+                  strokeWidth: "2.8",
+                  transform: `rotate(${deg} 70 70)`,
+                })
+              ),
+              // Smiling Marigold Center
+              h("circle", { cx: "70", cy: "70", r: "24", fill: "#F5A524", stroke: "#1C1913", strokeWidth: "3" }),
+              h("ellipse", { cx: "63", cy: "67", rx: "4.5", ry: "7", fill: "#FFFFFF", stroke: "#1C1913", strokeWidth: "2" }),
+              h("ellipse", { cx: "77", cy: "67", rx: "4.5", ry: "7", fill: "#FFFFFF", stroke: "#1C1913", strokeWidth: "2" }),
+              h("circle", { cx: "64", cy: "68", r: "2.4", fill: "#1C1913" }),
+              h("circle", { cx: "78", cy: "68", r: "2.4", fill: "#1C1913" }),
+              h("path", { d: "M 60 79 Q 70 87 80 79", fill: "none", stroke: "#1C1913", strokeWidth: "2.5", strokeLinecap: "round" })
+            ),
+
+            // Twinkling 4-point poster sparkles (✦)
+            [
+              [265, 92, 12, "#FBF8F2"],
+              [555, 84, 10, "#F5A524"],
+              [865, 108, 13, "#FBF8F2"],
+              [1015, 76, 15, "#FBF8F2"],
+              [1365, 142, 12, "#F3B47C"],
+              [295, 220, 9, "#FBF8F2"],
+              [1155, 315, 13, "#FBF8F2"],
+              [370, 565, 11, "#E3B8D8"],
+              [1025, 515, 11, "#FBF8F2"],
+              [520, 650, 12, "#F3B47C"],
+            ].map(([sx, sy, sr, sc], idx) =>
+              h("path", {
+                key: "sp-" + idx,
+                d: `M ${sx} ${sy - sr} Q ${sx} ${sy} ${sx + sr} ${sy} Q ${sx} ${sy} ${sx} ${sy + sr} Q ${sx} ${sy} ${sx - sr} ${sy} Q ${sx} ${sy} ${sx} ${sy - sr} Z`,
+                fill: sc,
+              })
+            ),
+
+            // Organic Wavy Cream Horizon at bottom of dark hero (matching reference curve!)
+            h("path", {
+              d: "M 0 705 L 485 705 C 585 705, 565 620, 495 595 C 455 580, 585 535, 895 535 C 1155 535, 1320 545, 1440 555 L 1440 795 L 0 795 Z",
+              fill: creamCanvas,
+            })
+          ),
+
+          // ---- Foreground Hero Center Copy + Tactile Search Bar ----
+          h(
+            "div",
+            {
+              style: {
+                position: "relative",
+                zIndex: 6,
+                maxWidth: "1180px",
+                margin: "0 auto",
+                padding: "46px 20px 70px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+              },
+            },
+            // Date/Location Eyebrow (matching "March 30 – April 1, 2023 / Columbus, GA")
+            h(
               "div",
-              { className: "navlinks", style: { display: "flex", gap: "2px", alignItems: "center" } },
-              h("a", { href: "#services", style: { padding: "10px 14px", fontSize: "14px", fontWeight: 600, color: "#3D3830", textDecoration: "none" } }, "Services"),
-              h("a", { href: "#how", style: { padding: "10px 14px", fontSize: "14px", fontWeight: 600, color: "#3D3830", textDecoration: "none" } }, "How it works"),
-              h("a", { href: "#workers", style: { padding: "10px 14px", fontSize: "14px", fontWeight: 600, color: "#3D3830", textDecoration: "none" } }, "For workers"),
+              { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", marginBottom: "14px" } },
+              h(
+                "span",
+                { style: { fontSize: "clamp(16px, 2vw, 22px)", fontWeight: 800, color: "#FBF8F2", letterSpacing: "-0.3px" } },
+                `Live in ${cityLabel} · 10 km Radar`
+              ),
+              h(
+                "span",
+                { style: { fontSize: "14px", fontWeight: 700, color: "#F5A524", letterSpacing: "0.4px" } },
+                "100% Aadhaar Verified · UPI Escrow Safe"
+              )
+            ),
+
+            // GIANT 3D EXTRUDED RETRO DISPLAY HEADLINE ("Ghar ka kaam, / Kaamzo ke naam.")
+            h(
+              "h1",
+              {
+                className: "kz-poster-title",
+                style: {
+                  margin: "0 0 28px",
+                  fontFamily: "'Instrument Serif', Georgia, serif",
+                  fontSize: "clamp(50px, 8.2vw, 112px)",
+                  lineHeight: 0.96,
+                  fontWeight: 800,
+                  letterSpacing: "-1.5px",
+                  maxWidth: "1040px",
+                },
+              },
+              "Ghar ka kaam,",
+              h("br", null),
+              h(
+                "span",
+                {
+                  style: {
+                    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                    fontWeight: 800,
+                    fontSize: "0.82em",
+                    letterSpacing: "-2px",
+                  },
+                },
+                "Kaamzo ke naam."
+              )
+            ),
+
+            // TACTILE CREAM PILL SEARCH & CTA BAR (nested inside the curve of the 5-color ribbon!)
+            h(
+              "form",
+              {
+                onSubmit: handleSearch,
+                style: {
+                  width: "100%",
+                  maxWidth: "600px",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "7px",
+                  borderRadius: "999px",
+                  background: "#FBF8F2",
+                  border: "3.5px solid #1C1913",
+                  boxShadow: "0 8px 0 #1C1913, 0 18px 36px rgba(0,0,0,0.35)",
+                },
+              },
+              h("label", { htmlFor: "kz-hero-q", style: { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" } }, "What work do you need done?"),
+              h(
+                "div",
+                { style: { flex: "1 1 220px", display: "flex", alignItems: "center", gap: "10px", padding: "0 16px", minHeight: "48px" } },
+                h(SvgIcon, { path: ICON_PATHS.search, size: 20, color: "#1C1913", strokeWidth: 2.5 }),
+                h("input", {
+                  id: "kz-hero-q",
+                  type: "text",
+                  value: searchText,
+                  onChange: (e) => setSearchText(e.target.value),
+                  placeholder: "Sewage pipe, fan repair, painting…",
+                  style: {
+                    flex: 1,
+                    minWidth: 0,
+                    border: 0,
+                    outline: "none",
+                    font: "inherit",
+                    fontSize: "15.5px",
+                    fontWeight: 600,
+                    background: "transparent",
+                    color: "#1C1913",
+                  },
+                })
+              ),
+              h(
+                "button",
+                {
+                  type: "submit",
+                  className: "kz-ink-pill",
+                  style: {
+                    minHeight: "48px",
+                    padding: "0 24px",
+                    borderRadius: "999px",
+                    border: "2.5px solid #1C1913",
+                    background: "#F5A524",
+                    color: "#1C1913",
+                    font: "inherit",
+                    fontSize: "15px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 3px 0 #1C1913",
+                  },
+                },
+                "Find a Worker →"
+              )
+            ),
+
+            // Quick worker link pill right below search
+            h(
+              "div",
+              { style: { marginTop: "18px", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px" } },
               h(
                 "a",
                 {
@@ -4804,689 +5296,496 @@
                     e.preventDefault();
                     navigate("/jobs", { role: "worker" });
                   },
-                  style: { padding: "10px 14px", fontSize: "14px", fontWeight: 600, color: "#3D3830", textDecoration: "none" },
+                  className: "kz-ink-pill",
+                  style: {
+                    padding: "9px 18px",
+                    borderRadius: "999px",
+                    background: "#DCEBFF",
+                    color: "#1C1913",
+                    border: "2.5px solid #1C1913",
+                    boxShadow: "0 4px 0 #1C1913",
+                    fontSize: "13.5px",
+                    fontWeight: 800,
+                    textDecoration: "none",
+                  },
                 },
-                "Jobs"
+                "👷 I'm a worker, I want jobs →"
               ),
               h(
-                "div",
+                "a",
                 {
-                  className: "notranslate",
-                  "data-no-translate": "1",
-                  style: { display: "inline-flex", alignItems: "center", gap: "2px", padding: "3px", borderRadius: "999px", background: "rgba(28,25,19,0.06)" },
+                  href: "/customer/post-a-job",
+                  onClick: (e) => {
+                    e.preventDefault();
+                    navigate("/customer/post-a-job", { role: "customer" });
+                  },
+                  className: "kz-ink-pill",
+                  style: {
+                    padding: "9px 18px",
+                    borderRadius: "999px",
+                    background: "#E3F4E8",
+                    color: "#1C1913",
+                    border: "2.5px solid #1C1913",
+                    boxShadow: "0 4px 0 #1C1913",
+                    fontSize: "13.5px",
+                    fontWeight: 800,
+                    textDecoration: "none",
+                  },
                 },
-                [
-                  { code: "en", label: "EN" },
-                  { code: "hi", label: "हिं" },
-                  { code: "pa", label: "ਪੰ" },
-                ].map((lg) => {
-                  const act = (app.currentLanguage || "en") === lg.code;
-                  return h(
-                    "button",
-                    {
-                      key: lg.code,
-                      type: "button",
-                      onClick: () => {
-                        app.setCurrentLanguage(lg.code);
-                        if (typeof window.kaamzoSetLanguage === "function") {
-                          try {
-                            window.kaamzoSetLanguage(lg.code);
-                          } catch (_) {}
-                        }
-                      },
-                      style: {
-                        padding: "6px 10px",
-                        borderRadius: "999px",
-                        border: 0,
-                        background: act ? "#1C1913" : "transparent",
-                        color: act ? "#F5A524" : "#3D3830",
-                        fontSize: "12.5px",
-                        fontWeight: 800,
-                        cursor: "pointer",
-                      },
-                    },
-                    lg.label
-                  );
-                })
+                "✨ Ask AI Fair Labour Rate"
               )
             ),
-            h(
-              "a",
-              {
-                href: activeAccount ? activeAccount.href : "/register",
-                onClick: (e) => {
-                  e.preventDefault();
-                  if (activeAccount) navigate(activeAccount.href, { role: activeAccount.role });
-                  else navigate("/register");
-                },
-                style: {
-                  padding: "11px 20px",
-                  borderRadius: "999px",
-                  background: "#1C1913",
-                  color: "#FBF8F2",
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  textDecoration: "none",
-                },
-              },
-              activeAccount ? activeAccount.label : "Sign in"
-            )
-          )
-        ),
 
-        // Hero Copy
-        h(
-          "div",
-          {
-            className: "kz-hero-inner",
-            style: {
-              position: "relative",
-              zIndex: 5,
-              maxWidth: "1200px",
-              margin: "0 auto",
-              padding: "96px 24px 0",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              gap: "22px",
-            },
-          },
-          h(
-            "span",
-            {
-              style: {
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 14px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.7)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.9)",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#3D3830",
-              },
-            },
-            h("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#2E9E57" } }),
-            "Now live in " + (app.currentCity?.name || "Ludhiana")
-          ),
-          h(
-            "h1",
-            {
-              style: {
-                margin: 0,
-                fontSize: "clamp(40px, 6.4vw, 88px)",
-                lineHeight: 1.0,
-                letterSpacing: "-2px",
-                fontWeight: 800,
-                maxWidth: "1000px",
-              },
-            },
-            "Ghar ka kaam, ",
-            h(
-              "span",
-              {
-                style: {
-                  fontFamily: "'Instrument Serif', serif",
-                  fontStyle: "italic",
-                  fontWeight: 400,
-                  letterSpacing: "-1px",
-                },
-              },
-              "Kaamzo ke naam."
-            )
-          ),
-          h(
-            "p",
-            {
-              style: {
-                margin: 0,
-                fontSize: "clamp(17px, 1.6vw, 21px)",
-                lineHeight: 1.5,
-                color: "#3D3830",
-                maxWidth: "560px",
-              },
-            },
-            "Homes that can trust. Workers that can thrive."
-          ),
-          h(
-            "form",
-            {
-              onSubmit: handleSearch,
-              className: "kz-search-pill-form",
-              style: {
-                marginTop: "10px",
-                width: "100%",
-                maxWidth: "620px",
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "6px",
-                padding: "6px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.82)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(255,255,255,0.95)",
-                boxShadow: "0 18px 50px rgba(110,70,20,0.16)",
-              },
-            },
-            h("label", { htmlFor: "kz-hero-q", style: { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" } }, "What work do you need done?"),
+            // Left-side Audio Intro Callout (exact match to bottom-left text + pink play button in poster!)
             h(
               "div",
-              { style: { flex: "1 1 240px", display: "flex", alignItems: "center", gap: "10px", padding: "0 16px", minHeight: "52px" } },
-              h(SvgIcon, { path: ICON_PATHS.search, size: 20, color: "#6F685D", strokeWidth: 2 }),
-              h("input", {
-                id: "kz-hero-q",
-                type: "text",
-                value: searchText,
-                onChange: (e) => setSearchText(e.target.value),
-                placeholder: "Leaking tap, fan repair, wall painting…",
-                style: { flex: 1, minWidth: 0, border: 0, outline: "none", font: "inherit", fontSize: "16px", background: "transparent", color: "#1C1913" },
-              })
-            ),
-            h(
-              "button",
               {
-                type: "submit",
+                className: "kz-hero-audio-aside",
                 style: {
-                  minHeight: "52px",
-                  padding: "0 26px",
-                  border: 0,
-                  borderRadius: "999px",
-                  background: "#1C1913",
-                  color: "#FBF8F2",
-                  font: "inherit",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  cursor: "pointer",
+                  position: "absolute",
+                  left: "32px",
+                  bottom: "24px",
+                  maxWidth: "285px",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
+                  gap: "14px",
+                  textAlign: "left",
+                  background: "rgba(28,25,19,0.88)",
+                  padding: "12px 14px",
+                  borderRadius: "20px",
+                  border: "2px solid rgba(251,248,242,0.22)",
                 },
               },
-              "Find a worker",
-              h(SvgIcon, { path: ICON_PATHS.arrowR, size: 16, strokeWidth: 2.4 })
-            )
-          ),
-          h(
-            "a",
-            {
-              href: "/jobs",
-              onClick: (e) => {
-                e.preventDefault();
-                navigate("/jobs", { role: "worker" });
-              },
-              style: {
-                fontSize: "15px",
-                fontWeight: 700,
-                color: "#1C1913",
-                textDecoration: "underline",
-                textUnderlineOffset: "4px",
-                textDecorationColor: "rgba(28,25,19,0.35)",
-              },
-            },
-            "I'm a worker, I want jobs"
-          )
-        ),
-
-        // Floating worker card (left)
-        h(
-          "div",
-          {
-            className: "float",
-            style: {
-              left: "3%",
-              top: "560px",
-              zIndex: 6,
-              width: "268px",
-              padding: "16px",
-              borderRadius: "20px",
-              background: "rgba(255,255,255,0.6)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(255,255,255,0.85)",
-              boxShadow: "0 16px 40px rgba(80,60,30,0.12)",
-              transform: "rotate(-3deg)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              textAlign: "left",
-            },
-          },
-          h(
-            "div",
-            { style: { display: "flex", alignItems: "center", gap: "10px" } },
-            h(
-              "span",
-              { style: { width: "40px", height: "40px", borderRadius: "12px", background: "#FFE08A", color: "#6B4600", display: "flex", alignItems: "center", justifyContent: "center" }, "aria-hidden": "true" },
-              h(SvgIcon, { path: ICON_PATHS.bolt, size: 20, strokeWidth: 2 })
-            ),
-            h(
-              "span",
-              { style: { display: "flex", flexDirection: "column" } },
               h(
                 "span",
-                { style: { fontSize: "12px", fontWeight: 700, color: "#1D6B36", display: "flex", alignItems: "center", gap: "5px" } },
-                h("span", { style: { width: "7px", height: "7px", borderRadius: "50%", background: "#2E9E57" } }),
-                "Available now"
+                { style: { fontSize: "12.5px", lineHeight: 1.45, color: "#FBF8F2", fontWeight: 600 } },
+                "Homes that can trust, skilled neighbours that thrive — tap to hear in your language."
               ),
-              h("span", { style: { fontWeight: 800, fontSize: "15px" } }, "Electrician")
-            )
-          ),
-          h("span", { style: { fontSize: "13px", lineHeight: 1.45, color: "#3D3830" } }, "Wiring, fans, switchboards and appliances."),
-          h("span", { style: { fontSize: "12px", fontWeight: 600, color: "#4A443A" } }, `Aadhaar verified · ${elecRate}/day · within 10 km`)
-        ),
-
-        // Floating escrow card (right)
-        h(
-          "div",
-          {
-            className: "float",
-            style: {
-              right: "3%",
-              top: "530px",
-              zIndex: 6,
-              width: "250px",
-              padding: "16px",
-              borderRadius: "20px",
-              background: "rgba(28,25,19,0.78)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              color: "#FBF8F2",
-              boxShadow: "0 16px 40px rgba(40,25,5,0.25)",
-              transform: "rotate(3deg)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              textAlign: "left",
-            },
-          },
-          h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#F3C969", letterSpacing: "0.6px" } }, "PAYMENT IN ESCROW"),
-          h("span", { style: { fontWeight: 800, fontSize: "15px", lineHeight: 1.35 } }, "Released to the worker only with your OTP"),
-          h(
-            "div",
-            { style: { display: "flex", gap: "8px" }, "aria-hidden": "true" },
-            [0, 1, 2, 3].map((i) =>
               h(
-                "span",
+                "button",
                 {
-                  key: i,
+                  type: "button",
+                  onClick: playAudioIntro,
+                  "aria-label": "Listen to Kaamzo audio guide",
+                  className: "kz-ink-pill",
                   style: {
-                    flex: 1,
-                    height: "38px",
-                    borderRadius: "10px",
-                    background: "rgba(255,255,255,0.12)",
+                    flexShrink: 0,
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    background: "#F3B47C",
+                    border: "2.5px solid #1C1913",
+                    boxShadow: "0 4px 0 #1C1913",
+                    color: "#1C1913",
+                    fontSize: "18px",
+                    fontWeight: 900,
+                    cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontWeight: 800,
                   },
                 },
-                "•"
+                "▶"
               )
             )
           )
-        ),
-
-        // Floating stickers
-        h(
-          "span",
-          {
-            className: "float",
-            style: {
-              left: "7%",
-              top: "420px",
-              zIndex: 6,
-              transform: "rotate(-8deg)",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "9px 14px 9px 9px",
-              borderRadius: "12px",
-              background: "#DCEBFF",
-              color: "#123A6B",
-              fontWeight: 800,
-              fontSize: "14px",
-              boxShadow: "0 10px 24px rgba(20,50,100,0.15)",
-            },
-          },
-          h(
-            "span",
-            { style: { width: "26px", height: "26px", borderRadius: "50%", background: "#2F6FD6", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }, "aria-hidden": "true" },
-            h(SvgIcon, { path: ICON_PATHS.wrench, size: 14, strokeWidth: 2.4 })
-          ),
-          "Plumber"
-        ),
-        h(
-          "span",
-          {
-            className: "float",
-            style: {
-              left: "6%",
-              top: "150px",
-              zIndex: 6,
-              transform: "rotate(7deg)",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "9px 14px 9px 9px",
-              borderRadius: "12px",
-              background: "#FBE0EE",
-              color: "#6B1A45",
-              fontWeight: 800,
-              fontSize: "14px",
-              boxShadow: "0 10px 24px rgba(100,20,60,0.15)",
-            },
-          },
-          h(
-            "span",
-            { style: { width: "26px", height: "26px", borderRadius: "50%", background: "#D9478E", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }, "aria-hidden": "true" },
-            h(SvgIcon, { path: ICON_PATHS.brush, size: 14, strokeWidth: 2.4 })
-          ),
-          "Painter"
-        ),
-        h(
-          "span",
-          {
-            className: "float",
-            style: {
-              right: "7%",
-              top: "400px",
-              zIndex: 6,
-              transform: "rotate(-5deg)",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "9px 14px 9px 9px",
-              borderRadius: "12px",
-              background: "#E3E0FF",
-              color: "#2E2470",
-              fontWeight: 800,
-              fontSize: "14px",
-              boxShadow: "0 10px 24px rgba(40,30,110,0.15)",
-            },
-          },
-          h(
-            "span",
-            { style: { width: "26px", height: "26px", borderRadius: "50%", background: "#6A5AE0", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }, "aria-hidden": "true" },
-            h(SvgIcon, { path: ICON_PATHS.hammer, size: 14, strokeWidth: 2.4 })
-          ),
-          "Carpenter"
-        ),
-
-        // Doodles
-        h(
-          "svg",
-          { className: "float", "aria-hidden": "true", width: "90", height: "40", viewBox: "0 0 90 40", style: { right: "8%", top: "170px", zIndex: 4 } },
-          h("path", { d: "M4 30 C 14 6, 24 6, 30 24 S 46 40, 52 18 S 70 0, 86 20", fill: "none", stroke: "#F2C230", strokeWidth: "5", strokeLinecap: "round" })
-        ),
-        h(
-          "svg",
-          { className: "float", "aria-hidden": "true", width: "70", height: "70", viewBox: "0 0 70 70", style: { left: "9%", top: "290px", zIndex: 4 } },
-          h("path", { d: "M10 50 C 10 20, 40 6, 60 14 C 44 22, 34 40, 10 50 Z M10 50 C 30 46, 50 50, 62 62", fill: "none", stroke: "#C9E24A", strokeWidth: "4", strokeLinecap: "round", strokeLinejoin: "round" })
-        ),
-
-        // Bottom row
-        h(
-          "p",
-          {
-            className: "float",
-            style: { left: "4%", bottom: "44px", zIndex: 6, margin: 0, fontFamily: "'Caveat', cursive", fontSize: "30px", lineHeight: 1.05, color: isDark ? "#F5E8C8" : "#3D2A05" },
-          },
-          "— Not just workers.",
-          h("br", null),
-          "Your neighbours."
-        ),
-        h(
-          "a",
-          {
-            href: "#services",
-            style: {
-              position: "absolute",
-              left: "50%",
-              bottom: "36px",
-              transform: "translateX(-50%)",
-              zIndex: 6,
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "11px 20px",
-              borderRadius: "999px",
-              background: "#1C1913",
-              border: "1px solid #1C1913",
-              color: "#FBF8F2",
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: "3px",
-              textDecoration: "none",
-            },
-          },
-          "SCROLL",
-          h(SvgIcon, { path: ICON_PATHS.arrowDown, size: 14, strokeWidth: 2.4 })
-        ),
-        h(
-          "div",
-          {
-            className: "float",
-            style: {
-              right: "4%",
-              bottom: "36px",
-              zIndex: 6,
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "10px 16px 10px 10px",
-              borderRadius: "16px",
-              background: "rgba(28,25,19,0.85)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "#FBF8F2",
-            },
-          },
-          h(
-            "span",
-            { style: { width: "38px", height: "38px", borderRadius: "10px", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }, "aria-hidden": "true" },
-            h(SvgIcon, { path: ICON_PATHS.shield, size: 20, strokeWidth: 2 })
-          ),
-          h(
-            "span",
-            { style: { display: "flex", flexDirection: "column" } },
-            h("span", { style: { fontWeight: 800, fontSize: "14px" } }, "100% Aadhaar verified"),
-            h("span", { style: { fontSize: "12px", opacity: 0.9 } }, "Every worker, before every job")
-          )
         )
       ),
 
-      // ============ TWO PATHS ============
+      // =========================================================================
+      // ACT 2 — THE MINIATURE SEWAGE PIPE & WORKSHOP CONTRAPTION SCENE (#F5EFE4)
+      // Miniature Plumber repairing sewage pipe + Escrow Gauge + Boiler Tank!
+      // =========================================================================
       h(
         "section",
-        { className: "kz-section-pad", style: { maxWidth: "1240px", margin: "0 auto", padding: "96px 24px 40px", display: "flex", flexDirection: "column", gap: "40px" } },
-        h(
-          "h2",
-          { style: { margin: 0, textAlign: "center", fontSize: "clamp(34px, 4.4vw, 58px)", lineHeight: 1.02, letterSpacing: "-1.6px", fontWeight: 800 } },
-          "One app, ",
-          h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "two ways"),
-          " in."
-        ),
+        {
+          style: {
+            position: "relative",
+            background: creamCanvas,
+            color: textOnCream,
+            padding: "0 0 36px",
+            overflow: "hidden",
+          },
+        },
         h(
           "div",
-          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "20px" } },
-          h(
-            "a",
-            {
-              href: "/customer",
-              onClick: (e) => {
-                e.preventDefault();
-                navigate("/customer", { role: "customer" });
-              },
-              style: {
-                position: "relative",
-                overflow: "hidden",
-                minHeight: "380px",
-                borderRadius: "32px",
-                padding: "36px",
-                textDecoration: "none",
-                color: "#1C1913",
-                background: "linear-gradient(180deg, #CFE2F1 0%, #F7E3CC 70%, #F5C98F 100%)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              },
-            },
-            h(
-              "svg",
-              { "aria-hidden": "true", viewBox: "0 0 600 160", preserveAspectRatio: "none", style: { position: "absolute", left: 0, bottom: 0, width: "100%", height: "150px" } },
-              h("path", { d: "M0 70 C 120 30, 260 80, 380 50 C 480 26, 540 50, 600 40 L600 160 L0 160 Z", fill: "#A9BE72" }),
-              h("path", { d: "M0 110 C 160 80, 320 120, 600 92 L600 160 L0 160 Z", fill: "#E8C53A" })
-            ),
-            h("span", { style: { position: "relative", fontSize: "13px", fontWeight: 800, letterSpacing: "1.2px", color: "#6B4600" } }, "FOR HOMES & CONTRACTORS"),
-            h(
-              "span",
-              { style: { position: "relative", fontSize: "40px", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1 } },
-              "I need ",
-              h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "a worker")
-            ),
-            h("span", { style: { position: "relative", fontSize: "17px", lineHeight: 1.5, color: "#3D3830", maxWidth: "380px" } }, "See fair rates upfront, choose from your top 5 nearby, and pay nothing until it is done."),
-            h("span", { style: { position: "relative", marginTop: "10px", alignSelf: "flex-start", display: "flex", alignItems: "center", gap: "8px", padding: "13px 22px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontWeight: 700, fontSize: "15px" } }, "Book a worker →")
-          ),
-          h(
-            "a",
-            {
-              href: "/worker",
-              onClick: (e) => {
-                e.preventDefault();
-                navigate("/worker", { role: "worker" });
-              },
-              style: {
-                position: "relative",
-                overflow: "hidden",
-                minHeight: "380px",
-                borderRadius: "32px",
-                padding: "36px",
-                textDecoration: "none",
-                color: "#FBF8F2",
-                background: "linear-gradient(180deg, #2A2342 0%, #6E4A63 55%, #D38457 100%)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              },
-            },
-            h(
-              "svg",
-              { "aria-hidden": "true", viewBox: "0 0 600 160", preserveAspectRatio: "none", style: { position: "absolute", left: 0, bottom: 0, width: "100%", height: "150px" } },
-              h("path", { d: "M0 80 C 140 40, 280 90, 420 60 C 500 44, 560 60, 600 50 L600 160 L0 160 Z", fill: "#3A2F3A" }),
-              h("path", { d: "M0 120 C 200 90, 380 130, 600 100 L600 160 L0 160 Z", fill: "#1F1A22" })
-            ),
-            h("span", { style: { position: "relative", fontSize: "13px", fontWeight: 800, letterSpacing: "1.2px", color: "#F3C969" } }, "FOR SKILLED WORKERS"),
-            h(
-              "span",
-              { style: { position: "relative", fontSize: "40px", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1 } },
-              "I want ",
-              h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "work"),
-              " ",
-              h("span", { style: { fontFamily: "'Noto Sans Devanagari', sans-serif", fontSize: "26px", fontWeight: 600, color: "#EBD9C8" } }, "· काम चाहिए")
-            ),
-            h("span", { style: { position: "relative", fontSize: "17px", lineHeight: 1.5, color: "#EBD9C8", maxWidth: "380px" } }, "Jobs within 10 km, paid straight to your UPI the moment the customer confirms."),
-            h("span", { style: { position: "relative", marginTop: "10px", alignSelf: "flex-start", display: "flex", alignItems: "center", gap: "8px", padding: "13px 22px", borderRadius: "999px", background: "#FBF8F2", color: "#1C1913", fontWeight: 700, fontSize: "15px" } }, "Open Worker Portal →")
-          )
-        )
-      ),
+          { style: { position: "relative", maxWidth: "1360px", margin: "0 auto" } },
 
-      // ============ MEET THE TRADES ============
-      h(
-        "section",
-        { className: "kz-section-pad", style: { maxWidth: "1240px", margin: "0 auto", padding: "72px 24px 24px", display: "flex", flexDirection: "column", gap: "36px" } },
-        h(
-          "div",
-          { style: { display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", textAlign: "center" } },
-          h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1.2px", color: isDark ? "#F5A524" : "#7A4E00" } }, "MEET THE HANDS"),
+          // Full-Width Illustrated Sewage Pipe & Miniature Workers Contraption SVG
           h(
-            "h2",
-            { style: { margin: 0, fontSize: "clamp(34px, 4vw, 52px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
-            "Skilled people, ",
-            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "right around the corner.")
-          )
-        ),
-        h(
-          "div",
-          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "20px" } },
-          [
+            "svg",
             {
-              name: "Plumber",
-              rate: plumberRate,
-              desc: "Leaking taps, blocked drains, new fittings and motor connections.",
+              viewBox: "0 0 1360 560",
+              style: { width: "100%", height: "auto", display: "block" },
+              role: "img",
+              "aria-label": "Miniature Kaamzo plumber repairing sewage pipeline alongside escrow meter and pressure boiler",
             },
-            {
-              name: "Carpenter",
-              rate: carpenterRate,
-              desc: "Furniture repairs, doors and hinges, shelves and custom woodwork.",
-            },
-            {
-              name: "Painter",
-              rate: painterRate,
-              desc: "Fresh walls, primer, touch-ups and full-room colour changes.",
-            },
-          ].map((item) =>
+            // Subtle background blueprint gears & belt (like reference cream canvas)
             h(
-              "a",
-              {
-                key: item.name,
-                href: "/customer",
-                onClick: (e) => {
-                  e.preventDefault();
-                  navigate("/customer", { role: "customer", selectedTrade: item.name });
-                },
-                style: {
-                  textDecoration: "none",
-                  color: textCol,
-                  borderRadius: "32px",
-                  overflow: "hidden",
-                  background: cardBg,
-                  border: "1px solid " + borderCol,
-                  display: "flex",
-                  flexDirection: "column",
-                },
-              },
-              h(TradeIllustration, { type: item.name }),
+              "g",
+              { opacity: isDark ? "0.14" : "0.38", stroke: isDark ? "#8C8270" : "#D6CCB8", strokeWidth: "2.5", fill: "none" },
+              h("circle", { cx: "240", cy: "255", r: "28" }),
+              h("circle", { cx: "240", cy: "255", r: "12" }),
+              h("circle", { cx: "345", cy: "215", r: "18" }),
+              h("line", { x1: "230", y1: "228", x2: "338", y2: "198" }),
+              h("line", { x1: "250", y1: "281", x2: "352", y2: "232" }),
+              h("circle", { cx: "880", cy: "225", r: "32" }),
+              h("circle", { cx: "880", cy: "225", r: "14" }),
+              h("circle", { cx: "945", cy: "450", r: "26" }),
+              h("circle", { cx: "995", cy: "420", r: "18" })
+            ),
+
+            // Continuation of the 5-Color Ribbon pouring from top into the Brass Funnel on the right!
+            [
+              { w: 58, c: "#1C1913" },
+              { w: 52, c: "#E3B8D8" },
+              { w: 40, c: "#7AB8F5" },
+              { w: 28, c: "#5BD68A" },
+              { w: 16, c: "#F3B47C" },
+              { w: 6, c: "#F5A524" },
+            ].map((b, idx) =>
+              h("path", {
+                key: "rb2-" + idx,
+                d: "M 760 -15 C 835 65, 1020 128, 1185 135",
+                fill: "none",
+                stroke: b.c,
+                strokeWidth: b.w,
+                strokeLinecap: "round",
+              })
+            ),
+
+            // ---- INDUSTRIAL SEWAGE / WATER PIPELINE NETWORK ----
+            // Left green plant leaves tucked behind pipe
+            h("path", { d: "M 42 155 C 12 95, 42 65, 68 128 C 72 62, 106 68, 92 145 Z", fill: "#7F9C48", stroke: ink, strokeWidth: "3" }),
+
+            // Main Pipe Path: Left vertical up -> across under Plumber & Escrow Meter -> up to Steam Valve -> right to Brass Funnel!
+            h("path", {
+              d: "M 225 435 L 92 435 Q 64 435 64 405 L 64 185 Q 64 155 94 155 L 595 155 Q 625 155 625 125 L 625 65",
+              fill: "none",
+              stroke: ink,
+              strokeWidth: "30",
+              strokeLinecap: "round",
+              strokeLinejoin: "round",
+            }),
+            h("path", {
+              d: "M 225 435 L 92 435 Q 64 435 64 405 L 64 185 Q 64 155 94 155 L 595 155 Q 625 155 625 125 L 625 65",
+              fill: "none",
+              stroke: "#FFFFFF",
+              strokeWidth: "23",
+              strokeLinecap: "round",
+              strokeLinejoin: "round",
+            }),
+
+            // Right Pipe Branch: From Steam Valve -> down -> across -> into Brass Dispatch Funnel!
+            h("path", {
+              d: "M 625 105 L 625 182 Q 625 208 652 208 L 935 208 Q 962 208 962 175 L 962 142 Q 962 115 992 115 L 1190 115",
+              fill: "none",
+              stroke: ink,
+              strokeWidth: "28",
+              strokeLinecap: "round",
+            }),
+            h("path", {
+              d: "M 625 105 L 625 182 Q 625 208 652 208 L 935 208 Q 962 208 962 175 L 962 142 Q 962 115 992 115 L 1190 115",
+              fill: "none",
+              stroke: "#FFFFFF",
+              strokeWidth: "21",
+              strokeLinecap: "round",
+            }),
+
+            // Pipe Flanges / Bolted Joints
+            [
+              [165, 138, 10, 34],
+              [315, 138, 10, 34],
+              [525, 138, 10, 34],
+              [785, 191, 10, 34],
+              [47, 290, 34, 10],
+            ].map(([fx, fy, fw, fh], i) =>
+              h("rect", { key: "fl-" + i, x: fx, y: fy, width: fw, height: fh, rx: "3", fill: "#EDE6DA", stroke: ink, strokeWidth: "2.8" })
+            ),
+
+            // Brass Dispatch Funnel on Right (receiving the 5-color ribbon!)
+            h(
+              "g",
+              { transform: "translate(1175, 68)" },
+              h("polygon", { points: "0,0 0,96 76,62 76,34", fill: "#F5A524", stroke: ink, strokeWidth: "3.2", strokeLinejoin: "round" }),
+              h("rect", { x: "76", y: "32", width: "22", height: "32", rx: "4", fill: "#EDE6DA", stroke: ink, strokeWidth: "3" }),
+              h("path", { d: "M 98 48 L 145 48 Q 165 48 165 68 L 165 92 Q 165 112 145 112 L 115 112", fill: "none", stroke: ink, strokeWidth: "20" }),
+              h("path", { d: "M 98 48 L 145 48 Q 165 48 165 68 L 165 92 Q 165 112 145 112 L 115 112", fill: "none", stroke: "#FFFFFF", strokeWidth: "14" })
+            ),
+
+            // Center-Top Steam Valve + Animated Steam Puff!
+            h(
+              "g",
+              { transform: "translate(607, 18)" },
+              h("rect", { x: "6", y: "28", width: "24", height: "32", rx: "4", fill: "#EDE6DA", stroke: ink, strokeWidth: "3" }),
+              h("circle", { cx: "18", cy: "76", r: "16", fill: "#FBF8F2", stroke: ink, strokeWidth: "3" }),
+              h("circle", { cx: "18", cy: "76", r: "9", fill: "#F5A524", stroke: ink, strokeWidth: "2.2" }),
+              // Steam puff rising right
               h(
-                "span",
-                { style: { padding: "22px 24px 26px", display: "flex", flexDirection: "column", gap: "6px" } },
-                h(
-                  "span",
-                  { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
-                  h("span", { style: { fontSize: "22px", fontWeight: 800 } }, item.name),
-                  h(
-                    "span",
-                    { style: { fontFamily: "'Instrument Serif', serif", fontSize: "24px" } },
-                    item.rate,
-                    h("span", { style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "13px", color: mutedCol, fontWeight: 600 } }, " /day")
-                  )
-                ),
-                h("span", { style: { fontSize: "15px", lineHeight: 1.5, color: bodyCol } }, item.desc)
+                "g",
+                { className: "kz-steam-anim" },
+                h("path", {
+                  d: "M 32 34 C 42 16, 66 20, 72 8 C 84 -6, 114 -4, 122 14 C 142 12, 152 34, 134 46 C 122 56, 98 52, 88 46 C 72 56, 46 52, 32 34 Z",
+                  fill: "#FFFFFF",
+                  stroke: ink,
+                  strokeWidth: "3",
+                })
+              )
+            ),
+
+            // =========================================================
+            // HERO MINIATURE WORKER #1: PLUMBER REPAIRING SEWAGE PIPE!
+            // Standing atop left pipe joint with oversized pipe wrench & droplets
+            // =========================================================
+            h(
+              "g",
+              { transform: "translate(178, 36)" },
+              // Boots planted on pipe (y=105 sits right on pipe y=141!)
+              h("rect", { x: "30", y: "96", width: "16", height: "11", rx: "4", fill: "#1C1913" }),
+              h("rect", { x: "56", y: "96", width: "16", height: "11", rx: "4", fill: "#1C1913" }),
+              // Legs & Blue Plumber Overalls
+              h("rect", { x: "33", y: "74", width: "11", height: "24", fill: "#2F6FD6", stroke: ink, strokeWidth: "2.6" }),
+              h("rect", { x: "58", y: "74", width: "11", height: "24", fill: "#2F6FD6", stroke: ink, strokeWidth: "2.6" }),
+              // Torso (Marigold tee + Blue dungaree bib)
+              h("rect", { x: "26", y: "44", width: "50", height: "36", rx: "12", fill: "#F5A524", stroke: ink, strokeWidth: "3" }),
+              h("rect", { x: "33", y: "52", width: "36", height: "28", rx: "6", fill: "#2F6FD6", stroke: ink, strokeWidth: "2.6" }),
+              h("circle", { cx: "40", cy: "57", r: "2.5", fill: "#FFF0BF" }),
+              h("circle", { cx: "62", cy: "57", r: "2.5", fill: "#FFF0BF" }),
+              // Friendly Round Head + Plumber Cap
+              h("circle", { cx: "51", cy: "26", r: "20", fill: "#F3B47C", stroke: ink, strokeWidth: "3" }),
+              h("path", { d: "M 29 22 C 30 3, 72 3, 73 22 Z", fill: "#F5A524", stroke: ink, strokeWidth: "3" }),
+              h("path", { d: "M 48 18 L 82 22 L 72 26 L 29 22 Z", fill: "#E8930C", stroke: ink, strokeWidth: "2.5" }),
+              // Big expressive cartoon eyes & determined smile
+              h("ellipse", { cx: "44", cy: "29", rx: "4", ry: "5.5", fill: "#FFFFFF", stroke: ink, strokeWidth: "2" }),
+              h("ellipse", { cx: "58", cy: "29", rx: "4", ry: "5.5", fill: "#FFFFFF", stroke: ink, strokeWidth: "2" }),
+              h("circle", { cx: "45", cy: "30", r: "2.2", fill: ink }),
+              h("circle", { cx: "59", cy: "30", r: "2.2", fill: ink }),
+              h("path", { d: "M 44 38 Q 51 43 59 38", fill: "none", stroke: ink, strokeWidth: "2.4", strokeLinecap: "round" }),
+              // Arms reaching down with Heavy Pipe Wrench clamping the sewage flange!
+              h("path", { d: "M 74 54 L 98 78", stroke: ink, strokeWidth: "7", strokeLinecap: "round" }),
+              h("path", { d: "M 74 54 L 98 78", stroke: "#F3B47C", strokeWidth: "3", strokeLinecap: "round" }),
+              // Giant Red-Orange Pipe Wrench gripping the pipe joint at (137, 118)
+              h("path", { d: "M 92 72 L 136 108", stroke: ink, strokeWidth: "11", strokeLinecap: "round" }),
+              h("path", { d: "M 92 72 L 136 108", stroke: "#E5484D", strokeWidth: "6", strokeLinecap: "round" }),
+              h("path", { d: "M 128 98 L 148 96 L 150 118 L 130 120 Z", fill: "#EDE6DA", stroke: ink, strokeWidth: "2.8" }),
+              // Water droplets & repair sparkles popping from the sewage pipe joint!
+              h("path", { d: "M 142 84 C 142 74, 150 74, 150 84 C 150 89, 142 89, 142 84 Z", fill: "#7AB8F5", stroke: ink, strokeWidth: "2" }),
+              h("path", { d: "M 158 92 C 158 83, 165 83, 165 92 C 165 96, 158 96, 158 92 Z", fill: "#7AB8F5", stroke: ink, strokeWidth: "2" }),
+              // Speech/label tag above Plumber
+              h("rect", { x: "86", y: "4", width: "116", height: "26", rx: "13", fill: "#DCEBFF", stroke: ink, strokeWidth: "2.5" }),
+              h("text", { x: "144", y: "21", textAnchor: "middle", fontSize: "11", fontWeight: "800", fill: "#123A6B" }, "Pipe Fix · " + plumberRate)
+            ),
+
+            // =========================================================
+            // ESCROW CONTROL GAUGE BOX ON THE PIPE (like reference rainbow dial box!)
+            // =========================================================
+            h(
+              "g",
+              { transform: "translate(365, 76)" },
+              // Feet clamped to pipe
+              h("rect", { x: "16", y: "62", width: "22", height: "28", rx: "4", fill: "#EDE6DA", stroke: ink, strokeWidth: "2.8" }),
+              h("rect", { x: "102", y: "62", width: "22", height: "28", rx: "4", fill: "#EDE6DA", stroke: ink, strokeWidth: "2.8" }),
+              // Main Console Box
+              h("rect", { x: "0", y: "0", width: "140", height: "66", rx: "10", fill: "#FBF8F2", stroke: ink, strokeWidth: "3.2" }),
+              // Top siren bulb
+              h("path", { d: "M 22 0 C 22 -14, 42 -14, 42 0 Z", fill: "#FFE08A", stroke: ink, strokeWidth: "2.6" }),
+              h("rect", { x: "56", y: "-10", width: "36", height: "10", rx: "3", fill: "#EDE6DA", stroke: ink, strokeWidth: "2.5" }),
+              // Fan Gauge Wedges (Kaamzo Palette!)
+              h("path", { d: "M 56 50 L 22 24 A 42 42 0 0 1 44 13 Z", fill: "#F5A524", stroke: ink, strokeWidth: "2.2" }),
+              h("path", { d: "M 56 50 L 44 13 A 42 42 0 0 1 68 13 Z", fill: "#F3B47C", stroke: ink, strokeWidth: "2.2" }),
+              h("path", { d: "M 56 50 L 68 13 A 42 42 0 0 1 90 24 Z", fill: "#5BD68A", stroke: ink, strokeWidth: "2.2" }),
+              h("circle", { cx: "56", cy: "50", r: "5", fill: ink }),
+              // Indicator lights on right
+              h("circle", { cx: "116", cy: "22", r: "8", fill: "#5BD68A", stroke: ink, strokeWidth: "2.5" }),
+              h("circle", { cx: "116", cy: "44", r: "8", fill: "#F5A524", stroke: ink, strokeWidth: "2.5" })
+            ),
+
+            // Lower-left Brass Gate Valve + Dripping Spout (matching bottom-left of reference!)
+            h(
+              "g",
+              { transform: "translate(105, 405)" },
+              h("path", { d: "M 105 30 L 135 30 Q 148 30 148 44 L 148 68", fill: "none", stroke: ink, strokeWidth: "18", strokeLinecap: "round" }),
+              h("path", { d: "M 105 30 L 135 30 Q 148 30 148 44 L 148 68", fill: "none", stroke: "#FFFFFF", strokeWidth: "12", strokeLinecap: "round" }),
+              // Pink/Marigold drop from spout
+              h("path", { d: "M 148 76 C 142 92, 154 92, 148 76 Z", fill: "#F3B47C", stroke: ink, strokeWidth: "2.2" }),
+              // Big Brass Wheel Valve
+              h("circle", { cx: "46", cy: "30", r: "26", fill: "#F5A524", stroke: ink, strokeWidth: "3.2" }),
+              h("circle", { cx: "46", cy: "30", r: "16", fill: "#FBF8F2", stroke: ink, strokeWidth: "2.6" }),
+              h("line", { x1: "46", y1: "4", x2: "46", y2: "56", stroke: ink, strokeWidth: "3" }),
+              h("line", { x1: "20", y1: "30", x2: "72", y2: "30", stroke: ink, strokeWidth: "3" }),
+              h("circle", { cx: "46", cy: "30", r: "6", fill: "#E8930C", stroke: ink, strokeWidth: "2.4" })
+            ),
+
+            // =========================================================
+            // RIGHT-SIDE WATER SIGHT-GLASS TANK, BOILER & MINIATURE TECHNICIAN!
+            // (Matching the blue bottle + boiler + spraying hose at bottom-right!)
+            // =========================================================
+            h(
+              "g",
+              { transform: "translate(1045, 200)" },
+              // Vertical Glass Water Column
+              h("rect", { x: "18", y: "12", width: "44", height: "120", rx: "20", fill: "#FFFFFF", stroke: ink, strokeWidth: "3" }),
+              h("rect", { x: "21", y: "66", width: "38", height: "63", rx: "16", fill: "#7AB8F5", stroke: ink, strokeWidth: "2.4" }),
+              h("rect", { x: "28", y: "0", width: "24", height: "14", rx: "4", fill: "#F5A524", stroke: ink, strokeWidth: "2.8" }),
+              // Connecting pipe to main boiler
+              h("path", { d: "M 40 132 L 40 168 L 105 168", fill: "none", stroke: ink, strokeWidth: "18", strokeLinejoin: "round" }),
+              h("path", { d: "M 40 132 L 40 168 L 105 168", fill: "none", stroke: "#EDE6DA", strokeWidth: "12", strokeLinejoin: "round" }),
+              h("circle", { cx: "40", cy: "152", r: "13", fill: "#DCEBFF", stroke: ink, strokeWidth: "2.8" }),
+              // Domed Pressure Boiler Tank
+              h("path", { d: "M 98 150 C 98 102, 208 102, 208 150 L 208 228 C 208 246, 98 246, 98 228 Z", fill: "#EDE6DA", stroke: ink, strokeWidth: "3.2" }),
+              h("line", { x1: "94", y1: "152", x2: "212", y2: "152", stroke: ink, strokeWidth: "3.2" }),
+              h("line", { x1: "94", y1: "212", x2: "212", y2: "212", stroke: ink, strokeWidth: "3.2" }),
+              // Window porthole with Kaamzo Marigold badge inside
+              h("circle", { cx: "153", cy: "182", r: "20", fill: "#FBF8F2", stroke: ink, strokeWidth: "3" }),
+              h("circle", { cx: "153", cy: "182", r: "10", fill: "#F5A524", stroke: ink, strokeWidth: "2.2" }),
+              // Burner base & coiled spray hose
+              h("path", { d: "M 122 242 L 184 242 L 198 268 L 108 268 Z", fill: "#F3B47C", stroke: ink, strokeWidth: "3" }),
+              h("path", { d: "M 108 258 C 45 258, 55 305, 95 305 C 125 305, 85 335, 58 335", fill: "none", stroke: ink, strokeWidth: "10", strokeLinecap: "round" }),
+              h("path", { d: "M 108 258 C 45 258, 55 305, 95 305 C 125 305, 85 335, 58 335", fill: "none", stroke: "#FBF8F2", strokeWidth: "5", strokeLinecap: "round" }),
+              // Brass Nozzle + Clean Blue Water Splash!
+              h("polygon", { points: "62,328 42,344 54,354 70,338", fill: "#F5A524", stroke: ink, strokeWidth: "2.6" }),
+              h("path", { d: "M 36 350 C 18 356, 14 374, 34 374 C 44 382, 66 378, 62 362 Z", fill: "#7AB8F5", stroke: ink, strokeWidth: "2.5" }),
+
+              // MINIATURE WORKER #2: CARPENTER / WELDER INSPECTING THE TANK!
+              h(
+                "g",
+                { transform: "translate(208, 152)" },
+                h("rect", { x: "10", y: "44", width: "34", height: "36", rx: "9", fill: "#FBE0EE", stroke: ink, strokeWidth: "2.8" }),
+                h("circle", { cx: "27", cy: "26", r: "16", fill: "#F3B47C", stroke: ink, strokeWidth: "2.8" }),
+                h("path", { d: "M 10 22 C 12 6, 42 6, 44 22 Z", fill: "#5BD68A", stroke: ink, strokeWidth: "2.8" }),
+                h("circle", { cx: "22", cy: "28", r: "2.2", fill: ink }),
+                h("circle", { cx: "32", cy: "28", r: "2.2", fill: ink }),
+                h("path", { d: "M 22 34 Q 27 38 32 34", fill: "none", stroke: ink, strokeWidth: "2", strokeLinecap: "round" }),
+                h("path", { d: "M 10 54 L -8 44", stroke: ink, strokeWidth: "5.5", strokeLinecap: "round" })
+              )
+            )
+          ),
+
+          // ---- CENTERPIECE CALLOUT FRAMED INSIDE THE PIPES (like "Speakers & Workshops" + "Become a speaker") ----
+          h(
+            "div",
+            {
+              className: "kz-pipe-center-copy",
+              style: {
+                maxWidth: "600px",
+                margin: "-255px auto 24px",
+                position: "relative",
+                zIndex: 5,
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "14px",
+                padding: "16px 24px",
+              },
+            },
+            h(
+              "span",
+              {
+                style: {
+                  padding: "6px 14px",
+                  borderRadius: "999px",
+                  background: "#FFF0BF",
+                  color: "#1C1913",
+                  border: "2px solid #1C1913",
+                  fontSize: "11.5px",
+                  fontWeight: 800,
+                  letterSpacing: "1px",
+                },
+              },
+              "9 VERIFIED TRADES · ZERO MIDDLEMEN"
+            ),
+            h(
+              "h2",
+              {
+                style: {
+                  margin: 0,
+                  fontSize: "clamp(34px, 4.8vw, 62px)",
+                  lineHeight: 1.0,
+                  letterSpacing: "-1.8px",
+                  fontWeight: 800,
+                  color: textOnCream,
+                },
+              },
+              "Skilled Hands",
+              h("br", null),
+              "& Fair Daily Rates"
+            ),
+            h(
+              "p",
+              { style: { margin: 0, fontSize: "15.5px", lineHeight: 1.55, color: mutedOnCream, maxWidth: "430px", fontWeight: 500 } },
+              "We connect hardworking craftspeople and local homes within 10 km. Honest wages shown upfront — released only with your OTP."
+            ),
+            h(
+              "div",
+              { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px", marginTop: "6px" } },
+              h(
+                "a",
+                {
+                  href: "/customer/post-a-job",
+                  onClick: (e) => {
+                    e.preventDefault();
+                    navigate("/customer/post-a-job", { role: "customer" });
+                  },
+                  className: "kz-ink-pill",
+                  style: {
+                    padding: "13px 26px",
+                    borderRadius: "999px",
+                    background: "#FFFFFF",
+                    color: "#1C1913",
+                    border: "2.5px solid #1C1913",
+                    boxShadow: "0 5px 0 #1C1913",
+                    fontSize: "14.5px",
+                    fontWeight: 800,
+                    textDecoration: "none",
+                  },
+                },
+                "Post a Custom Job →"
+              ),
+              h(
+                "a",
+                {
+                  href: "/register",
+                  onClick: (e) => {
+                    e.preventDefault();
+                    navigate("/register", { registerRole: "worker" });
+                  },
+                  className: "kz-ink-pill",
+                  style: {
+                    padding: "13px 26px",
+                    borderRadius: "999px",
+                    background: "#F5A524",
+                    color: "#1C1913",
+                    border: "2.5px solid #1C1913",
+                    boxShadow: "0 5px 0 #1C1913",
+                    fontSize: "14.5px",
+                    fontWeight: 800,
+                    textDecoration: "none",
+                  },
+                },
+                "Become a Kaamzo Pro"
               )
             )
           )
         )
       ),
 
-      // ============ SERVICES GRID (9 TRADES) ============
+      // =========================================================================
+      // ACT 3 — SERVICES IN LUDHIANA (9 Ink-Outlined Trade Cards, Poster Style)
+      // =========================================================================
       h(
         "section",
-        { id: "services", style: { maxWidth: "1240px", margin: "0 auto", padding: "72px 24px", display: "flex", flexDirection: "column", gap: "36px" } },
+        { id: "services", style: { maxWidth: "1240px", margin: "0 auto", padding: "56px 24px 64px", display: "flex", flexDirection: "column", gap: "32px" } },
         h(
           "div",
           { style: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "16px" } },
           h(
             "div",
-            { style: { display: "flex", flexDirection: "column", gap: "10px" } },
-            h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1.2px", color: isDark ? "#F5A524" : "#7A4E00" } }, "SERVICES IN LUDHIANA"),
+            { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+            h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "1.2px", color: isDark ? "#F5A524" : "#7A4E00" } }, `SERVICES IN ${cityLabel.toUpperCase()}`),
             h(
               "h2",
-              { style: { margin: 0, fontSize: "clamp(34px, 4vw, 52px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
+              { style: { margin: 0, fontSize: "clamp(32px, 4vw, 50px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
               "Fair rates, ",
               h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "shown upfront.")
             )
@@ -5499,23 +5798,25 @@
                 e.preventDefault();
                 navigate("/customer", { role: "customer" });
               },
+              className: "kz-ink-pill",
               style: {
-                padding: "12px 20px",
+                padding: "11px 20px",
                 borderRadius: "999px",
-                border: "1px solid " + (isDark ? "#3A342C" : "#E2D9C8"),
-                background: cardBg,
-                color: textCol,
-                fontWeight: 700,
+                border: "2.5px solid #1C1913",
+                background: "#FFF0BF",
+                color: "#1C1913",
+                boxShadow: "0 4px 0 #1C1913",
+                fontWeight: 800,
                 fontSize: "14px",
                 textDecoration: "none",
               },
             },
-            "See all services →"
+            "Browse all workers →"
           )
         ),
         h(
           "div",
-          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: "14px" } },
+          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(225px, 1fr))", gap: "16px" } },
           TRADES.map((t) =>
             h(
               "a",
@@ -5526,17 +5827,19 @@
                   e.preventDefault();
                   navigate("/customer", { role: "customer", selectedTrade: t.id });
                 },
+                className: "kz-ink-card",
                 style: {
                   textDecoration: "none",
-                  color: textCol,
-                  background: cardBg,
-                  border: "1px solid " + borderCol,
-                  borderRadius: "24px",
+                  color: "#1C1913",
+                  background: t.bg || "#FFFFFF",
+                  border: "2.5px solid #1C1913",
+                  boxShadow: "0 6px 0 #1C1913",
+                  borderRadius: "26px",
                   padding: "22px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "18px",
-                  boxShadow: "0 1px 0 rgba(0,0,0,0.02), 0 12px 30px rgba(90,60,20,0.05)",
+                  justifyContent: "space-between",
+                  gap: "16px",
                 },
               },
               h(
@@ -5544,43 +5847,251 @@
                 { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
                 h(
                   "span",
-                  { style: { width: "52px", height: "52px", borderRadius: "16px", background: t.bg, color: t.fg, display: "flex", alignItems: "center", justifyContent: "center" }, "aria-hidden": "true" },
-                  h(SvgIcon, { path: t.icon, size: 24, strokeWidth: 2 })
+                  {
+                    style: {
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "15px",
+                      background: "#FBF8F2",
+                      color: "#1C1913",
+                      border: "2px solid #1C1913",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    },
+                    "aria-hidden": "true",
+                  },
+                  h(SvgIcon, { path: t.icon, size: 24, strokeWidth: 2.2 })
                 ),
                 h(
                   "span",
-                  { style: { width: "34px", height: "34px", borderRadius: "50%", border: "1px solid " + borderCol, display: "flex", alignItems: "center", justifyContent: "center", color: bodyCol }, "aria-hidden": "true" },
-                  h(SvgIcon, { path: ICON_PATHS.arrowNE, size: 14, strokeWidth: 2.4 })
+                  {
+                    style: {
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      background: "#1C1913",
+                      color: "#FBF8F2",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                    },
+                  },
+                  "10 km"
                 )
               ),
               h(
                 "span",
                 { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-                h("span", { style: { fontSize: "18px", fontWeight: 800 } }, t.name),
-                h("span", { style: { fontSize: "14px", color: mutedCol } }, t.desc)
+                h("span", { style: { fontSize: "19px", fontWeight: 800 } }, t.name),
+                h("span", { style: { fontSize: "13.5px", color: "#3D3830", fontWeight: 500 } }, t.desc)
               ),
               h(
                 "span",
-                { style: { fontFamily: "'Instrument Serif', serif", fontSize: "30px", lineHeight: 1 } },
-                formatInr(getLiveTradeRate(t.id, workers)),
-                h("span", { style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "13px", color: mutedCol, fontWeight: 600 } }, " /day")
+                {
+                  style: {
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    paddingTop: "10px",
+                    borderTop: "2px dashed rgba(28,25,19,0.2)",
+                  },
+                },
+                h(
+                  "span",
+                  { style: { fontFamily: "'Instrument Serif', serif", fontSize: "30px", lineHeight: 1, fontWeight: 700 } },
+                  formatInr(getLiveTradeRate(t.id, workers)),
+                  h("span", { style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "12.5px", fontWeight: 700 } }, " /day")
+                ),
+                h("span", { style: { fontSize: "13px", fontWeight: 800 } }, "Book →")
               )
             )
           )
         )
       ),
 
-      // ============ HOW IT WORKS ============
+      // =========================================================================
+      // ACT 4 — TWO WAYS IN (High-Contrast Ink-Framed Dual Portals)
+      // =========================================================================
       h(
         "section",
-        { id: "how", style: { maxWidth: "1240px", margin: "0 auto", padding: "72px 24px", display: "flex", flexDirection: "column", gap: "40px" } },
+        { style: { maxWidth: "1240px", margin: "0 auto", padding: "24px 24px 64px", display: "flex", flexDirection: "column", gap: "32px" } },
+        h(
+          "h2",
+          { style: { margin: 0, textAlign: "center", fontSize: "clamp(34px, 4.4vw, 54px)", lineHeight: 1.02, letterSpacing: "-1.6px", fontWeight: 800 } },
+          "One platform, ",
+          h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "two ways"),
+          " in."
+        ),
         h(
           "div",
-          { style: { display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", textAlign: "center" } },
-          h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1.2px", color: isDark ? "#F5A524" : "#7A4E00" } }, "HOW IT WORKS"),
+          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "22px" } },
+          // Customer Card
+          h(
+            "a",
+            {
+              href: "/customer",
+              onClick: (e) => {
+                e.preventDefault();
+                navigate("/customer", { role: "customer" });
+              },
+              className: "kz-ink-card",
+              style: {
+                position: "relative",
+                overflow: "hidden",
+                minHeight: "320px",
+                borderRadius: "30px",
+                padding: "36px",
+                textDecoration: "none",
+                color: "#1C1913",
+                background: "linear-gradient(155deg, #FFF0BF 0%, #F6E2CF 60%, #F3B47C 100%)",
+                border: "3px solid #1C1913",
+                boxShadow: "0 8px 0 #1C1913",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: "16px",
+              },
+            },
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+              h("span", { style: { alignSelf: "flex-start", padding: "5px 12px", borderRadius: "999px", background: "#FBF8F2", border: "2px solid #1C1913", fontSize: "11px", fontWeight: 800, letterSpacing: "0.9px" } }, "FOR HOMES & CONTRACTORS"),
+              h(
+                "span",
+                { style: { fontSize: "40px", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1.02 } },
+                "I need ",
+                h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "a worker")
+              ),
+              h("span", { style: { fontSize: "16px", lineHeight: 1.5, color: "#2D271E", maxWidth: "400px", fontWeight: 500 } }, "See fair rates upfront, pick verified pros within 10 km, and keep your money in UPI escrow until the job is done.")
+            ),
+            h("span", { style: { alignSelf: "flex-start", padding: "12px 22px", borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontWeight: 800, fontSize: "14.5px" } }, "Book a worker →")
+          ),
+
+          // Worker Card
+          h(
+            "a",
+            {
+              href: "/worker",
+              onClick: (e) => {
+                e.preventDefault();
+                navigate("/worker", { role: "worker" });
+              },
+              className: "kz-ink-card",
+              style: {
+                position: "relative",
+                overflow: "hidden",
+                minHeight: "320px",
+                borderRadius: "30px",
+                padding: "36px",
+                textDecoration: "none",
+                color: "#FBF8F2",
+                background: "#1C1913",
+                border: "3px solid #1C1913",
+                boxShadow: "0 8px 0 #F5A524",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: "16px",
+              },
+            },
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+              h("span", { style: { alignSelf: "flex-start", padding: "5px 12px", borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontSize: "11px", fontWeight: 800, letterSpacing: "0.9px" } }, "FOR SKILLED WORKERS"),
+              h(
+                "span",
+                { style: { fontSize: "40px", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1.02 } },
+                "I want ",
+                h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, color: "#F5A524" } }, "work")
+              ),
+              h("span", { style: { fontSize: "16px", lineHeight: 1.5, color: "#E2D9C8", maxWidth: "400px", fontWeight: 500 } }, "Jobs within 10 km, zero middlemen, paid straight to your UPI the moment the customer confirms.")
+            ),
+            h("span", { style: { alignSelf: "flex-start", padding: "12px 22px", borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "14.5px" } }, "Open Worker Portal →")
+          )
+        )
+      ),
+
+      // =========================================================================
+      // ACT 5 — MEET THE HANDS (Illustrated Trade Spotlights)
+      // =========================================================================
+      h(
+        "section",
+        { style: { maxWidth: "1240px", margin: "0 auto", padding: "16px 24px 64px", display: "flex", flexDirection: "column", gap: "32px" } },
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "8px", alignItems: "center", textAlign: "center" } },
+          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "1.2px", color: isDark ? "#F5A524" : "#7A4E00" } }, "MEET THE HANDS"),
           h(
             "h2",
-            { style: { margin: 0, fontSize: "clamp(34px, 4vw, 52px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
+            { style: { margin: 0, fontSize: "clamp(32px, 4vw, 50px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
+            "Skilled people, ",
+            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "right around the corner.")
+          )
+        ),
+        h(
+          "div",
+          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "20px" } },
+          [
+            { name: "Plumber", rate: plumberRate, desc: "Sewage pipes, leaking taps, blocked drains, new fittings and motor connections." },
+            { name: "Carpenter", rate: carpenterRate, desc: "Furniture repairs, doors and hinges, modular shelves and custom woodwork." },
+            { name: "Painter", rate: painterRate, desc: "Fresh walls, waterproof primer, touch-ups and full-home colour makeovers." },
+          ].map((item) =>
+            h(
+              "a",
+              {
+                key: item.name,
+                href: "/customer",
+                onClick: (e) => {
+                  e.preventDefault();
+                  navigate("/customer", { role: "customer", selectedTrade: item.name });
+                },
+                className: "kz-ink-card",
+                style: {
+                  textDecoration: "none",
+                  color: textOnCream,
+                  borderRadius: "28px",
+                  overflow: "hidden",
+                  background: cardBg,
+                  border: "2.5px solid #1C1913",
+                  boxShadow: "0 6px 0 #1C1913",
+                  display: "flex",
+                  flexDirection: "column",
+                },
+              },
+              h(TradeIllustration, { type: item.name }),
+              h(
+                "span",
+                { style: { padding: "20px 22px 24px", display: "flex", flexDirection: "column", gap: "6px", borderTop: "2.5px solid #1C1913" } },
+                h(
+                  "span",
+                  { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
+                  h("span", { style: { fontSize: "22px", fontWeight: 800 } }, item.name),
+                  h(
+                    "span",
+                    { style: { fontFamily: "'Instrument Serif', serif", fontSize: "26px", fontWeight: 700 } },
+                    item.rate,
+                    h("span", { style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "12.5px", color: mutedOnCream, fontWeight: 700 } }, " /day")
+                  )
+                ),
+                h("span", { style: { fontSize: "14.5px", lineHeight: 1.5, color: mutedOnCream } }, item.desc)
+              )
+            )
+          )
+        )
+      ),
+
+      // =========================================================================
+      // ACT 6 — HOW IT WORKS (4 Connected Pipeline Steps + Trust Badges)
+      // =========================================================================
+      h(
+        "section",
+        { id: "how", style: { maxWidth: "1240px", margin: "0 auto", padding: "24px 24px 64px", display: "flex", flexDirection: "column", gap: "32px" } },
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "8px", alignItems: "center", textAlign: "center" } },
+          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "1.2px", color: isDark ? "#F5A524" : "#7A4E00" } }, "HOW IT WORKS"),
+          h(
+            "h2",
+            { style: { margin: 0, fontSize: "clamp(32px, 4vw, 50px)", lineHeight: 1.02, letterSpacing: "-1.4px", fontWeight: 800 } },
             "Booked & done in ",
             h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "four clear steps.")
           )
@@ -5595,98 +6106,154 @@
                 key: step.n,
                 style: {
                   position: "relative",
-                  overflow: "hidden",
                   background: step.bg,
                   color: "#1C1913",
-                  borderRadius: "28px",
-                  padding: "32px",
-                  minHeight: "280px",
+                  border: "2.5px solid #1C1913",
+                  boxShadow: "0 6px 0 #1C1913",
+                  borderRadius: "26px",
+                  padding: "26px",
+                  minHeight: "235px",
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "flex-end",
-                  gap: "12px",
+                  justifyContent: "space-between",
+                  gap: "14px",
                 },
               },
               h(
                 "span",
                 {
-                  "aria-hidden": "true",
-                  style: { position: "absolute", top: "4px", right: "22px", fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontSize: "150px", lineHeight: 1, color: "rgba(28,25,19,0.10)" },
+                  style: {
+                    alignSelf: "flex-start",
+                    padding: "6px 12px",
+                    borderRadius: "999px",
+                    background: "#1C1913",
+                    color: "#F5A524",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    letterSpacing: "0.8px",
+                  },
                 },
-                step.n
+                "STEP " + step.n
               ),
-              h("span", { style: { position: "relative", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.4px" } }, step.title),
-              h("span", { style: { position: "relative", fontSize: "16px", lineHeight: 1.55, color: "#3D3830" } }, step.body)
+              h(
+                "div",
+                { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+                h("span", { style: { fontSize: "22px", fontWeight: 800, letterSpacing: "-0.4px" } }, step.title),
+                h("span", { style: { fontSize: "14.5px", lineHeight: 1.5, color: "#2D271E", fontWeight: 500 } }, step.body)
+              )
             )
           )
-        )
-      ),
+        ),
 
-      // ============ TRUST ============
-      h(
-        "section",
-        { style: { maxWidth: "1240px", margin: "0 auto", padding: "24px 24px 96px" } },
+        // 4 Trust Pillars Strip
         h(
           "div",
           {
             style: {
-              borderRadius: "32px",
-              padding: "44px",
-              background: "linear-gradient(135deg, #EEF3DC 0%, #FDF1D2 100%)",
-              border: "1px solid #E7E2C6",
-              color: "#1C1913",
+              marginTop: "12px",
+              borderRadius: "28px",
+              padding: "32px",
+              background: cardBg,
+              border: "2.5px solid #1C1913",
+              boxShadow: "0 6px 0 #1C1913",
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "32px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(215px, 1fr))",
+              gap: "24px",
             },
           },
           trustItems.map((r) =>
             h(
               "div",
-              { key: r.title, style: { display: "flex", flexDirection: "column", gap: "12px" } },
+              { key: r.title, style: { display: "flex", flexDirection: "column", gap: "10px" } },
               h(
                 "span",
-                { style: { width: "48px", height: "48px", borderRadius: "50%", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(60,70,20,0.10)" }, "aria-hidden": "true" },
-                h(SvgIcon, { path: r.icon, size: 22, color: "#3F5E22", strokeWidth: 2 })
+                {
+                  style: {
+                    width: "46px",
+                    height: "46px",
+                    borderRadius: "14px",
+                    background: r.bg,
+                    border: "2px solid #1C1913",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                  "aria-hidden": "true",
+                },
+                h(SvgIcon, { path: r.icon, size: 22, color: "#1C1913", strokeWidth: 2.2 })
               ),
-              h("span", { style: { fontSize: "18px", fontWeight: 800 } }, r.title),
-              h("span", { style: { fontSize: "15px", lineHeight: 1.5, color: "#3D3830" } }, r.body)
+              h("span", { style: { fontSize: "17px", fontWeight: 800 } }, r.title),
+              h("span", { style: { fontSize: "14px", lineHeight: 1.5, color: mutedOnCream } }, r.body)
             )
           )
         )
       ),
 
-      // ============ WORKERS MORNING SCENE ============
+      // =========================================================================
+      // ACT 7 — WORKER SIGNUP BANNER ("Kaam aapke paas aayega.")
+      // =========================================================================
       h(
         "section",
-        { id: "workers", style: { position: "relative", overflow: "hidden", background: "linear-gradient(180deg, #E4EFF8 0%, #F4F1EA 45%, #FCEBD2 100%)", color: "#1C1913" } },
-        h("div", { "aria-hidden": "true", style: { position: "absolute", right: "10%", top: "70px", width: "340px", height: "340px", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,214,140,0.85) 0%, rgba(255,214,140,0) 62%)" } }),
-        h("div", { "aria-hidden": "true", style: { position: "absolute", right: "calc(10% + 125px)", top: "195px", width: "90px", height: "90px", borderRadius: "50%", background: "#FFD98A" } }),
-        h("div", { "aria-hidden": "true", style: { position: "absolute", left: "8%", top: "90px", width: "220px", height: "34px", borderRadius: "999px", background: "rgba(255,255,255,0.8)" } }),
-        h("div", { "aria-hidden": "true", style: { position: "absolute", left: "14%", top: "66px", width: "120px", height: "40px", borderRadius: "999px", background: "rgba(255,255,255,0.8)" } }),
-        h(
-          "svg",
-          { "aria-hidden": "true", viewBox: "0 0 1440 260", preserveAspectRatio: "none", style: { position: "absolute", left: 0, bottom: 0, width: "100%", height: "240px" } },
-          h("path", { d: "M0 120 C 200 60, 380 130, 600 90 C 820 50, 1000 120, 1200 80 C 1320 56, 1400 70, 1440 66 L1440 260 L0 260 Z", fill: "#CFE0A6" }),
-          h("path", { d: "M0 170 C 260 130, 520 180, 800 150 C 1060 122, 1260 170, 1440 150 L1440 260 L0 260 Z", fill: "#F5D86A" }),
-          h("path", { d: "M0 220 C 360 196, 760 228, 1100 214 C 1280 206, 1380 214, 1440 212 L1440 260 L0 260 Z", fill: "#A9BE72" })
-        ),
+        {
+          id: "workers",
+          style: {
+            position: "relative",
+            overflow: "hidden",
+            background: "#1C1913",
+            color: "#FBF8F2",
+            borderTop: "3px solid #1C1913",
+          },
+        },
         h(
           "div",
-          { className: "kz-workers-cta-sec", style: { position: "relative", maxWidth: "1240px", margin: "0 auto", padding: "96px 24px 160px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "24px" } },
+          {
+            style: {
+              maxWidth: "1240px",
+              margin: "0 auto",
+              padding: "80px 24px 88px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              gap: "22px",
+            },
+          },
           h(
             "span",
-            { style: { padding: "8px 14px", borderRadius: "999px", background: "#FFFFFF", border: "1px solid #EFE7DA", fontSize: "13px", fontWeight: 700, color: "#7A4E00" } },
-            "For workers · ",
-            h("span", { style: { fontFamily: "'Noto Sans Devanagari', sans-serif" } }, "कामगारों के लिए")
+            {
+              style: {
+                padding: "7px 16px",
+                borderRadius: "999px",
+                background: "#FFF0BF",
+                color: "#1C1913",
+                border: "2px solid #F5A524",
+                fontSize: "12px",
+                fontWeight: 800,
+                letterSpacing: "0.8px",
+              },
+            },
+            "FOR SKILLED WORKERS · 10 KM RADAR"
           ),
           h(
             "h2",
-            { style: { margin: 0, fontSize: "clamp(42px, 6vw, 84px)", lineHeight: 0.98, letterSpacing: "-2px", fontWeight: 800, maxWidth: "900px" } },
-            "Kaam aapke paas ",
-            h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, color: "#B5641A" } }, "aayega.")
+            {
+              className: "kz-poster-title",
+              style: {
+                margin: 0,
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                fontSize: "clamp(44px, 6.4vw, 88px)",
+                lineHeight: 0.98,
+                fontWeight: 800,
+                maxWidth: "900px",
+              },
+            },
+            "Kaam aapke paas aayega."
           ),
-          h("p", { style: { margin: 0, fontSize: "18px", lineHeight: 1.55, color: "#4A443A", maxWidth: "560px" } }, "Register free in 2 minutes with your phone number and UPI ID. Pick your trade, set your daily rate, and start getting jobs nearby."),
+          h(
+            "p",
+            { style: { margin: 0, fontSize: "17px", lineHeight: 1.55, color: "#E2D9C8", maxWidth: "560px" } },
+            "Register free in 2 minutes with your phone number and UPI ID. Pick your trade, set your daily rate, and start getting verified jobs nearby."
+          ),
           h(
             "a",
             {
@@ -5695,25 +6262,27 @@
                 e.preventDefault();
                 navigate("/register", { registerRole: "worker" });
               },
+              className: "kz-ink-pill",
               style: {
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
-                padding: "15px 26px",
+                gap: "10px",
+                padding: "15px 30px",
                 borderRadius: "999px",
-                background: "#1C1913",
-                color: "#FBF8F2",
+                background: "#F5A524",
+                color: "#1C1913",
+                border: "3px solid #FBF8F2",
+                boxShadow: "0 6px 0 #E8930C",
+                fontSize: "16px",
                 fontWeight: 800,
                 textDecoration: "none",
-                boxShadow: "0 12px 28px rgba(28,25,19,0.18)",
               },
             },
-            "Register free · ",
-            h("span", { style: { fontFamily: "'Noto Sans Devanagari', sans-serif" } }, "मुफ्त रजिस्टर करें")
+            "Register free as a Worker →"
           ),
           h(
             "ul",
-            { style: { listStyle: "none", margin: "24px 0 0", padding: 0, width: "100%", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "14px", textAlign: "left" } },
+            { style: { listStyle: "none", margin: "20px 0 0", padding: 0, width: "100%", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "16px", textAlign: "left" } },
             workerPerks.map((k) =>
               h(
                 "li",
@@ -5721,20 +6290,19 @@
                   key: k.title,
                   style: {
                     padding: "22px",
-                    borderRadius: "24px",
-                    background: "rgba(255,255,255,0.85)",
-                    backdropFilter: "blur(14px)",
-                    WebkitBackdropFilter: "blur(14px)",
-                    border: "1px solid #FFFFFF",
-                    boxShadow: "0 14px 30px rgba(90,60,20,0.08)",
+                    borderRadius: "22px",
+                    background: k.bg,
+                    color: "#1C1913",
+                    border: "2.5px solid #1C1913",
+                    boxShadow: "0 5px 0 #F5A524",
                     display: "flex",
                     flexDirection: "column",
                     gap: "8px",
                   },
                 },
-                h("span", { style: { width: "34px", height: "34px", borderRadius: "50%", background: "#FFF0BF", color: "#6B4600", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }, "aria-hidden": "true" }, "✓"),
-                h("span", { style: { fontWeight: 800, fontSize: "16px" } }, k.title),
-                h("span", { style: { fontSize: "14px", lineHeight: 1.5, color: "#4A443A" } }, k.body)
+                h("span", { style: { width: "32px", height: "32px", borderRadius: "50%", background: "#1C1913", color: "#F5A524", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900 }, "aria-hidden": "true" }, "✓"),
+                h("span", { style: { fontWeight: 800, fontSize: "16.5px" } }, k.title),
+                h("span", { style: { fontSize: "14px", lineHeight: 1.5, color: "#2D271E", fontWeight: 500 } }, k.body)
               )
             )
           )
