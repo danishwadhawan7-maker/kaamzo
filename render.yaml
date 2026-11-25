@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: kaamzo-web
+    runtime: node
+    plan: free
+    branch: redesign
+    buildCommand: npm install --omit=dev && npm run build
+    startCommand: node server.js
+    healthCheckPath: /api/razorpay?action=config
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: ENCRYPTION_HMAC_KEY
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: FAMPAY_API_KEY
+        sync: false
+      - key: FAMPAY_UPI_ID
+        value: 6284194807@fam
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
