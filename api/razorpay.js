@@ -93,7 +93,10 @@ function getRazorpayClient() {
 function applyCors(req, res) {
   const origin = (req.headers && req.headers.origin) || "";
   const allow =
-    origin && (origin.includes("kaamzo.site") || /^http:\/\/localhost(:\d+)?$/.test(origin))
+    origin &&
+    (origin.includes("kaamzo.site") ||
+      origin.includes("kaamzo-live.vercel.app") ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin))
       ? origin
       : "https://www.kaamzo.site";
   res.setHeader("Access-Control-Allow-Origin", allow);
@@ -941,6 +944,107 @@ module.exports = async function handler(req, res) {
         workerPayoutInr,
         payout,
         job: paidJob
+      });
+    }
+
+    // -----------------------------------------------------------------------
+    // 4b-1b. APPLY COUPON CODE ("bhavnoorsingh") — FREE BROADCAST, WORKER STILL PAID
+    // -----------------------------------------------------------------------
+    if (action === "applyCouponPayment") {
+      if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
+
+      const cleanJobId = String(body.jobId || `job_${Date.now()}`).trim();
+      const rawCoupon = String(body.couponCode || "").trim().toLowerCase();
+      if (rawCoupon !== "bhavnoorsingh") {
+        return sendJson(res, 400, {
+          success: false,
+          verified: false,
+          error: "Invalid coupon code. Please check the spelling and try again."
+        });
+      }
+
+      let dbJob = null;
+      let dbWorker = null;
+      try {
+        await connectMongo();
+        if (cleanJobId) dbJob = await getDocById("jobs", cleanJobId);
+      } catch (_) {}
+
+      const baseJob = { ...(body.jobSnapshot || {}), ...(dbJob || {}), id: cleanJobId };
+      const fin = computeJobFinancials(baseJob, body.amountInr);
+      const workerPayoutInr = fin.baseLabor;
+      const couponRef = `COUPON_BHAVNOORSINGH_${Date.now().toString(36).toUpperCase()}`;
+      const isBroadcastOnly =
+        !baseJob.assignedWorkerId && (!baseJob.status || baseJob.status === "broadcast");
+
+      const couponJob = {
+        ...baseJob,
+        baseLabor: fin.baseLabor,
+        platformFee: 0,
+        totalAmount: 0,
+        customerPaidInr: 0,
+        workerPayout: workerPayoutInr,
+        couponCode: "bhavnoorsingh",
+        subsidizedByKaamzo: true,
+        status: isBroadcastOnly ? "broadcast" : "paid_and_closed",
+        isPaid: true,
+        isEscrowPrepaid: true,
+        escrowStatus: "released_to_worker",
+        utrVerificationStatus: "verified_coupon",
+        paymentStatus: "paid_via_coupon_bhavnoorsingh",
+        paidVia: "COUPON_BHAVNOORSINGH",
+        transactionRef: couponRef,
+        upiUtr: couponRef,
+        razorpayPaymentId: couponRef,
+        razorpayPaymentMethod: "coupon_bhavnoorsingh",
+        razorpayPayoutId: `pout_coupon_${Date.now().toString(36)}`,
+        razorpayPayoutStatus: "processed_subsidy",
+        rating: Number(body.rating) || baseJob.rating || 5,
+        review:
+          body.review ||
+          baseJob.review ||
+          `Free broadcast via coupon bhavnoorsingh (Customer ₹0 · Worker receives ₹${workerPayoutInr})`,
+        paidAt: new Date().toISOString()
+      };
+
+      try {
+        await connectMongo();
+        if (cleanJobId) await upsertDoc("jobs", cleanJobId, couponJob);
+        if (couponJob.assignedWorkerId && !isBroadcastOnly) {
+          dbWorker = await getDocById("workers", couponJob.assignedWorkerId);
+          if (dbWorker) {
+            const txEntry = {
+              id: couponJob.razorpayPayoutId,
+              amount: workerPayoutInr,
+              upiId: dbWorker.upiId || couponJob.assignedWorkerUpi || "UPI",
+              refId: couponRef,
+              timestamp: new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
+              status: `Settled via Kaamzo Coupon Subsidy (${couponRef})`
+            };
+            const existingHistory = Array.isArray(dbWorker.withdrawalHistory) ? dbWorker.withdrawalHistory : [];
+            await upsertDoc("workers", couponJob.assignedWorkerId, {
+              ...dbWorker,
+              walletBalance: (Number(dbWorker.walletBalance) || 0) + workerPayoutInr,
+              completedJobsCount: (dbWorker.completedJobsCount || 0) + 1,
+              completedJobs: (dbWorker.completedJobs || dbWorker.completedJobsCount || 0) + 1,
+              todayEarnings: (dbWorker.todayEarnings || 0) + workerPayoutInr,
+              totalEarnings: (dbWorker.totalEarnings || 0) + workerPayoutInr,
+              withdrawalHistory: [txEntry, ...existingHistory].slice(0, 30)
+            });
+          }
+        }
+      } catch (dbErr) {
+        console.warn("[Coupon applyCouponPayment Mongo note]", dbErr.message);
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        verified: true,
+        couponApplied: "bhavnoorsingh",
+        paymentId: couponRef,
+        amountInr: 0,
+        workerPayoutInr,
+        job: couponJob
       });
     }
 

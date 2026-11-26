@@ -3699,6 +3699,9 @@
     const [errMsg, setErrMsg] = useState("");
     const [stepHint, setStepHint] = useState("");
     const [busy, setBusy] = useState(false);
+    const [couponInput, setCouponInput] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState("");
+    const [couponErr, setCouponErr] = useState("");
     const fileInputRef = useRef(null);
 
     if (!job) return null;
@@ -3885,6 +3888,90 @@
       !/^(\d)\1{11}$/.test(cleanDigitsUtr) &&
       cleanDigitsUtr !== "123456789012";
 
+    const isCouponActive = appliedCoupon === "bhavnoorsingh";
+
+    const handleApplyCoupon = () => {
+      const code = String(couponInput || "").trim().toLowerCase();
+      setCouponErr("");
+      setErrMsg("");
+      if (!code) {
+        setCouponErr("Please enter a coupon code.");
+        return;
+      }
+      if (code === "bhavnoorsingh") {
+        setAppliedCoupon("bhavnoorsingh");
+        app.showNotification?.(
+          `✓ Coupon "bhavnoorsingh" applied! ₹0 payable by you — worker still receives ${formatInr(fullAmount)}.`
+        );
+      } else {
+        setCouponErr(`Coupon "${couponInput.trim()}" is invalid or expired.`);
+      }
+    };
+
+    const handleConfirmCouponPayment = async () => {
+      if (busy || !isCouponActive) return;
+      setErrMsg("");
+      setBusy(true);
+      try {
+        const resp = await fetch("/api/razorpay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "applyCouponPayment",
+            jobId: job.id,
+            couponCode: "bhavnoorsingh",
+            amountInr: fullAmount,
+            rating: 5,
+            review: `Free broadcast via coupon bhavnoorsingh (Customer ₹0 · Worker receives ${formatInr(fullAmount)})`,
+            jobSnapshot: job,
+          }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || data.success === false) {
+          setErrMsg(data.error || "Could not apply coupon right now. Please try again.");
+          setBusy(false);
+          return;
+        }
+        const txRef = data.paymentId || `COUPON_BHAVNOORSINGH_${Date.now().toString(36).toUpperCase()}`;
+        const isBroadcastOnly = !job.assignedWorkerId && (!job.status || job.status === "broadcast");
+        job.couponCode = "bhavnoorsingh";
+        job.subsidizedByKaamzo = true;
+        job.customerPaidInr = 0;
+        job.totalAmount = 0;
+        job.workerPayout = data.workerPayoutInr || fullAmount;
+        job.razorpayPaymentId = txRef;
+        job.transactionRef = txRef;
+        job.upiUtr = txRef;
+        job.isEscrowPrepaid = true;
+        job.isPaid = true;
+        job.paymentStatus = "paid_via_coupon_bhavnoorsingh";
+        recordCustomerPayment(job, app.currentCustomer, {
+          paymentId: txRef,
+          upiId: "COUPON: bhavnoorsingh",
+          amountInr: 0,
+          method: `Coupon bhavnoorsingh (₹0 paid · Worker gets ${formatInr(job.workerPayout)})`,
+        });
+        if (!isBroadcastOnly) {
+          app.releasePaymentByCustomer?.(
+            job.id,
+            5,
+            `Free via coupon bhavnoorsingh (Worker receives ${formatInr(job.workerPayout)})`,
+            "COUPON_BHAVNOORSINGH",
+            txRef,
+            ["Coupon: bhavnoorsingh", "₹0 Customer Charge", `Worker Paid ${formatInr(job.workerPayout)}`]
+          );
+        }
+        app.showNotification?.(
+          `✓ Coupon applied! Job broadcasted for FREE (₹0) and worker receives ${formatInr(job.workerPayout)}.`
+        );
+        onClose();
+      } catch (_) {
+        setErrMsg("Network error applying coupon. Please try again.");
+      } finally {
+        setBusy(false);
+      }
+    };
+
     const handleConfirmFampay = async () => {
       if (busy) return;
       setErrMsg("");
@@ -4029,8 +4116,141 @@
         h(
           "div",
           { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "8px" } },
-          h("h3", { style: { margin: 0, fontSize: "22px", fontWeight: 800, lineHeight: 1.15 } }, `Transfer ${formatInr(fullAmount)} to FamPay`),
+          h(
+            "h3",
+            { style: { margin: 0, fontSize: "22px", fontWeight: 800, lineHeight: 1.15 } },
+            isCouponActive
+              ? h(
+                  "span",
+                  null,
+                  "Free Broadcast · ",
+                  h("span", { style: { textDecoration: "line-through", opacity: 0.55, marginRight: "6px" } }, formatInr(fullAmount)),
+                  h("span", { style: { color: "#2E9E57" } }, "₹0")
+                )
+              : `Transfer ${formatInr(fullAmount)} to FamPay`
+          ),
           h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#7A4E00" } }, `Order #${job.id}`)
+        ),
+
+        // COUPON CODE BOX ("bhavnoorsingh" -> Free Broadcast for Customer, Worker still receives full wage)
+        h(
+          "div",
+          {
+            style: {
+              padding: "12px 14px",
+              borderRadius: "16px",
+              background: isCouponActive ? "#E3F4E8" : isDark ? "#181510" : "#FFF7E3",
+              border: "1.5px solid " + (isCouponActive ? "#2E9E57" : "#F5A524"),
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            },
+          },
+          h(
+            "div",
+            { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" } },
+            h(
+              "span",
+              { style: { fontSize: "11.5px", fontWeight: 800, color: isCouponActive ? "#1D6B36" : "#7A4E00", letterSpacing: "0.4px" } },
+              isCouponActive ? "🎟️ COUPON APPLIED: bhavnoorsingh (100% FREE BROADCAST)" : "🎟️ HAVE A COUPON CODE?"
+            ),
+            isCouponActive &&
+              h(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => {
+                    setAppliedCoupon("");
+                    setCouponInput("");
+                    setCouponErr("");
+                  },
+                  style: { border: 0, background: "transparent", color: "#8A1C1C", fontSize: "11.5px", fontWeight: 800, cursor: "pointer" },
+                },
+                "Remove"
+              )
+          ),
+          !isCouponActive
+            ? h(
+                "div",
+                { style: { display: "flex", gap: "8px" } },
+                h("input", {
+                  type: "text",
+                  value: couponInput,
+                  onChange: (e) => {
+                    setCouponInput(e.target.value);
+                    if (couponErr) setCouponErr("");
+                  },
+                  onKeyDown: (e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleApplyCoupon();
+                    }
+                  },
+                  placeholder: "Enter coupon code (e.g. bhavnoorsingh)",
+                  style: {
+                    flex: 1,
+                    minWidth: 0,
+                    height: "40px",
+                    borderRadius: "12px",
+                    border: "1.5px solid " + borderCol,
+                    padding: "0 12px",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    background: isDark ? "#14120E" : "#FFFFFF",
+                    color: isDark ? "#EDE6DA" : "#1C1913",
+                  },
+                }),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: handleApplyCoupon,
+                    style: {
+                      height: "40px",
+                      padding: "0 16px",
+                      borderRadius: "12px",
+                      border: 0,
+                      background: "#1C1913",
+                      color: "#F5A524",
+                      fontWeight: 800,
+                      fontSize: "12.5px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    },
+                  },
+                  "Apply"
+                )
+              )
+            : h(
+                "div",
+                { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+                h(
+                  "span",
+                  { style: { fontSize: "12.5px", fontWeight: 700, color: "#1D6B36", lineHeight: 1.4 } },
+                  `Your job will be broadcasted for FREE (₹0 charged to you), while the worker still receives their full ${formatInr(fullAmount)} payout via Kaamzo subsidy.`
+                ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    disabled: busy,
+                    onClick: handleConfirmCouponPayment,
+                    style: {
+                      height: "46px",
+                      borderRadius: "999px",
+                      border: 0,
+                      background: "#1D6B36",
+                      color: "#FFFFFF",
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      cursor: busy ? "wait" : "pointer",
+                      boxShadow: "0 8px 20px rgba(29,107,54,0.28)",
+                    },
+                  },
+                  busy ? "Activating Free Broadcast…" : `✓ Broadcast & Confirm ₹0 (Worker Gets ${formatInr(fullAmount)}) →`
+                )
+              ),
+          couponErr && h("span", { style: { fontSize: "12px", fontWeight: 700, color: "#B42318" } }, couponErr)
         ),
 
         // STEP 1: Real Scannable ISO/IEC 18004 QR Code + Copy VPA + Download QR

@@ -203,4 +203,42 @@ test.describe("Kaamzo Live Production & Auth E2E Suite", () => {
 
     expect(pageErrors, `Uncaught page errors: ${pageErrors.join(" | ")}`).toEqual([]);
   });
+
+  test("5. Payment gateway coupon bhavnoorsingh broadcasts free (₹0) while preserving worker payout", async ({
+    request,
+  }) => {
+    const badCoupon = await request.post("/api/razorpay", {
+      data: {
+        action: "applyCouponPayment",
+        jobId: `job_coupon_bad_${Date.now()}`,
+        couponCode: "invalid_code",
+        amountInr: 850,
+      },
+    });
+    expect(badCoupon.status()).toBe(400);
+
+    const goodCoupon = await request.post("/api/razorpay", {
+      data: {
+        action: "applyCouponPayment",
+        jobId: `job_coupon_ok_${Date.now()}`,
+        couponCode: "bhavnoorsingh",
+        jobSnapshot: {
+          title: "E2E Coupon Test Job",
+          trade: "Electrician",
+          dailyWage: 850,
+          durationDays: 1,
+          status: "broadcast",
+        },
+      },
+    });
+    expect(goodCoupon.status()).toBe(200);
+    const data = await goodCoupon.json();
+    expect(data.success).toBe(true);
+    expect(data.couponApplied).toBe("bhavnoorsingh");
+    expect(data.amountInr).toBe(0);
+    expect(data.workerPayoutInr).toBe(850);
+    expect(data.job.status).toBe("broadcast");
+    expect(data.job.subsidizedByKaamzo).toBe(true);
+    expect(data.job.workerPayout).toBe(850);
+  });
 });
