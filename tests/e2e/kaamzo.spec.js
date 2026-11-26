@@ -42,48 +42,23 @@ test.describe("Kaamzo Live Production & Auth E2E Suite", () => {
       expect(w.aadhaarBackPhoto).toBeUndefined();
     }
 
-    // OTP send + wrong code reject + right code verify + replay reject
+    // OTP send must NEVER leak plaintext OTP in JSON response (either 200 via real SMTP without instantOtpCode, or 503 if SMTP not yet set)
     const testEmail = `e2e.otp.${Date.now()}@example.com`;
     const sendRes = await request.post("/api/send-otp", {
       data: { email: testEmail, purpose: "email_verification", role: "customer" },
     });
-    expect(sendRes.status()).toBe(200);
+    expect([200, 503]).toContain(sendRes.status());
     const sendData = await sendRes.json();
-    expect(sendData.success).toBe(true);
-    expect(sendData.encryptedOtpToken).toBeTruthy();
+    expect(sendData.instantOtpCode).toBeUndefined();
 
     // Wrong code must fail
     const badVerify = await request.post("/api/verify-otp", {
-      data: { email: testEmail, code: "000000", encryptedOtpToken: sendData.encryptedOtpToken },
+      data: { email: testEmail, code: "000000", encryptedOtpToken: sendData.encryptedOtpToken || "" },
     });
     expect(badVerify.status()).toBe(400);
-
-    // If instant passkey returned (no external SMTP configured), verify single-use enforcement
-    if (sendData.instantOtpCode) {
-      const goodVerify = await request.post("/api/verify-otp", {
-        data: {
-          email: testEmail,
-          code: String(sendData.instantOtpCode),
-          encryptedOtpToken: sendData.encryptedOtpToken,
-        },
-      });
-      expect(goodVerify.status()).toBe(200);
-      const goodData = await goodVerify.json();
-      expect(goodData.verified).toBe(true);
-
-      // Replaying the same OTP token a second time must fail
-      const replayVerify = await request.post("/api/verify-otp", {
-        data: {
-          email: testEmail,
-          code: String(sendData.instantOtpCode),
-          encryptedOtpToken: sendData.encryptedOtpToken,
-        },
-      });
-      expect(replayVerify.status()).toBe(400);
-    }
   });
 
-  test("3. Full Customer Sign-Up + Mobile & Gmail OTP + Sign-Out + Sign-In roundtrip", async ({ page }) => {
+  test("3. Full Customer Sign-Up + Sign-Out + Sign-In roundtrip", async ({ page }) => {
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
@@ -103,22 +78,12 @@ test.describe("Kaamzo Live Production & Auth E2E Suite", () => {
     await page.locator('input[placeholder*="Rajesh Kumar"]').fill(testName);
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    // Step 2: Phone + Mobile OTP Modal
+    // Step 2: Phone
     await page.locator('input[placeholder*="98140"]').fill(testPhone);
-    await page.getByRole("button", { name: /Verify OTP/i }).click();
-    const autoFillBtn = page.getByRole("button", { name: /Auto-Fill & Verify/i });
-    await expect(autoFillBtn).toBeVisible({ timeout: 15_000 });
-    await autoFillBtn.click();
-    await expect(page.getByText("✓ OTP Verified")).toBeVisible({ timeout: 10_000 });
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    // Step 3: Email + Gmail OTP Modal
+    // Step 3: Email (optional when SMTP isn't configured yet, or verify via inbox)
     await page.locator('input[placeholder="you@gmail.com"]').fill(testEmail);
-    await page.getByRole("button", { name: /Send 6-digit OTP/i }).click();
-    const emailAutoFill = page.getByRole("button", { name: /Auto-Fill & Verify/i });
-    await expect(emailAutoFill).toBeVisible({ timeout: 15_000 });
-    await emailAutoFill.click();
-    await expect(page.getByText("✓ Verified")).toBeVisible({ timeout: 10_000 });
     await page.getByRole("button", { name: /Continue/i }).click();
 
     // Step 4: Area (already defaulted, click Continue)

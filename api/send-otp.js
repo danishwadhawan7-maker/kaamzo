@@ -352,14 +352,10 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      // Fallback when external SMS provider is not configured: deliver via Kaamzo Instant In-App OTP Vault
-      return sendJson(200, {
-        success: true,
-        method: "kaamzo_instant_in_app_otp",
-        recipient: canonicalRecipient,
-        encryptedOtpToken,
-        instantOtpCode: serverCode,
-        message: `Instant 6-digit verification code generated for ${canonicalRecipient}.`
+      return sendJson(503, {
+        success: false,
+        providerMissing: true,
+        error: "SMS OTP gateway is not configured yet. Please configure Twilio, Fast2SMS, or MSG91 in Vercel."
       });
     }
 
@@ -401,17 +397,17 @@ module.exports = async function handler(req, res) {
           message: `Verification code sent securely to ${canonicalRecipient}.`
         });
       } catch (smtpErr) {
-        console.warn("[SMTP fallback to In-App OTP]:", smtpErr.message);
+        return sendJson(502, {
+          success: false,
+          error: `Email delivery failed: ${smtpErr.message}`
+        });
       }
     }
 
-    return sendJson(200, {
-      success: true,
-      method: "kaamzo_instant_in_app_otp",
-      recipient: canonicalRecipient,
-      encryptedOtpToken,
-      instantOtpCode: serverCode,
-      message: `Instant 6-digit verification code generated for ${canonicalRecipient}.`
+    return sendJson(503, {
+      success: false,
+      providerMissing: true,
+      error: "Gmail SMTP is not configured yet. Add SMTP_USER and SMTP_PASS (Gmail App Password) in Vercel so codes deliver to @gmail.com."
     });
   } catch (err) {
     return sendJson(500, {

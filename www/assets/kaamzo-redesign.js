@@ -1677,7 +1677,6 @@
     const [status, setStatus] = useState("");
     const [countdown, setCountdown] = useState(0);
     const [otpToken, setOtpToken] = useState("");
-    const [instantCode, setInstantCode] = useState("");
     const inputRefs = useRef([]);
 
     const recipient = String(config?.recipient || config?.email || config?.phone || "").trim();
@@ -1688,7 +1687,6 @@
       if (!recipient) return;
       setSending(true);
       setStatus("");
-      setInstantCode("");
       try {
         const res = await fetch("/api/send-otp", {
           method: "POST",
@@ -1704,12 +1702,7 @@
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.success !== false) {
           if (data.encryptedOtpToken) setOtpToken(data.encryptedOtpToken);
-          if (data.instantOtpCode) {
-            setInstantCode(String(data.instantOtpCode));
-            setStatus("Instant verification code generated for " + recipient);
-          } else {
-            setStatus("6-digit verification code sent to " + recipient);
-          }
+          setStatus("6-digit verification code sent to " + recipient + " — check your inbox.");
           setCountdown(30);
         } else {
           setStatus(data.error || "Could not send code right now.");
@@ -1725,7 +1718,6 @@
       setDigits(["", "", "", "", "", ""]);
       setCountdown(0);
       setOtpToken("");
-      setInstantCode("");
       if (config.autoSend !== false) sendCode();
     }, [recipient]);
 
@@ -1844,59 +1836,12 @@
             "✕"
           )
         ),
-        h("b", { style: { fontSize: "20px" } }, isEmailMode ? "Verify your Gmail" : "Verify your Mobile Number"),
+        h("b", { style: { fontSize: "20px" } }, isEmailMode ? "Check your Gmail" : "Verify your Mobile Number"),
         h(
           "span",
           { style: { fontSize: "13px", color: isDark ? "#B0A899" : "#4A443A" } },
-          "Enter the 6-digit verification code for " + (recipient || "your account")
+          "We sent a 6-digit verification code to " + (recipient || "your account")
         ),
-        instantCode &&
-          h(
-            "div",
-            {
-              style: {
-                padding: "12px 14px",
-                borderRadius: "16px",
-                background: "#E3F4E8",
-                border: "1.5px solid #2E9E57",
-                color: "#1D6B36",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "10px",
-              },
-            },
-            h(
-              "div",
-              { style: { display: "flex", flexDirection: "column", gap: "2px" } },
-              h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.5px" } }, "🔒 INSTANT VERIFICATION PASSKEY"),
-              h("b", { style: { fontSize: "20px", letterSpacing: "3px" } }, instantCode)
-            ),
-            h(
-              "button",
-              {
-                type: "button",
-                onClick: () => {
-                  const arr = String(instantCode).slice(0, 6).split("");
-                  while (arr.length < 6) arr.push("");
-                  setDigits(arr);
-                  verifyWithCode(instantCode);
-                },
-                style: {
-                  height: "36px",
-                  padding: "0 14px",
-                  borderRadius: "999px",
-                  border: 0,
-                  background: "#1D6B36",
-                  color: "#FFFFFF",
-                  fontSize: "12px",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                },
-              },
-              "Auto-Fill & Verify ✓"
-            )
-          ),
         h(
           "div",
           { style: { display: "grid", gridTemplateColumns: "repeat(6,minmax(0,1fr))", gap: "8px" } },
