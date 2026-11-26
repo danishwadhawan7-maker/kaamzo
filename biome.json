@@ -1,0 +1,95 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.9/schema.json",
+  "vcs": {
+    "enabled": false
+  },
+  "files": {
+    "includes": [
+      "api/**/*.js",
+      "lib/**/*.js",
+      "www/assets/kaamzo-redesign.js",
+      "tests/**/*.js"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUndeclaredVariables": "error",
+        "noUnusedVariables": "warn",
+        "useExhaustiveDependencies": "off"
+      },
+      "suspicious": {
+        "noDoubleEquals": "warn",
+        "noAssignInExpressions": "warn",
+        "noExplicitAny": "off"
+      },
+      "style": {
+        "useConst": "warn"
+      },
+      "complexity": {
+        "noForEach": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120
+  },
+  "javascript": {
+    "globals": [
+      "window",
+      "document",
+      "navigator",
+      "localStorage",
+      "sessionStorage",
+      "fetch",
+      "URL",
+      "URLSearchParams",
+      "FormData",
+      "FileReader",
+      "Image",
+      "Audio",
+      "AudioContext",
+      "webkitAudioContext",
+      "SpeechSynthesisUtterance",
+      "speechSynthesis",
+      "MutationObserver",
+      "ResizeObserver",
+      "IntersectionObserver",
+      "CustomEvent",
+      "Event",
+      "AbortController",
+      "Headers",
+      "Request",
+      "Response",
+      "HTMLElement",
+      "alert",
+      "confirm",
+      "prompt",
+      "console",
+      "setTimeout",
+      "clearTimeout",
+      "setInterval",
+      "clearInterval",
+      "requestAnimationFrame",
+      "cancelAnimationFrame",
+      "atob",
+      "btoa",
+      "crypto",
+      "performance",
+      "location",
+      "history",
+      "React",
+      "ReactDOM",
+      "L",
+      "io",
+      "qrcode",
+      "Razorpay",
+      "firebase"
+    ]
+  }
+}

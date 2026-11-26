@@ -5911,10 +5911,12 @@
 
     useEffect(() => {
       return () => {
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((t) => t.stop());
-          streamRef.current = null;
-        }
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((t) => {
+              t.stop();
+            });
+            streamRef.current = null;
+          }
       };
     }, []);
 
@@ -6028,7 +6030,9 @@
       const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
       setPhotoUrl(dataUrl);
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current.getTracks().forEach((t) => {
+          t.stop();
+        });
         streamRef.current = null;
       }
       setCameraActive(false);
@@ -6243,6 +6247,8 @@
           ]);
         }
         app.setSsoGoogleUser?.(null);
+        app.closeProtectionModal?.();
+        setTimeout(() => app.closeProtectionModal?.(), 700);
         setSsoBanner("");
         setDone(true);
       } catch (err) {
@@ -9882,7 +9888,7 @@
 
     const [liveSyncTick, setLiveSyncTick] = useState(0);
     const activeJobId = activeJob ? activeJob.id : "";
-    const custSyncKey = getCustomerAccountKey(cust) || (activeJob && (activeJob.customerEmail || activeJob.customerId)) || "";
+    const custSyncKey = U.getCustomerAccountKey(cust) || (activeJob && (activeJob.customerEmail || activeJob.customerId)) || "";
 
     // 5-second live multi-device sync on Vercel Serverless (updates Customer screen automatically when Worker accepts/starts/completes)
     useEffect(() => {
@@ -11120,7 +11126,9 @@
           lookupBadge(code.data);
           setScanning(false);
           if (streamRef.current) {
-            streamRef.current.getTracks().forEach((t) => t.stop());
+            streamRef.current.getTracks().forEach((t) => {
+              t.stop();
+            });
             streamRef.current = null;
           }
         }
@@ -11130,7 +11138,11 @@
 
     useEffect(() => {
       return () => {
-        if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((t) => {
+            t.stop();
+          });
+        }
       };
     }, []);
 
@@ -13016,7 +13028,9 @@
     const stopCamera = useCallback(() => {
       if (streamRef.current) {
         try {
-          streamRef.current.getTracks().forEach((tr) => tr.stop());
+          streamRef.current.getTracks().forEach((tr) => {
+            tr.stop();
+          });
         } catch (_) {}
         streamRef.current = null;
       }
@@ -13273,7 +13287,9 @@
             video: { facingMode: { ideal: "environment" } },
           });
           if (cancelled) {
-            stream.getTracks().forEach((tr) => tr.stop());
+            stream.getTracks().forEach((tr) => {
+              tr.stop();
+            });
             return;
           }
           streamRef.current = stream;

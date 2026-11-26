@@ -18,6 +18,8 @@ logs/
 .vercel
 .firebase/
 design-reference/
-
+tools/unpacked-index-v30/
+playwright-report/
+test-results/
 .vercel
 .env*

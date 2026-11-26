@@ -10,6 +10,9 @@
     "build": "node ./scripts/vite-shim.js",
     "vite": "node ./scripts/vite-shim.js",
     "start": "node server.js",
+    "lint": "biome lint api lib www/assets/kaamzo-redesign.js",
+    "test:e2e": "playwright test",
+    "unminify:legacy": "webcrack www/assets/index-v30.js -o tools/unpacked-index-v30",
     "generate-keys": "node ./scripts/generate-keys.js",
     "migrate": "node ./scripts/migrate-firestore-to-mongo.js",
     "cap:sync": "cap sync",
@@ -37,6 +40,9 @@
     "socket.io": "^4.8.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+    "@biomejs/biome": "^2.6.9",
+    "@capacitor/cli": "^6.0.0",
+    "@playwright/test": "^1.65.1",
+    "webcrack": "^2.16.0"
   }
 }
