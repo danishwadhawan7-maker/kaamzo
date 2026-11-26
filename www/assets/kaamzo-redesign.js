@@ -4131,7 +4131,7 @@
                       handleApplyCoupon();
                     }
                   },
-                  placeholder: "Enter coupon code (e.g. bhavnoorsingh)",
+                  placeholder: "Enter coupon code",
                   style: {
                     flex: 1,
                     minWidth: 0,
