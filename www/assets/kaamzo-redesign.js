@@ -6028,6 +6028,9 @@
     const [ssoFallbackName, setSsoFallbackName] = useState("");
     const [area, setArea] = useState("Model Town");
     const [address, setAddress] = useState("Model Town, Ludhiana");
+    const [snappingLoc, setSnappingLoc] = useState(false);
+    const [locStatus, setLocStatus] = useState("");
+    const [locCoords, setLocCoords] = useState(null);
     const [trade, setTrade] = useState("Electrician");
     const [rate, setRate] = useState(850);
     const [exp, setExp] = useState(3);
@@ -6153,18 +6156,141 @@
     };
 
     const handleSnapAddress = async () => {
-      if (typeof app.snapToRealWorldAddress === "function") {
-        const res = await app.snapToRealWorldAddress();
-        if (res) {
-          const snappedArea = res.sublocality || res.locality || res.city || area;
-          setArea(snappedArea);
-          setAddress([res.street, res.sublocality, res.city || "Ludhiana"].filter(Boolean).join(", "));
-          app.showNotification?.("Snapped real-world address: " + (res.sublocality || res.city));
+      if (snappingLoc) return;
+      setSnappingLoc(true);
+      setLocStatus("Requesting live GPS location…");
+
+      const applyResolved = (snappedArea, snappedAddress, coordsObj, sourceLabel) => {
+        if (snappedArea) setArea(snappedArea);
+        if (snappedAddress) setAddress(snappedAddress);
+        if (coordsObj) setLocCoords(coordsObj);
+        const coordText =
+          coordsObj && typeof coordsObj.lat === "number"
+            ? ` (${coordsObj.lat.toFixed(4)}, ${coordsObj.lng.toFixed(4)}${coordsObj.accuracy ? ` · ±${Math.round(coordsObj.accuracy)}m` : ""})`
+            : "";
+        setLocStatus(`✓ Snapped ${sourceLabel}: ${snappedArea || snappedAddress}${coordText}`);
+        app.showNotification?.(`✓ Snapped real-world address: ${snappedArea || snappedAddress}`);
+      };
+
+      const reverseGeocode = async (lat, lng, accuracy) => {
+        // 1. Primary: OpenStreetMap Nominatim reverse geocode (exact street, house, neighbourhood, city, postcode)
+        try {
+          const resp = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&addressdetails=1&zoom=18`,
+            { headers: { Accept: "application/json" } }
+          );
+          if (resp.ok) {
+            const data = await resp.json().catch(() => ({}));
+            const a = data.address || {};
+            const snappedArea =
+              a.neighbourhood ||
+              a.suburb ||
+              a.residential ||
+              a.village ||
+              a.town ||
+              a.city_district ||
+              a.city ||
+              "";
+            const streetParts = [
+              a.house_number,
+              a.road || a.pedestrian || a.path,
+              a.neighbourhood || a.suburb,
+              a.city || a.town || a.state_district,
+              a.postcode,
+            ].filter(Boolean);
+            const fullAddr = streetParts.length > 0 ? streetParts.join(", ") : data.display_name || "";
+            if (snappedArea || fullAddr) {
+              applyResolved(snappedArea || a.city || "Detected Area", fullAddr || snappedArea, { lat, lng, accuracy }, "GPS");
+              return true;
+            }
+          }
+        } catch (_) {}
+
+        // 2. Fallback: BigDataCloud free client reverse-geocode
+        try {
+          const bdcResp = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&localityLanguage=en`
+          );
+          if (bdcResp.ok) {
+            const b = await bdcResp.json().catch(() => ({}));
+            const snappedArea = b.locality || b.city || b.principalSubdivision || "";
+            const fullAddr = [b.locality, b.city, b.principalSubdivision, b.postcode].filter(Boolean).join(", ");
+            if (snappedArea || fullAddr) {
+              applyResolved(snappedArea || "Detected Area", fullAddr || snappedArea, { lat, lng, accuracy }, "GPS");
+              return true;
+            }
+          }
+        } catch (_) {}
+
+        // 3. Last resort with valid GPS coordinates
+        applyResolved(
+          area || "Current GPS Location",
+          `GPS ${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          { lat, lng, accuracy },
+          "GPS"
+        );
+        return true;
+      };
+
+      try {
+        if (typeof navigator !== "undefined" && navigator.geolocation) {
+          const pos = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 12000,
+              maximumAge: 30000,
+            });
+          });
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const accuracy = pos.coords.accuracy;
+          setLocStatus("GPS locked — resolving street address…");
+          await reverseGeocode(lat, lng, accuracy);
+          setSnappingLoc(false);
           return;
         }
+      } catch (geoErr) {
+        // GPS denied or unavailable -> try app helper, then IP-based approximate city lookup
+        try {
+          if (typeof app.snapToRealWorldAddress === "function") {
+            const res = await app.snapToRealWorldAddress();
+            if (res && (res.sublocality || res.locality || res.city)) {
+              const snappedArea = res.sublocality || res.locality || res.city;
+              const fullAddr = [res.street, res.sublocality, res.city].filter(Boolean).join(", ");
+              applyResolved(snappedArea, fullAddr || snappedArea, null, "Network");
+              setSnappingLoc(false);
+              return;
+            }
+          }
+        } catch (_) {}
+
+        try {
+          const ipResp = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en");
+          if (ipResp.ok) {
+            const b = await ipResp.json().catch(() => ({}));
+            const snappedArea = b.locality || b.city || b.principalSubdivision || "";
+            const fullAddr = [b.locality, b.city, b.principalSubdivision, b.postcode].filter(Boolean).join(", ");
+            if (snappedArea || fullAddr) {
+              applyResolved(
+                snappedArea,
+                fullAddr || snappedArea,
+                typeof b.latitude === "number" ? { lat: b.latitude, lng: b.longitude } : null,
+                "Approximate IP (allow GPS for exact street)"
+              );
+              setSnappingLoc(false);
+              return;
+            }
+          }
+        } catch (_) {}
+
+        const reason =
+          geoErr && geoErr.code === 1
+            ? "Location permission denied — please allow GPS in your browser bar or type your address."
+            : "Could not detect live GPS — please type your neighbourhood and street address.";
+        setLocStatus(reason);
+        app.showNotification?.(reason);
       }
-      setArea("Model Town");
-      setAddress("Model Town, Ludhiana");
+      setSnappingLoc(false);
     };
 
     const startCamera = async () => {
@@ -7635,6 +7761,7 @@
                     "button",
                     {
                       type: "button",
+                      disabled: snappingLoc,
                       onClick: handleSnapAddress,
                       style: {
                         alignSelf: "flex-start",
@@ -7642,18 +7769,36 @@
                         padding: "0 16px",
                         borderRadius: "999px",
                         border: "1px solid #E8D3A8",
-                        background: "#FFF7E3",
+                        background: snappingLoc ? "#EFE7DA" : "#FFF7E3",
                         color: "#7A4E00",
                         fontWeight: 800,
                         fontSize: "13px",
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
+                        cursor: snappingLoc ? "wait" : "pointer",
                       },
                     },
                     h(SvgIcon, { path: ICON_PATHS.radar, size: 16 }),
-                    "Snap my real-world address"
-                  )
+                    snappingLoc ? "Locating live GPS…" : "Snap my real-world address"
+                  ),
+                  locStatus &&
+                    h(
+                      "span",
+                      {
+                        style: {
+                          fontSize: "12.5px",
+                          fontWeight: 700,
+                          color: locStatus.startsWith("✓") ? "#1D6B36" : "#7A4E00",
+                          background: locStatus.startsWith("✓") ? "#E3F4E8" : "#FFF7E3",
+                          border: "1px solid " + (locStatus.startsWith("✓") ? "#2E9E57" : "#F5A524"),
+                          padding: "8px 12px",
+                          borderRadius: "12px",
+                          lineHeight: 1.4,
+                        },
+                      },
+                      locStatus
+                    )
                 ),
 
               currentStepKey === "emergency" &&
