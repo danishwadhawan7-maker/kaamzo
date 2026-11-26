@@ -242,7 +242,7 @@ function sanitizePublicDoc(collectionName, doc, allowPrivateKyc = false, allowJo
 function applySecurityAndCorsHeaders(req, res) {
   const allowedList = (
     process.env.ALLOWED_ORIGINS ||
-    "https://kaamzo.site,https://www.kaamzo.site,http://localhost:3000,http://localhost:5173,capacitor://localhost,https://localhost"
+    "https://kaamzo.site,https://www.kaamzo.site,https://kaamzo-live.vercel.app,http://localhost:3000,http://localhost:5173,capacitor://localhost,https://localhost"
   )
     .split(",")
     .map((s) => s.trim())

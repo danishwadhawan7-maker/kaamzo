@@ -1550,8 +1550,13 @@
                       type: "button",
                       onClick: () => {
                         setOpenMenu(null);
-                        if (app.currentRole === "worker") app.logoutWorker?.();
-                        else app.logoutCustomer?.();
+                        app.logoutWorker?.();
+                        app.logoutCustomer?.();
+                        app.setSsoGoogleUser?.(null);
+                        try {
+                          window.firebase?.auth?.()?.signOut?.().catch?.(() => {});
+                        } catch (_) {}
+                        app.showNotification?.("Signed out successfully.");
                         navigate("/", { role: "select_role" });
                       },
                       style: {
@@ -6394,10 +6399,10 @@
             const res = await fetch("/api/db", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "findAccount", identifier: cleanMail }),
+              body: JSON.stringify({ action: "lookupAccount", identifier: cleanMail }),
             });
             const data = await res.json().catch(() => ({}));
-            if (res.ok && data.found && data.account) {
+            if (res.ok && data.exists && data.account) {
               const acc = data.account;
               const accRole = acc.role === "worker" ? "worker" : "customer";
               const profile = Object.assign({}, acc.extraData || {}, acc, { role: accRole });
@@ -8084,6 +8089,12 @@
                 onClick: () => {
                   if (cust) {
                     app.logoutCustomer?.();
+                    app.logoutWorker?.();
+                    app.setSsoGoogleUser?.(null);
+                    try {
+                      window.firebase?.auth?.()?.signOut?.().catch?.(() => {});
+                    } catch (_) {}
+                    app.showNotification?.("Signed out successfully.");
                     navigate("/", { role: "select_role" });
                   } else {
                     navigate("/register", { registerRole: "customer" });
