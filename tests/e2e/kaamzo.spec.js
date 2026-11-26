@@ -146,8 +146,8 @@ test.describe("Kaamzo Live Production & Auth E2E Suite", () => {
     await page.waitForTimeout(1000);
 
     // Go back to /register -> Sign in mode -> test logging in with Phone + Password (even while leaving toggle on Worker to verify auto-role detection!)
-    await page.goto("/register", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
+    await page.goto("/register", { waitUntil: "load" });
+    await page.getByRole("button", { name: /I want work/i }).waitFor({ state: "visible", timeout: 25_000 });
     await page.getByRole("button", { name: /^Sign in$/i }).click();
     await page.getByRole("button", { name: /^Worker$/i }).click();
     await page.locator('input[placeholder*="User ID, Mobile number, or Email"]').fill(testPhone);
@@ -176,8 +176,8 @@ test.describe("Kaamzo Live Production & Auth E2E Suite", () => {
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
-    await page.goto("/register", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
+    await page.goto("/register", { waitUntil: "load" });
+    await page.getByRole("button", { name: /I want work/i }).waitFor({ state: "visible", timeout: 25_000 });
 
     await page.getByRole("button", { name: /I want work/i }).click();
     await page.locator('input[placeholder*="Rajesh Kumar"]').fill("Ramesh Test Worker");
