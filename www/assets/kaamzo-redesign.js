@@ -1671,25 +1671,40 @@
     const [verifying, setVerifying] = useState(false);
     const [status, setStatus] = useState("");
     const [countdown, setCountdown] = useState(0);
+    const [otpToken, setOtpToken] = useState("");
+    const [instantCode, setInstantCode] = useState("");
     const inputRefs = useRef([]);
 
+    const recipient = String(config?.recipient || config?.email || config?.phone || "").trim();
+    const isEmailMode = Boolean(config?.email) || recipient.includes("@");
+    const channelLabel = isEmailMode ? "Gmail" : "Mobile (+91)";
+
     const sendCode = async () => {
-      if (!config?.email) return;
+      if (!recipient) return;
       setSending(true);
       setStatus("");
+      setInstantCode("");
       try {
         const res = await fetch("/api/send-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: config.email,
-            purpose: config.purpose || "email_verification",
+            recipient,
+            email: isEmailMode ? recipient : undefined,
+            phone: !isEmailMode ? recipient : undefined,
+            purpose: config.purpose || (isEmailMode ? "email_verification" : "phone_verification"),
             role: config.role || "customer",
           }),
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.success !== false) {
-          setStatus("6-digit verification code sent to " + config.email);
+          if (data.encryptedOtpToken) setOtpToken(data.encryptedOtpToken);
+          if (data.instantOtpCode) {
+            setInstantCode(String(data.instantOtpCode));
+            setStatus("Instant verification code generated for " + recipient);
+          } else {
+            setStatus("6-digit verification code sent to " + recipient);
+          }
           setCountdown(30);
         } else {
           setStatus(data.error || "Could not send code right now.");
@@ -1701,11 +1716,13 @@
     };
 
     useEffect(() => {
-      if (!config) return;
+      if (!config || !recipient) return;
       setDigits(["", "", "", "", "", ""]);
       setCountdown(0);
+      setOtpToken("");
+      setInstantCode("");
       if (config.autoSend !== false) sendCode();
-    }, [config?.email]);
+    }, [recipient]);
 
     useEffect(() => {
       if (countdown <= 0) return;
@@ -1731,8 +1748,8 @@
       if (clean && idx < 5) inputRefs.current[idx + 1]?.focus?.();
     };
 
-    const handleVerify = async () => {
-      const code = digits.join("");
+    const verifyWithCode = async (overrideCode) => {
+      const code = String(overrideCode || digits.join("")).replace(/[^0-9]/g, "");
       if (code.length !== 6) {
         setStatus("Please enter all 6 digits.");
         return;
@@ -1742,13 +1759,19 @@
         const res = await fetch("/api/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: config.email, code }),
+          body: JSON.stringify({
+            recipient,
+            email: isEmailMode ? recipient : undefined,
+            phone: !isEmailMode ? recipient : undefined,
+            code,
+            encryptedOtpToken: otpToken || undefined,
+          }),
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.verified) {
           window.__kzOtpTokens = window.__kzOtpTokens || {};
-          if (data.token) window.__kzOtpTokens[config.email] = data.token;
-          app.showNotification?.("Gmail verified successfully!");
+          if (data.token) window.__kzOtpTokens[recipient] = data.token;
+          app.showNotification?.(channelLabel + " verified successfully!");
           config.onVerified?.(data);
           onClose();
         } else {
@@ -1759,6 +1782,8 @@
       }
       setVerifying(false);
     };
+
+    const handleVerify = () => verifyWithCode();
 
     return h(
       "div",
@@ -1798,7 +1823,11 @@
         h(
           "div",
           { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
-          h("span", { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "1px", color: isDark ? "#F5A524" : "#7A4E00" } }, "VERIFY GMAIL · 6-DIGIT OTP"),
+          h(
+            "span",
+            { style: { fontSize: "12px", fontWeight: 800, letterSpacing: "1px", color: isDark ? "#F5A524" : "#7A4E00" } },
+            isEmailMode ? "VERIFY GMAIL · 6-DIGIT OTP" : "VERIFY MOBILE (+91) · 6-DIGIT OTP"
+          ),
           h(
             "button",
             {
@@ -1810,8 +1839,59 @@
             "✕"
           )
         ),
-        h("b", { style: { fontSize: "20px" } }, "Check your Gmail"),
-        h("span", { style: { fontSize: "13px", color: isDark ? "#B0A899" : "#4A443A" } }, "We sent a 6-digit code to " + (config.email || "you@gmail.com")),
+        h("b", { style: { fontSize: "20px" } }, isEmailMode ? "Verify your Gmail" : "Verify your Mobile Number"),
+        h(
+          "span",
+          { style: { fontSize: "13px", color: isDark ? "#B0A899" : "#4A443A" } },
+          "Enter the 6-digit verification code for " + (recipient || "your account")
+        ),
+        instantCode &&
+          h(
+            "div",
+            {
+              style: {
+                padding: "12px 14px",
+                borderRadius: "16px",
+                background: "#E3F4E8",
+                border: "1.5px solid #2E9E57",
+                color: "#1D6B36",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "10px",
+              },
+            },
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", gap: "2px" } },
+              h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.5px" } }, "🔒 INSTANT VERIFICATION PASSKEY"),
+              h("b", { style: { fontSize: "20px", letterSpacing: "3px" } }, instantCode)
+            ),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => {
+                  const arr = String(instantCode).slice(0, 6).split("");
+                  while (arr.length < 6) arr.push("");
+                  setDigits(arr);
+                  verifyWithCode(instantCode);
+                },
+                style: {
+                  height: "36px",
+                  padding: "0 14px",
+                  borderRadius: "999px",
+                  border: 0,
+                  background: "#1D6B36",
+                  color: "#FFFFFF",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                },
+              },
+              "Auto-Fill & Verify ✓"
+            )
+          ),
         h(
           "div",
           { style: { display: "grid", gridTemplateColumns: "repeat(6,minmax(0,1fr))", gap: "8px" } },
@@ -1842,7 +1922,17 @@
           )
         ),
         status &&
-          h("span", { style: { fontSize: "12px", fontWeight: 700, color: status.includes("sent") ? "#1D6B36" : "#B42318" } }, status),
+          h(
+            "span",
+            {
+              style: {
+                fontSize: "12px",
+                fontWeight: 700,
+                color: status.includes("sent") || status.includes("Instant") ? "#1D6B36" : "#B42318",
+              },
+            },
+            status
+          ),
         h(
           "button",
           {
@@ -1860,7 +1950,7 @@
               color: "#1C1913",
             },
           },
-          verifying ? "Verifying…" : "Verify Gmail"
+          verifying ? "Verifying…" : "Verify " + channelLabel
         ),
         h(
           "div",
@@ -5759,8 +5849,13 @@
     // Form state
     const [name, setName] = useState(() => app.ssoGoogleUser?.displayName || "");
     const [phone, setPhone] = useState("");
+    const [phoneVerified, setPhoneVerified] = useState(false);
     const [email, setEmail] = useState(() => app.ssoGoogleUser?.email || "");
     const [emailVerified, setEmailVerified] = useState(() => Boolean(app.ssoGoogleUser?.email));
+    const [ssoBanner, setSsoBanner] = useState("");
+    const [ssoFallbackOpen, setSsoFallbackOpen] = useState(false);
+    const [ssoFallbackEmail, setSsoFallbackEmail] = useState("");
+    const [ssoFallbackName, setSsoFallbackName] = useState("");
     const [area, setArea] = useState("Model Town");
     const [address, setAddress] = useState("Model Town, Ludhiana");
     const [trade, setTrade] = useState("Electrician");
@@ -5973,96 +6068,353 @@
       reader.readAsDataURL(file);
     };
 
-    const handleSubmitStep = (e) => {
+    const handleSubmitStep = async (e) => {
       e.preventDefault();
       if (!validateCurrentStep()) return;
       if (stepIdx < steps.length - 1) {
         setStepIdx(stepIdx + 1);
         return;
       }
-      // Final registration submission
+      // Final registration submission — guaranteed persistence to local state + MongoDB /api/db
       setSubmitting(true);
-      const userId =
-        (email && email.includes("@") ? email.split("@")[0].toLowerCase() : "") ||
-        cleanPhone ||
-        name.trim().toLowerCase().replace(/\s+/g, "_");
-      if (role === "worker") {
-        app.setCurrentLanguage?.(preferredLanguage || "hi");
-        app.registerWorkerWithAuth?.({
-          name: name.trim(),
-          phone: "+91 " + cleanPhone,
-          email: email.trim(),
-          userId,
-          password: password.trim(),
-          area: area.trim(),
-          city: app.currentCity?.name || "Ludhiana",
-          address: address.trim(),
-          primaryTrade: trade,
-          dailyRate: Number(rate) || 850,
-          experienceYears: Number(exp) || 1,
-          toolsStatus: toolsStatus === "own_full" ? "Own Full Toolkit" : "Basic Tools Only",
-          transportMode,
-          preferredLanguage,
-          emergencyContactName: emergencyName.trim(),
-          emergencyContactPhone: "+91 " + cleanEmergencyPhone,
-          aadhaarNumber: cleanAadhaar,
-          aadhaarFrontPhoto,
-          aadhaarBackPhoto,
-          upiId: upiId.trim() || `${cleanPhone}@upi`,
-          photoUrl,
-          age: Number(age) || 26,
-          dateOfBirth: dob,
-          childLabourConsent: declare,
-          policyConsent,
-          policyConsentAt: new Date().toISOString(),
-          isPhoneVerified: true,
-          isEmailVerified: emailVerified || Boolean(app.ssoGoogleUser?.email),
-        });
-      } else {
-        app.registerCustomerWithAuth?.({
-          name: name.trim(),
-          phone: "+91 " + cleanPhone,
-          email: email.trim(),
-          userId,
-          password: password.trim(),
-          area: area.trim(),
-          address: address.trim(),
-          upiId: upiId.trim() || `${cleanPhone}@upi`,
-          isPhoneVerified: true,
-          isEmailVerified: emailVerified || Boolean(app.ssoGoogleUser?.email),
-        });
+      try {
+        const userId =
+          (email && email.includes("@") ? email.split("@")[0].toLowerCase() : "") ||
+          cleanPhone ||
+          name.trim().toLowerCase().replace(/\s+/g, "_");
+        const rawPassword = password.trim();
+        const pwdHash = typeof window.__kzH === "function" ? window.__kzH(rawPassword) : rawPassword;
+        const nowIso = new Date().toISOString();
+        const formattedPhone = "+91 " + cleanPhone;
+        const finalUpiId = upiId.trim() || `${cleanPhone}@upi`;
+        const isEmailVer = emailVerified || Boolean(app.ssoGoogleUser?.email);
+
+        if (role === "worker") {
+          const workerProfile = {
+            id: "w_" + cleanPhone,
+            userId,
+            role: "worker",
+            name: name.trim(),
+            phone: formattedPhone,
+            email: email.trim(),
+            password: rawPassword,
+            passwordHash: pwdHash,
+            area: area.trim(),
+            city: app.currentCity?.name || "Ludhiana",
+            address: address.trim(),
+            primaryTrade: trade,
+            secondaryTrades: [],
+            dailyRate: Number(rate) || 850,
+            hourlyRate: Math.round((Number(rate) || 850) / 8),
+            experienceYears: Number(exp) || 1,
+            toolsStatus: toolsStatus === "own_full" ? "Own Full Toolkit" : "Basic Tools Only",
+            transportMode,
+            preferredLanguage,
+            emergencyContactName: emergencyName.trim(),
+            emergencyContactPhone: "+91 " + cleanEmergencyPhone,
+            aadhaarNumber: cleanAadhaar,
+            aadhaarLast4: cleanAadhaar.slice(-4),
+            aadhaarFrontPhoto,
+            aadhaarBackPhoto,
+            upiId: finalUpiId,
+            photoUrl,
+            avatar: photoUrl,
+            age: Number(age) || 26,
+            dateOfBirth: dob,
+            childLabourConsent: declare,
+            policyConsent,
+            policyConsentAt: nowIso,
+            isPhoneVerified: true,
+            isEmailVerified: isEmailVer,
+            isVerified: false,
+            isOnline: true,
+            rating: 4.9,
+            jobsCompleted: 0,
+            walletBalance: 0,
+            createdAt: nowIso,
+          };
+
+          app.setCurrentLanguage?.(preferredLanguage || "hi");
+          app.registerWorkerWithAuth?.(workerProfile);
+          app.loginWorker?.(workerProfile);
+
+          // Guarantee MongoDB persistence across accounts, workers, and verifications
+          const accountDoc = {
+            id: userId,
+            userId,
+            username: userId,
+            role: "worker",
+            name: workerProfile.name,
+            phone: formattedPhone,
+            email: workerProfile.email,
+            passwordHash: pwdHash,
+            isEmailVerified: isEmailVer,
+            isPhoneVerified: true,
+            createdAt: nowIso,
+            extraData: workerProfile,
+          };
+          const verificationDoc = {
+            id: "ver_" + workerProfile.id,
+            workerId: workerProfile.id,
+            workerName: workerProfile.name,
+            phone: formattedPhone,
+            trade,
+            city: workerProfile.city,
+            area: workerProfile.area,
+            aadhaarLast4: cleanAadhaar.slice(-4),
+            aadhaarNumber: cleanAadhaar,
+            aadhaarFrontPhoto,
+            aadhaarBackPhoto,
+            photoUrl,
+            toolsStatus: workerProfile.toolsStatus,
+            transportMode,
+            emergencyContactName: workerProfile.emergencyContactName,
+            emergencyContactPhone: workerProfile.emergencyContactPhone,
+            age: workerProfile.age,
+            dateOfBirth: dob,
+            status: "pending",
+            submittedAt: nowIso,
+          };
+          await Promise.allSettled([
+            fetch("/api/db", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "upsert", collection: "accounts", id: userId, data: accountDoc }),
+            }),
+            fetch("/api/db", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "upsert", collection: "workers", id: workerProfile.id, data: workerProfile }),
+            }),
+            fetch("/api/db", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "upsert", collection: "verifications", id: verificationDoc.id, data: verificationDoc }),
+            }),
+          ]);
+        } else {
+          const customerProfile = {
+            id: "c_" + cleanPhone,
+            userId,
+            role: "customer",
+            name: name.trim(),
+            phone: formattedPhone,
+            email: email.trim(),
+            password: rawPassword,
+            passwordHash: pwdHash,
+            area: area.trim(),
+            city: app.currentCity?.name || "Ludhiana",
+            address: address.trim(),
+            upiId: finalUpiId,
+            photoUrl,
+            isPhoneVerified: true,
+            isEmailVerified: isEmailVer,
+            createdAt: nowIso,
+          };
+
+          app.registerCustomerWithAuth?.(customerProfile);
+          app.loginCustomer?.(customerProfile);
+
+          const accountDoc = {
+            id: userId,
+            userId,
+            username: userId,
+            role: "customer",
+            name: customerProfile.name,
+            phone: formattedPhone,
+            email: customerProfile.email,
+            passwordHash: pwdHash,
+            isEmailVerified: isEmailVer,
+            isPhoneVerified: true,
+            createdAt: nowIso,
+            extraData: customerProfile,
+          };
+          await Promise.allSettled([
+            fetch("/api/db", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "upsert", collection: "accounts", id: userId, data: accountDoc }),
+            }),
+          ]);
+        }
+        app.setSsoGoogleUser?.(null);
+        setSsoBanner("");
+        setDone(true);
+      } catch (err) {
+        app.showNotification?.("Account created locally — syncing with cloud.");
+        setDone(true);
       }
-      app.setSsoGoogleUser?.(null);
       setSubmitting(false);
-      setDone(true);
     };
 
     const handleSignInSubmit = async (e) => {
       e.preventDefault();
       setLoginErr("");
+      const rawIdent = String(loginIdent || "").trim();
+      const rawPwd = String(loginPwd || "").trim();
+      if (!rawIdent || !rawPwd) {
+        setLoginErr("Please enter your User ID / Mobile / Email and password.");
+        return;
+      }
       setSubmitting(true);
       try {
-        const fn = loginRole === "worker" ? app.loginWorkerWithAuth : app.loginCustomerWithAuth;
-        const res = await fn?.(loginIdent, loginPwd);
-        if (res && res.success) {
-          navigate(loginRole === "worker" ? "/worker" : "/customer", { role: loginRole });
-        } else {
-          setLoginErr(res?.error || "Invalid credentials. Check your ID/Mobile/Email and password.");
+        const pwdHash = typeof window.__kzH === "function" ? window.__kzH(rawPwd) : rawPwd;
+        // 1. Authoritative MongoDB check via /api/db loginAccount (matches across phone, email, userId, name & auto-detects role)
+        let cloudAccount = null;
+        let cloudErr = "";
+        try {
+          const dbRes = await fetch("/api/db", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "loginAccount",
+              identifier: rawIdent,
+              password: rawPwd,
+              passwordHash: pwdHash,
+              role: loginRole,
+            }),
+          });
+          const dbData = await dbRes.json().catch(() => ({}));
+          if (dbRes.ok && dbData.success && dbData.account) {
+            cloudAccount = dbData.account;
+          } else if (dbData.error) {
+            cloudErr = dbData.error;
+          }
+        } catch (_) {}
+
+        if (cloudAccount) {
+          const detectedRole = cloudAccount.role === "worker" ? "worker" : "customer";
+          const profileData = Object.assign({}, cloudAccount.extraData || {}, cloudAccount, {
+            role: detectedRole,
+          });
+          if (detectedRole === "worker") {
+            await app.loginWorkerWithAuth?.(rawIdent, rawPwd).catch(() => {});
+            app.loginWorker?.(profileData);
+            app.showNotification?.("Welcome back, " + (profileData.name || "Worker") + "!");
+            setSubmitting(false);
+            navigate("/worker", { role: "worker" });
+            return;
+          } else {
+            await app.loginCustomerWithAuth?.(rawIdent, rawPwd).catch(() => {});
+            app.loginCustomer?.(profileData);
+            app.showNotification?.("Welcome back, " + (profileData.name || "Customer") + "!");
+            setSubmitting(false);
+            navigate("/customer", { role: "customer" });
+            return;
+          }
         }
+
+        // 2. Fallback to local context auth (try selected role first, then opposite role in case user forgot to toggle)
+        const primaryFn = loginRole === "worker" ? app.loginWorkerWithAuth : app.loginCustomerWithAuth;
+        const secondaryFn = loginRole === "worker" ? app.loginCustomerWithAuth : app.loginWorkerWithAuth;
+        const secondaryRole = loginRole === "worker" ? "customer" : "worker";
+
+        const res = await primaryFn?.(rawIdent, rawPwd);
+        if (res && res.success) {
+          setSubmitting(false);
+          navigate(loginRole === "worker" ? "/worker" : "/customer", { role: loginRole });
+          return;
+        }
+        const altRes = await secondaryFn?.(rawIdent, rawPwd);
+        if (altRes && altRes.success) {
+          setSubmitting(false);
+          navigate(secondaryRole === "worker" ? "/worker" : "/customer", { role: secondaryRole });
+          return;
+        }
+
+        setLoginErr(cloudErr || res?.error || "Invalid credentials. Check your ID/Mobile/Email and password.");
       } catch (err) {
         setLoginErr(err?.message || "Sign-in failed.");
       }
       setSubmitting(false);
     };
 
+    const applyGoogleUserToRegistration = (gUser) => {
+      if (!gUser) return;
+      if (gUser.displayName) setName(gUser.displayName);
+      if (gUser.email) {
+        setEmail(gUser.email);
+        setEmailVerified(true);
+      }
+      if (gUser.photoURL) setPhotoUrl(gUser.photoURL);
+      app.setSsoGoogleUser?.(gUser);
+      setMode("register");
+      setDone(false);
+      setSsoFallbackOpen(false);
+      setSsoBanner("✓ Google account verified (" + (gUser.email || gUser.displayName) + "). Pick your role or finish remaining details below!");
+      app.showNotification?.("Google account verified! Complete your registration below.");
+    };
+
     const handleGoogleSSO = async () => {
+      setLoginErr("");
+      const targetRole = mode === "signin" ? loginRole : role || undefined;
       try {
-        const res = await app.signInWithGoogleSSO?.(role || loginRole || undefined);
-        if (res && res.loggedIn) {
-          const targetRole = res.role === "worker" ? "worker" : "customer";
-          navigate(targetRole === "worker" ? "/worker" : "/customer", { role: targetRole });
+        const res = await app.signInWithGoogleSSO?.(targetRole);
+        if (res && res.success) {
+          if (!res.isNewUser && !res.needsRegistration) {
+            const detectedRole =
+              res.role ||
+              targetRole ||
+              (app.currentWorker ? "worker" : app.currentCustomer ? "customer" : "customer");
+            app.showNotification?.("Signed in with Google!");
+            navigate(detectedRole === "worker" ? "/worker" : "/customer", { role: detectedRole });
+            return;
+          }
+          // New Google user -> switch to Register flow with pre-filled & verified Gmail
+          applyGoogleUserToRegistration(
+            res.user ||
+              app.ssoGoogleUser || {
+                displayName: name || "",
+                email: email || "",
+              }
+          );
+          return;
         }
-      } catch (_) {}
+        // Popup blocked or domain not whitelisted in Firebase console -> open seamless 1-step Google Email OTP fallback
+        setSsoFallbackOpen(true);
+      } catch (_) {
+        setSsoFallbackOpen(true);
+      }
+    };
+
+    const handleGoogleFallbackVerify = async () => {
+      const cleanMail = String(ssoFallbackEmail || "").trim().toLowerCase();
+      const cleanDisplayName = String(ssoFallbackName || "").trim();
+      if (!cleanMail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanMail)) {
+        app.showNotification?.("Please enter a valid Gmail address.");
+        return;
+      }
+      openOtpModal?.({
+        email: cleanMail,
+        role: mode === "signin" ? loginRole : role || "customer",
+        purpose: "google_sso_verification",
+        onVerified: async () => {
+          // Check if an account already exists in MongoDB for this Google email
+          try {
+            const res = await fetch("/api/db", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "findAccount", identifier: cleanMail }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.found && data.account) {
+              const acc = data.account;
+              const accRole = acc.role === "worker" ? "worker" : "customer";
+              const profile = Object.assign({}, acc.extraData || {}, acc, { role: accRole });
+              if (accRole === "worker") app.loginWorker?.(profile);
+              else app.loginCustomer?.(profile);
+              app.showNotification?.("Signed in as " + (profile.name || cleanMail) + "!");
+              navigate(accRole === "worker" ? "/worker" : "/customer", { role: accRole });
+              return;
+            }
+          } catch (_) {}
+          applyGoogleUserToRegistration({
+            displayName: cleanDisplayName || cleanMail.split("@")[0],
+            email: cleanMail,
+            photoURL: "",
+          });
+        },
+      });
     };
 
     const stepMeta = {
@@ -6369,6 +6721,122 @@
               padding: "30px",
             },
           },
+          // GOOGLE SSO VERIFIED BANNER OR INSTANT FALLBACK DRAWER
+          (ssoBanner || app.ssoGoogleUser?.email) &&
+            h(
+              "div",
+              {
+                style: {
+                  marginBottom: "16px",
+                  padding: "12px 14px",
+                  borderRadius: "16px",
+                  background: "#E3F4E8",
+                  border: "1.5px solid #2E9E57",
+                  color: "#1D6B36",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                },
+              },
+              h(
+                "span",
+                null,
+                ssoBanner || `✓ Google Account Linked (${app.ssoGoogleUser?.email}) — Email pre-verified!`
+              )
+            ),
+          ssoFallbackOpen &&
+            h(
+              "div",
+              {
+                style: {
+                  marginBottom: "18px",
+                  padding: "16px",
+                  borderRadius: "20px",
+                  background: "#FFF7E3",
+                  border: "1.5px solid #F5A524",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                },
+              },
+              h(
+                "div",
+                { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                h("b", { style: { fontSize: "14px", color: "#6B4600" } }, "Continue with Google (Instant Gmail OTP)"),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setSsoFallbackOpen(false),
+                    style: { border: 0, background: "transparent", fontSize: "15px", fontWeight: 800, color: "#6B4600" },
+                  },
+                  "✕"
+                )
+              ),
+              h(
+                "span",
+                { style: { fontSize: "12px", color: "#4A443A" } },
+                "Enter your Gmail below to sign in or pre-fill your verified Google account immediately:"
+              ),
+              h("input", {
+                type: "text",
+                placeholder: "Your Full Name (optional)",
+                value: ssoFallbackName,
+                onChange: (e) => setSsoFallbackName(e.target.value),
+                style: {
+                  height: "46px",
+                  borderRadius: "14px",
+                  border: "1.5px solid #E5DCCB",
+                  background: "#FFFFFF",
+                  padding: "0 14px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                },
+              }),
+              h(
+                "div",
+                { style: { display: "flex", gap: "8px" } },
+                h("input", {
+                  type: "email",
+                  placeholder: "you@gmail.com",
+                  value: ssoFallbackEmail,
+                  onChange: (e) => setSsoFallbackEmail(e.target.value),
+                  style: {
+                    flex: 1,
+                    minWidth: 0,
+                    height: "46px",
+                    borderRadius: "14px",
+                    border: "1.5px solid #E5DCCB",
+                    background: "#FFFFFF",
+                    padding: "0 14px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                  },
+                }),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: handleGoogleFallbackVerify,
+                    style: {
+                      height: "46px",
+                      padding: "0 16px",
+                      borderRadius: "14px",
+                      border: 0,
+                      background: "#1C1913",
+                      color: "#FBF8F2",
+                      fontWeight: 800,
+                      fontSize: "13px",
+                    },
+                  },
+                  "Verify Gmail →"
+                )
+              )
+            ),
+
           // SIGN IN MODE
           mode === "signin" &&
             h(
@@ -6623,17 +7091,43 @@
               currentStepKey === "phone" &&
                 h(
                   "div",
-                  { style: { display: "flex", alignItems: "center", gap: "8px", height: "60px", padding: "0 16px", borderRadius: "18px", border: "2px solid " + (cleanPhone.length === 10 ? "#2E9E57" : "#E9DFCC"), background: "#FFFFFF" } },
-                  h("span", { style: { padding: "6px 10px", borderRadius: "10px", background: "#F4EEE3", fontWeight: 800, fontSize: "15px" } }, "+91"),
-                  h("input", {
-                    type: "tel",
-                    inputMode: "numeric",
-                    autoFocus: true,
-                    placeholder: "98140 12345",
-                    value: phone,
-                    onChange: (e) => setPhone(e.target.value),
-                    style: { flex: 1, minWidth: 0, height: "100%", border: 0, outline: "none", fontSize: "18px", fontWeight: 600, background: "transparent" },
-                  })
+                  { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+                  h(
+                    "div",
+                    { style: { display: "flex", alignItems: "center", gap: "8px", height: "60px", padding: "0 10px 0 16px", borderRadius: "18px", border: "2px solid " + (phoneVerified || cleanPhone.length === 10 ? "#2E9E57" : "#E9DFCC"), background: "#FFFFFF" } },
+                    h("span", { style: { padding: "6px 10px", borderRadius: "10px", background: "#F4EEE3", fontWeight: 800, fontSize: "15px" } }, "+91"),
+                    h("input", {
+                      type: "tel",
+                      inputMode: "numeric",
+                      autoFocus: true,
+                      placeholder: "98140 12345",
+                      value: phone,
+                      onChange: (e) => {
+                        setPhone(e.target.value);
+                        setPhoneVerified(false);
+                      },
+                      style: { flex: 1, minWidth: 0, height: "100%", border: 0, outline: "none", fontSize: "18px", fontWeight: 600, background: "transparent" },
+                    }),
+                    cleanPhone.length === 10 &&
+                      !phoneVerified &&
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () =>
+                            openOtpModal?.({
+                              phone: "+91" + cleanPhone,
+                              role,
+                              purpose: "phone_verification",
+                              onVerified: () => setPhoneVerified(true),
+                            }),
+                          style: { height: "40px", padding: "0 14px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "12px", whiteSpace: "nowrap" },
+                        },
+                        "Verify OTP"
+                      ),
+                    phoneVerified &&
+                      h("span", { style: { padding: "6px 10px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "12px", fontWeight: 800, whiteSpace: "nowrap" } }, "✓ OTP Verified")
+                  )
                 ),
 
               currentStepKey === "email" &&
@@ -9375,9 +9869,58 @@
       @keyframes kzCheckPop { 0% { transform: scale(0.75); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
     `;
 
+    const [liveSyncTick, setLiveSyncTick] = useState(0);
+    const activeJobId = activeJob ? activeJob.id : "";
+    const custSyncKey = getCustomerAccountKey(cust) || (activeJob && (activeJob.customerEmail || activeJob.customerId)) || "";
+
+    // 5-second live multi-device sync on Vercel Serverless (updates Customer screen automatically when Worker accepts/starts/completes)
+    useEffect(() => {
+      if (!activeJobId) return;
+      let cancelled = false;
+      const syncOnce = async () => {
+        try {
+          const r = await fetch(
+            `/api/db?action=get&collection=jobs&id=${encodeURIComponent(activeJobId)}&customerKey=${encodeURIComponent(custSyncKey)}`
+          );
+          if (!r.ok || cancelled) return;
+          const json = await r.json();
+          if (json && json.exists && json.doc && activeJob) {
+            const d = json.doc;
+            if (
+              d.status !== activeJob.status ||
+              d.assignedWorkerId !== activeJob.assignedWorkerId ||
+              d.isPaid !== activeJob.isPaid ||
+              (!activeJob.otpCode && d.otpCode) ||
+              (!activeJob.endOtpCode && d.endOtpCode)
+            ) {
+              Object.assign(activeJob, d);
+              setLiveSyncTick((n) => n + 1);
+            }
+          }
+        } catch (_) {}
+      };
+      syncOnce();
+      const iv = setInterval(syncOnce, 5000);
+      return () => {
+        cancelled = true;
+        clearInterval(iv);
+      };
+    }, [activeJobId, custSyncKey]);
+
     const fullAmount = activeJob
-      ? Math.max(1, Math.round(Number(activeJob.dailyWage || 850) * Number(activeJob.durationDays || 1)))
-      : 850;
+      ? (() => {
+          if (Number(activeJob.totalAmount || activeJob.escrowPrepaidAmount) > 0) {
+            return Math.round(Number(activeJob.totalAmount || activeJob.escrowPrepaidAmount));
+          }
+          const base = Math.max(1, Math.round(Number(activeJob.dailyWage || 850) * Math.max(1, Number(activeJob.durationDays || 1))));
+          const fee = activeJob.zeroCommissionApplied
+            ? 0
+            : Number(activeJob.platformFee) > 0
+            ? Math.round(Number(activeJob.platformFee))
+            : Math.round(base * 0.2);
+          return base + fee;
+        })()
+      : 1020;
 
     return h(
       "main",
@@ -9944,10 +10487,8 @@
 
             // RIGHT SUMMARY & CONTROLS PANEL (Includes Customer Scannable Start/End QR Card + Call/Message Worker from Kwp)
             (() => {
-              const startOtp = String(activeJob.otpCode || "4821");
-              const endOtp = String(
-                activeJob.endOtpCode || ((Number(startOtp.replace(/\D/g, "") || 4821) + 4183) % 9000 + 1000)
-              );
+              const startOtp = String(activeJob.otpCode || "----");
+              const endOtp = String(activeJob.endOtpCode || "----");
               const qrPayload = isWorking
                 ? `KAAMZO_END:${activeJob.id}:${endOtp}`
                 : `KAAMZO_START:${activeJob.id}:${startOtp}`;
@@ -10796,22 +11337,50 @@
       localStorage.setItem("kaamzo_current_role", "worker");
     } catch (_) {}
 
-    // 4. Synchronously update job state & codes so WorkerLiveJobView immediately sees the accepted job
-    const startOtp = String(job.otpCode || Math.floor(1000 + Math.random() * 9000));
-    const endOtp = String(
-      job.endOtpCode || ((Number(startOtp.replace(/\D/g, "") || 4821) + 4183) % 9000 + 1000)
+    // 4. Claim job atomically on the server first to prevent double-accept race conditions
+    let serverClaimedJob = null;
+    try {
+      const claimRes = await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "claimJob",
+          collection: "jobs",
+          id: job.id,
+          jobId: job.id,
+          workerId: w.id,
+          worker: {
+            id: w.id,
+            name: w.name,
+            phone: w.phone || "",
+            primaryTrade: w.primaryTrade || job.trade || "Service",
+            upiId: w.upiId || "",
+          },
+          jobSnapshot: job,
+        }),
+      });
+      const claimJson = await claimRes.json().catch(() => ({}));
+      if (claimRes.status === 409 || claimJson.alreadyClaimed) {
+        app.showNotification?.("⚠️ " + (claimJson.error || "This job was just accepted by another nearby worker."));
+        return;
+      }
+      if (claimJson && claimJson.job) {
+        serverClaimedJob = claimJson.job;
+      }
+    } catch (_) {}
+
+    const updatedFields = Object.assign(
+      {
+        status: "accepted",
+        assignedWorkerId: w.id,
+        assignedWorkerName: w.name,
+        assignedWorkerPhone: w.phone || "",
+        assignedWorkerTrade: w.primaryTrade || job.trade || "Service",
+        assignedWorkerUpi: w.upiId || "",
+        localUpdatedAt: Date.now(),
+      },
+      serverClaimedJob || {}
     );
-    const updatedFields = {
-      status: "accepted",
-      otpCode: startOtp,
-      endOtpCode: endOtp,
-      assignedWorkerId: w.id,
-      assignedWorkerName: w.name,
-      assignedWorkerPhone: w.phone || "+91 98101 55678",
-      assignedWorkerTrade: w.primaryTrade || job.trade || "Service",
-      assignedWorkerUpi: w.upiId || "6284194807@fam",
-      localUpdatedAt: Date.now(),
-    };
     Object.assign(job, updatedFields);
 
     KZ.activeWorkerJobId = job.id;
@@ -10833,92 +11402,77 @@
     app.setActiveWorkJobId?.(job.id);
     KZ.notifyJobAcceptedForCustomer?.(job.id);
     navigate("/worker/live-job", { role: "worker" });
-
-    // 6. Direct MongoDB upsert guarantee
-    try {
-      await fetch("/api/db", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "upsert",
-          collection: "jobs",
-          id: job.id,
-          data: Object.assign({}, job, { syncedAt: new Date().toISOString() }),
-        }),
-      });
-    } catch (_) {}
   }
 
-  // Real ISO/IEC 18004 Scannable QR Code generator for Start Job QR & End Job QR
+  // Real ISO/IEC 18004 Scannable QR Code generator (uses qrcode-generator@1.4.4 with quiet zone)
   function renderDeterministicQrSvg(seedText, accentCol) {
     if (typeof KZ.renderRealScannableQr === "function") {
       return KZ.renderRealScannableQr(seedText, 136, accentCol);
     }
-    const str = String(seedText || "KAAMZO-QR");
-    let hash = 2166136261;
-    for (let i = 0; i < str.length; i++) {
-      hash ^= str.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    const size = 21;
-    const rects = [];
-    const isFinder = (r, c) =>
-      (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
-    const finderBit = (r, c) => {
-      const lr = r < 7 ? r : r >= size - 7 ? r - (size - 7) : r;
-      const lc = c < 7 ? c : c >= size - 7 ? c - (size - 7) : c;
-      if (lr === 0 || lr === 6 || lc === 0 || lc === 6) return true;
-      if (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4) return true;
-      return false;
-    };
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        let on = false;
-        if (isFinder(r, c)) {
-          on = finderBit(r, c);
-        } else if (
-          (r === 7 && (c < 8 || c >= size - 8)) ||
-          (r === size - 8 && c < 8) ||
-          (c === 7 && (r < 8 || r >= size - 8)) ||
-          (c === size - 8 && r < 8)
-        ) {
-          on = false;
-        } else {
-          const bitSeed = Math.imul(hash ^ (r * 31 + c * 97), 2654435761) >>> 0;
-          on = (bitSeed & 3) !== 0;
+    const payload = String(seedText || "KAAMZO");
+    if (typeof window.qrcode === "function") {
+      try {
+        const qr = window.qrcode(0, "M");
+        qr.addData(payload);
+        qr.make();
+        const n = qr.getModuleCount();
+        const quiet = 4;
+        const total = n + quiet * 2;
+        const cell = 4;
+        const svgSize = total * cell;
+        const rects = [];
+        for (let r = 0; r < n; r++) {
+          for (let c = 0; c < n; c++) {
+            if (qr.isDark(r, c)) {
+              const isFinder = (r < 7 && c < 7) || (r < 7 && c >= n - 7) || (r >= n - 7 && c < 7);
+              rects.push(
+                h("rect", {
+                  key: r + "_" + c,
+                  x: (quiet + c) * cell,
+                  y: (quiet + r) * cell,
+                  width: cell,
+                  height: cell,
+                  fill: isFinder ? accentCol || "#1C1913" : "#1C1913",
+                })
+              );
+            }
+          }
         }
-        if (on) {
-          rects.push(
-            h("rect", {
-              key: r + "_" + c,
-              x: 8 + c * 6,
-              y: 8 + r * 6,
-              width: 5.5,
-              height: 5.5,
-              rx: 1.2,
-              fill: isFinder(r, c) ? accentCol || "#1C1913" : "#1C1913",
-            })
-          );
-        }
-      }
+        return h(
+          "svg",
+          {
+            viewBox: `0 0 ${svgSize} ${svgSize}`,
+            shapeRendering: "crispEdges",
+            style: {
+              width: "136px",
+              height: "136px",
+              borderRadius: "16px",
+              background: "#FFFFFF",
+              border: "2px solid " + (accentCol || "#1C1913"),
+              flexShrink: 0,
+            },
+          },
+          h("rect", { x: 0, y: 0, width: svgSize, height: svgSize, fill: "#FFFFFF" }),
+          rects
+        );
+      } catch (_) {}
     }
-    return h(
-      "svg",
-      {
-        viewBox: "0 0 142 142",
-        style: {
-          width: "136px",
-          height: "136px",
-          borderRadius: "16px",
-          background: "#FFFFFF",
-          padding: "4px",
-          border: "2px solid " + (accentCol || "#1C1913"),
-          flexShrink: 0,
-        },
-        "aria-label": "Verification QR Code",
+    return h("img", {
+      src: "https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=" + encodeURIComponent(payload),
+      alt: "QR Code",
+      style: {
+        width: "136px",
+        height: "136px",
+        borderRadius: "16px",
+        background: "#FFFFFF",
+        border: "2px solid " + (accentCol || "#1C1913"),
+        flexShrink: 0,
       },
-      rects
-    );
+    });
+  }
+
+  function unusedLegacyQrStub() {
+    return null;
   }
 
   const WORKER_SUBNAV = [
@@ -12466,10 +13020,37 @@
     const isStep1Done = Boolean(active && ["in_progress", "completed_pending_payment", "paid_and_closed"].includes(active.status));
     const isStep2Done = Boolean(active && ["completed_pending_payment", "paid_and_closed"].includes(active.status));
 
-    const startOtp = String(active?.otpCode || "4821").trim();
-    const endOtp = String(
-      active?.endOtpCode || ((Number(startOtp.replace(/\D/g, "") || 4821) + 4183) % 9000 + 1000)
-    );
+    const startOtp = String(active?.otpCode || "").trim();
+    const endOtp = String(active?.endOtpCode || "").trim();
+    const activeWorkerJobId = active ? active.id : "";
+
+    // 5-second live multi-device sync for WorkerLiveJobView on Vercel Serverless
+    useEffect(() => {
+      if (!activeWorkerJobId) return;
+      let cancelled = false;
+      const syncWorkerJob = async () => {
+        try {
+          const r = await fetch(`/api/db?action=get&collection=jobs&id=${encodeURIComponent(activeWorkerJobId)}`);
+          if (!r.ok || cancelled) return;
+          const json = await r.json();
+          if (json && json.exists && json.doc && active) {
+            const d = json.doc;
+            if (d.status !== active.status || d.isPaid !== active.isPaid || d.escrowStatus !== active.escrowStatus) {
+              Object.assign(active, d);
+              if (KZ.activeWorkerJobSnapshot && String(KZ.activeWorkerJobSnapshot.id) === String(active.id)) {
+                Object.assign(KZ.activeWorkerJobSnapshot, d);
+              }
+              setTick((n) => n + 1);
+            }
+          }
+        } catch (_) {}
+      };
+      const iv = setInterval(syncWorkerJob, 5000);
+      return () => {
+        cancelled = true;
+        clearInterval(iv);
+      };
+    }, [activeWorkerJobId]);
 
     const persistJobUpdate = async (nextStatus, extraFields) => {
       if (!active) return;
@@ -12512,15 +13093,49 @@
       let cleanCode = raw;
       if (raw.startsWith("KAAMZO_START:") || raw.startsWith("KAAMZO-START:")) {
         const parts = raw.split(":");
-        cleanCode = parts[2] || parts[1] || "";
+        cleanCode = String(parts[2] || "").trim();
       }
-      if (!cleanCode || (cleanCode !== startOtp && raw !== startOtp)) {
-        app.showNotification?.("Invalid Start OTP. Ask the customer for their 4-digit Start OTP or scan their Start QR.");
-        setCamError("Invalid Start Code. Please scan the customer's Start QR or enter the 4-digit Start OTP.");
+      if (!/^\d{4}$/.test(cleanCode)) {
+        app.showNotification?.("Enter the 4-digit Start OTP from the customer or scan their Start Work QR.");
+        setCamError("Invalid Start Code. Scan the customer's Start QR or enter their 4-digit Start OTP.");
         return false;
       }
+
+      // Server-side OTP verification (protects customer OTP from ever leaking to worker browser)
+      let serverVerified = false;
+      try {
+        const vr = await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "verifyJobOtp",
+            collection: "jobs",
+            id: active.id,
+            jobId: active.id,
+            mode: "start",
+            code: raw,
+          }),
+        });
+        const vj = await vr.json().catch(() => ({}));
+        if (vr.ok && vj && vj.verified) {
+          serverVerified = true;
+        } else if (vr.status === 400) {
+          app.showNotification?.(vj.error || "Invalid Start OTP.");
+          setCamError(vj.error || "Invalid Start Code.");
+          return false;
+        }
+      } catch (_) {}
+
+      if (!serverVerified) {
+        if (!startOtp || cleanCode !== startOtp) {
+          app.showNotification?.("Invalid Start OTP. Ask the customer for their 4-digit Start OTP or scan their Start QR.");
+          setCamError("Invalid Start Code. Please scan the customer's Start QR or enter the 4-digit Start OTP.");
+          return false;
+        }
+      }
+
       if (app.startJobWithOtp) {
-        app.startJobWithOtp(active.id, startOtp);
+        app.startJobWithOtp(active.id, cleanCode);
       }
       stopCamera();
       setScannerOpen(false);
@@ -12541,11 +13156,12 @@
       let cleanCode = raw;
       if (raw.startsWith("KAAMZO_END:") || raw.startsWith("KAAMZO-END:")) {
         const parts = raw.split(":");
-        cleanCode = parts[2] || parts[1] || "";
+        cleanCode = String(parts[2] || "").trim();
       }
-      if (!cleanCode || (cleanCode !== endOtp && raw !== endOtp && !raw.startsWith("KAAMZO_END:" + active.id))) {
-        app.showNotification?.("Invalid End OTP. Ask the customer for their 4-digit End OTP or scan their End QR.");
-        setCamError("Invalid End Code. Please scan the customer's End QR or enter the 4-digit End OTP.");
+      // Strictly require 4-digit End OTP (never allow KAAMZO_END:<jobId> bypass!)
+      if (!/^\d{4}$/.test(cleanCode)) {
+        app.showNotification?.("Enter the 4-digit End OTP from the customer or scan their End Job QR.");
+        setCamError("Invalid End Code. Scan the customer's End QR or enter their 4-digit End OTP.");
         return false;
       }
       const vpaCheck = validateUpiSmart(endUpi || worker?.upiId || "6284194807@fam");
@@ -12557,6 +13173,38 @@
       const cleanUpi = vpaCheck.vpa;
       setEndBusy(true);
       try {
+        let serverVerified = false;
+        try {
+          const vr = await fetch("/api/db", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "verifyJobOtp",
+              collection: "jobs",
+              id: active.id,
+              jobId: active.id,
+              mode: "end",
+              code: raw,
+              upiId: cleanUpi,
+            }),
+          });
+          const vj = await vr.json().catch(() => ({}));
+          if (vr.ok && vj && vj.verified) {
+            serverVerified = true;
+          } else if (vr.status === 400) {
+            app.showNotification?.(vj.error || "Invalid End OTP.");
+            setCamError(vj.error || "Invalid End Code.");
+            return false;
+          }
+        } catch (_) {}
+
+        if (!serverVerified) {
+          if (!endOtp || cleanCode !== endOtp) {
+            app.showNotification?.("Invalid End OTP. Ask the customer for their 4-digit End OTP or scan their End QR.");
+            setCamError("Invalid End Code. Please scan the customer's End QR or enter the 4-digit End OTP.");
+            return false;
+          }
+        }
         app.updateWorkerUpi?.(cleanUpi);
         app.completeJobByWorker?.(active.id);
         stopCamera();

@@ -256,14 +256,35 @@ async function createWorkerUpiPayout({ fundAccountId, upiId, amountInr, jobId, p
   };
 }
 
-function computeQuotedAmountInr(job, explicitAmountInr) {
+function computeJobFinancials(job, explicitAmountInr) {
+  const days = Math.max(1, Number(job?.durationDays) || 1);
+  const baseLabor =
+    Number(job?.baseLabor) > 0
+      ? Math.round(Number(job.baseLabor))
+      : Number(job?.dailyWage) > 0
+      ? Math.round(Number(job.dailyWage) * days)
+      : 650;
+  const isZeroComm = Boolean(job && job.zeroCommissionApplied);
+  const platformFee = isZeroComm
+    ? 0
+    : Number(job?.platformFee) > 0
+    ? Math.round(Number(job.platformFee))
+    : Math.round(baseLabor * 0.2);
   const explicit = Number(explicitAmountInr);
-  if (Number.isFinite(explicit) && explicit > 0) return Math.round(explicit);
-  if (!job) return 850;
-  if (Number(job.escrowPrepaidAmount) > 0) return Math.round(Number(job.escrowPrepaidAmount));
-  if (Number(job.dailyWage) > 0) return Math.round(Number(job.dailyWage) * (Number(job.durationDays) || 1));
-  if (Number(job.baseLabor) > 0) return Math.round(Number(job.baseLabor) * 1.2);
-  return 850;
+  const customerTotal =
+    Number.isFinite(explicit) && explicit > 0
+      ? Math.round(explicit)
+      : Number(job?.totalAmount || job?.escrowPrepaidAmount) > 0
+      ? Math.round(Number(job.totalAmount || job.escrowPrepaidAmount))
+      : baseLabor + platformFee;
+  const workerPayoutInr =
+    Number(job?.workerPayout) > 0 ? Math.round(Number(job.workerPayout)) : Math.min(customerTotal, baseLabor);
+  const adminCommissionInr = Math.max(0, customerTotal - workerPayoutInr);
+  return { baseLabor, platformFee, customerTotal, workerPayoutInr, adminCommissionInr };
+}
+
+function computeQuotedAmountInr(job, explicitAmountInr) {
+  return computeJobFinancials(job, explicitAmountInr).customerTotal;
 }
 
 const NPCI_UPI_HANDLES = {
@@ -669,9 +690,9 @@ module.exports = async function handler(req, res) {
       } catch (_) {}
 
       const baseJob = { ...(body.jobSnapshot || {}), ...(dbJob || {}), id: cleanJobId || `job_${Date.now()}` };
-      const grossInr = computeQuotedAmountInr(baseJob, body.amountInr);
-      const workerPayoutInr =
-        Number(baseJob.workerPayout) > 0 ? Number(baseJob.workerPayout) : Math.round(grossInr * 0.8);
+      const fin = computeJobFinancials(baseJob, body.amountInr);
+      const grossInr = fin.customerTotal;
+      const workerPayoutInr = fin.workerPayoutInr;
 
       const workerUpi = baseJob.assignedWorkerUpi || body.workerUpi || "success@razorpay";
       let fundAccountId = baseJob.razorpayFundAccountId;
@@ -805,9 +826,9 @@ module.exports = async function handler(req, res) {
       } catch (_) {}
 
       const baseJob = { ...(body.jobSnapshot || {}), ...(dbJob || {}), id: cleanJobId };
-      const grossInr = computeQuotedAmountInr(baseJob, body.amountInr);
-      const workerPayoutInr =
-        Number(baseJob.workerPayout) > 0 ? Number(baseJob.workerPayout) : Math.round(grossInr * 0.8);
+      const fin = computeJobFinancials(baseJob, body.amountInr);
+      const grossInr = fin.customerTotal;
+      const workerPayoutInr = fin.workerPayoutInr;
 
       const famGatewayCheck = await verifyUtrWithFamPayGateway({
         utr: utrRef,
@@ -823,26 +844,41 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const payout = await createWorkerUpiPayout({
-        fundAccountId: baseJob.razorpayFundAccountId,
-        upiId: targetUpi,
-        amountInr: workerPayoutInr,
-        jobId: baseJob.id,
-        paymentId: utrRef
-      });
+      const apiVerified = Boolean(famGatewayCheck.verifiedViaApi);
+      const payout = apiVerified
+        ? await createWorkerUpiPayout({
+            fundAccountId: baseJob.razorpayFundAccountId,
+            upiId: targetUpi,
+            amountInr: workerPayoutInr,
+            jobId: baseJob.id,
+            paymentId: utrRef
+          })
+        : {
+            id: `pout_hold_${utrRef}`,
+            status: "pending_admin_utr_audit",
+            amountInr: workerPayoutInr,
+            vpa: targetUpi,
+            mode: "escrow_audit_hold"
+          };
 
       const paidJob = {
         ...baseJob,
+        baseLabor: fin.baseLabor,
+        platformFee: fin.platformFee,
+        totalAmount: grossInr,
+        workerPayout: workerPayoutInr,
         status: "paid_and_closed",
         isPaid: true,
         isEscrowPrepaid: true,
-        escrowStatus: "released_to_worker",
-        paymentStatus: "paid_and_settled",
+        escrowStatus: apiVerified ? "released_to_worker" : "utr_pending_admin_audit",
+        utrVerificationStatus: apiVerified ? "verified_api" : "pending_admin_audit",
+        paymentStatus: apiVerified ? "paid_and_settled" : "utr_submitted_pending_audit",
         paidVia: "FAMPAY_UPI_6284194807@fam",
         fampayGatewayMode: famGatewayCheck.mode,
-        fampayGatewayVerified: Boolean(famGatewayCheck.verifiedViaApi || famGatewayCheck.gatewayConfigured),
+        fampayGatewayVerified: apiVerified,
         transactionRef: utrRef,
         upiUtr: utrRef,
+        fampayUtr: utrRef,
         upiAppUsed: String(body.upiAppUsed || "FamPay UPI").slice(0, 40),
         payerUpi: String(body.payerUpi || "").trim().slice(0, 80) || undefined,
         razorpayPaymentId: utrRef,
@@ -868,13 +904,20 @@ module.exports = async function handler(req, res) {
               upiId: targetUpi,
               refId: utrRef,
               timestamp: new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
-              status: `Settled via FamPay UPI (6284194807@fam · UTR ${utrRef})`
+              status: apiVerified
+                ? `Settled via FamPay UPI (UTR ${utrRef})`
+                : `Escrow Hold — Awaiting Admin UTR Verification (${utrRef})`
             };
             const existingHistory = Array.isArray(dbWorker.withdrawalHistory) ? dbWorker.withdrawalHistory : [];
             await upsertDoc("workers", paidJob.assignedWorkerId, {
               ...dbWorker,
-              upiId: targetUpi,
-              walletBalance: (Number(dbWorker.walletBalance) || 0) + workerPayoutInr,
+              upiId: dbWorker.upiId || targetUpi,
+              walletBalance: apiVerified
+                ? (Number(dbWorker.walletBalance) || 0) + workerPayoutInr
+                : Number(dbWorker.walletBalance) || 0,
+              pendingEscrowBalance: apiVerified
+                ? Number(dbWorker.pendingEscrowBalance) || 0
+                : (Number(dbWorker.pendingEscrowBalance) || 0) + workerPayoutInr,
               completedJobsCount: (dbWorker.completedJobsCount || 0) + 1,
               completedJobs: (dbWorker.completedJobs || dbWorker.completedJobsCount || 0) + 1,
               todayEarnings: (dbWorker.todayEarnings || 0) + workerPayoutInr,
@@ -890,6 +933,7 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 200, {
         success: true,
         verified: true,
+        utrAuditRequired: !apiVerified,
         paymentId: utrRef,
         utr: utrRef,
         upiId: targetUpi,
@@ -901,13 +945,59 @@ module.exports = async function handler(req, res) {
     }
 
     // -----------------------------------------------------------------------
+    // 4b-2. ADMIN APPROVE FAMPAY UTR & RELEASE ESCROW TO WORKER WALLET
+    // -----------------------------------------------------------------------
+    if (action === "approveFamPayUtr") {
+      if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
+      const adminEmails = (process.env.ADMIN_EMAILS || "bhavnoorsinghkochar@gmail.com,danishwadhawan7@gmail.com")
+        .split(",")
+        .map((s) => s.trim().toLowerCase());
+      const claimedAdminEmail = String(body.adminEmail || "").trim().toLowerCase();
+      if (!claimedAdminEmail || !adminEmails.includes(claimedAdminEmail)) {
+        return sendJson(res, 403, { success: false, error: "Administrator authorization required to approve UTR payouts." });
+      }
+      const cleanJobId = String(body.jobId || "").trim();
+      if (!cleanJobId) return sendJson(res, 400, { success: false, error: "jobId is required." });
+      await connectMongo();
+      const job = await getDocById("jobs", cleanJobId);
+      if (!job) return sendJson(res, 404, { success: false, error: "Job not found." });
+      if (job.utrVerificationStatus === "verified_admin" || job.escrowStatus === "released_to_worker") {
+        return sendJson(res, 200, { success: true, alreadyApproved: true, job });
+      }
+      const fin = computeJobFinancials(job, job.totalAmount);
+      const workerPayoutInr = fin.workerPayoutInr;
+      const updatedJob = await upsertDoc("jobs", cleanJobId, {
+        ...job,
+        escrowStatus: "released_to_worker",
+        utrVerificationStatus: "verified_admin",
+        paymentStatus: "paid_and_settled",
+        utrApprovedBy: claimedAdminEmail,
+        utrApprovedAt: new Date().toISOString()
+      });
+      if (job.assignedWorkerId) {
+        const dbWorker = await getDocById("workers", job.assignedWorkerId);
+        if (dbWorker) {
+          await upsertDoc("workers", job.assignedWorkerId, {
+            ...dbWorker,
+            walletBalance: (Number(dbWorker.walletBalance) || 0) + workerPayoutInr,
+            pendingEscrowBalance: Math.max(0, (Number(dbWorker.pendingEscrowBalance) || 0) - workerPayoutInr)
+          });
+        }
+      }
+      return sendJson(res, 200, { success: true, approved: true, workerPayoutInr, job: updatedJob });
+    }
+
+    // -----------------------------------------------------------------------
     // 4c. WITHDRAW WORKER WALLET TO FAMPAY / UPI (6284194807@fam)
     // -----------------------------------------------------------------------
     if (action === "withdrawWorkerWallet") {
       if (req.method !== "POST") return sendJson(res, 405, { success: false, error: "Method not allowed" });
 
       const workerId = String(body.workerId || "").trim();
-      const vpaCheck = validateUpiVpa(body.upiId || "6284194807@fam");
+      if (!workerId) {
+        return sendJson(res, 400, { success: false, error: "Authenticated workerId is required to withdraw wallet funds." });
+      }
+      const vpaCheck = validateUpiVpa(body.upiId || "");
       if (!vpaCheck.valid) {
         return sendJson(res, 400, {
           success: false,
@@ -916,21 +1006,55 @@ module.exports = async function handler(req, res) {
       }
       const targetUpi = vpaCheck.vpa;
 
-      let dbWorker = null;
-      try {
-        await connectMongo();
-        if (workerId) dbWorker = await getDocById("workers", workerId);
-      } catch (_) {}
+      await connectMongo();
+      const dbWorker = await getDocById("workers", workerId);
+      if (!dbWorker) {
+        return sendJson(res, 404, { success: false, error: "Worker account not found." });
+      }
 
-      const amountInr = Math.max(
-        1,
-        Math.round(Number(body.amountInr) || Number(dbWorker?.walletBalance) || 0)
+      // Verify caller owns this worker profile (matching registered phone or registered UPI)
+      const regPhone10 = String(dbWorker.phone || "").replace(/[^0-9]/g, "").slice(-10);
+      const reqPhone10 = String(body.workerPhone || "").replace(/[^0-9]/g, "").slice(-10);
+      const regUpi = String(dbWorker.upiId || "").trim().toLowerCase();
+      if (regPhone10 && reqPhone10 !== regPhone10 && (!regUpi || regUpi !== targetUpi.toLowerCase())) {
+        return sendJson(res, 403, {
+          success: false,
+          error: "Withdrawal denied: Phone number or UPI ID does not match the registered worker profile."
+        });
+      }
+
+      // Strictly use server-verified walletBalance — NEVER trust client-supplied body.amountInr!
+      const serverBalance = Math.floor(Number(dbWorker.walletBalance) || 0);
+      if (serverBalance <= 0) {
+        const pendingHold = Math.floor(Number(dbWorker.pendingEscrowBalance) || 0);
+        return sendJson(res, 400, {
+          success: false,
+          error:
+            pendingHold > 0
+              ? `₹${pendingHold} is currently awaiting Admin UTR verification before withdrawal.`
+              : "Withdrawable wallet balance is ₹0."
+        });
+      }
+
+      const amountInr = serverBalance;
+
+      // Atomic conditional balance deduction so parallel requests can NEVER double-withdraw
+      const locked = await MODELS.workers.findOneAndUpdate(
+        { id: workerId, walletBalance: { $gte: amountInr } },
+        { $inc: { walletBalance: -amountInr, totalWithdrawn: amountInr } },
+        { returnDocument: "after", lean: true }
       );
+      if (!locked) {
+        return sendJson(res, 409, {
+          success: false,
+          error: "Wallet balance changed during withdrawal. Please refresh and try again."
+        });
+      }
 
       const fundAccount = await ensureWorkerVpaFundAccount({
-        workerId: workerId || "w-fampay",
-        workerName: body.workerName || dbWorker?.name || "Kaamzo Worker",
-        workerPhone: body.workerPhone || dbWorker?.phone || "9810100000",
+        workerId,
+        workerName: dbWorker.name || "Kaamzo Worker",
+        workerPhone: dbWorker.phone || "9810100000",
         upiId: targetUpi
       });
 
@@ -939,7 +1063,7 @@ module.exports = async function handler(req, res) {
         fundAccountId: fundAccount.fundAccountId,
         upiId: targetUpi,
         amountInr,
-        jobId: `wdr_${workerId || "worker"}`,
+        jobId: `wdr_${workerId}`,
         paymentId: payoutRef
       });
 
@@ -952,21 +1076,17 @@ module.exports = async function handler(req, res) {
         status: `Transferred to ${targetUpi}`
       };
 
-      if (workerId) {
-        try {
-          await connectMongo();
-          const existingHistory = Array.isArray(dbWorker?.withdrawalHistory) ? dbWorker.withdrawalHistory : [];
-          await upsertDoc("workers", workerId, {
-            ...(dbWorker || {}),
-            id: workerId,
-            name: body.workerName || dbWorker?.name || "Kaamzo Worker",
-            upiId: targetUpi,
-            walletBalance: 0,
-            totalWithdrawn: (Number(dbWorker?.totalWithdrawn) || 0) + amountInr,
-            withdrawalHistory: [txEntry, ...existingHistory].slice(0, 30)
-          });
-        } catch (_) {}
-      }
+      try {
+        const freshWorker = await getDocById("workers", workerId);
+        const existingHistory = Array.isArray(freshWorker?.withdrawalHistory) ? freshWorker.withdrawalHistory : [];
+        await upsertDoc("workers", workerId, {
+          ...(freshWorker || dbWorker),
+          id: workerId,
+          upiId: targetUpi,
+          walletBalance: Math.max(0, Number(freshWorker?.walletBalance) || 0),
+          withdrawalHistory: [txEntry, ...existingHistory].slice(0, 30)
+        });
+      } catch (_) {}
 
       return sendJson(res, 200, {
         success: true,

@@ -64,7 +64,10 @@ function hasValidAdminCookie(req) {
     if (!body || !mac) return false;
     const expected = crypto.createHmac("sha256", secret).update(body).digest();
     const given = Buffer.from(mac, "base64url");
-    return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+    if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) return false;
+    const parsed = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    if (parsed && parsed.exp && Number(parsed.exp) < Date.now()) return false;
+    return true;
   } catch {
     return false;
   }
@@ -89,23 +92,126 @@ async function findAccountDocs(identifier, role = "") {
   if (!raw) return [];
   await connectMongo();
   const cleanLower = raw.toLowerCase();
-  const orClauses = [{ id: cleanLower }, { username: cleanLower }];
+  const cleanUid = cleanLower.replace(/^@/, "");
+  const phoneDigits = raw.replace(/[^0-9]/g, "");
+  const phone10 = phoneDigits.length >= 10 ? phoneDigits.slice(-10) : "";
+
+  const orClauses = [{ id: cleanLower }, { id: cleanUid }, { username: cleanLower }, { username: cleanUid }];
+  if (phone10) {
+    orClauses.push({ id: phone10 }, { username: phone10 });
+  }
   const emailHash = hashEmailForLookup(raw);
   if (emailHash) orClauses.push({ emailHash });
-  const phoneDigits = raw.replace(/[^0-9]/g, "");
   if (phoneDigits.length >= 7) {
     const phoneHash = hashPhoneForLookup(raw);
     if (phoneHash) orClauses.push({ phoneHash });
+    if (phone10) {
+      const ph10Hash = hashPhoneForLookup(phone10);
+      const ph91Hash = hashPhoneForLookup("+91" + phone10);
+      const ph91SpHash = hashPhoneForLookup("+91 " + phone10);
+      if (ph10Hash) orClauses.push({ phoneHash: ph10Hash });
+      if (ph91Hash) orClauses.push({ phoneHash: ph91Hash });
+      if (ph91SpHash) orClauses.push({ phoneHash: ph91SpHash });
+    }
   }
-  const docs = await MODELS.accounts.find({ $or: orClauses }).limit(20).lean();
-  const decrypted = docs.map(decryptDocumentFields);
+
+  let docs = await MODELS.accounts.find({ $or: orClauses }).limit(25).lean();
+  let decrypted = docs.map(decryptDocumentFields);
+
+  // Fallback scan across recent decrypted accounts if blind-index formatting differed or user typed their full Name/Email
+  if (decrypted.length === 0) {
+    const allAccs = (await MODELS.accounts.find({}).limit(200).lean()).map(decryptDocumentFields);
+    decrypted = allAccs.filter((acc) => {
+      if (!acc) return false;
+      const aId = String(acc.id || "").trim().toLowerCase();
+      const aUser = String(acc.username || "").trim().toLowerCase();
+      const aName = String(acc.name || "").trim().toLowerCase();
+      const aEm = String((acc.extraData && acc.extraData.email) || acc.email || "").trim().toLowerCase();
+      const aPh = String(acc.phone || (acc.extraData && acc.extraData.phone) || "").replace(/[^0-9]/g, "").slice(-10);
+      return (
+        aId === cleanUid ||
+        aUser === cleanUid ||
+        aName === cleanLower ||
+        (aEm && (aEm === cleanLower || aEm.split("@")[0] === cleanUid)) ||
+        (phone10 && aPh === phone10)
+      );
+    });
+  }
+
+  // Also check `workers` collection if a worker registered directly into workers collection
+  if (decrypted.length === 0) {
+    const allWorkers = (await MODELS.workers.find({}).limit(200).lean()).map(decryptDocumentFields);
+    const matchedWorkers = allWorkers.filter((w) => {
+      if (!w) return false;
+      const wId = String(w.id || "").trim().toLowerCase().replace(/^w-/, "");
+      const wUser = String(w.username || w.userId || "").trim().toLowerCase();
+      const wName = String(w.name || "").trim().toLowerCase();
+      const wEm = String(w.email || "").trim().toLowerCase();
+      const wPh = String(w.phone || "").replace(/[^0-9]/g, "").slice(-10);
+      return (
+        wId === cleanUid ||
+        wUser === cleanUid ||
+        wName === cleanLower ||
+        (wEm && (wEm === cleanLower || wEm.split("@")[0] === cleanUid)) ||
+        (phone10 && wPh === phone10)
+      );
+    });
+    decrypted = matchedWorkers.map((w) => ({
+      id: w.username || w.userId || String(w.id || "").replace(/^w-/, ""),
+      username: w.username || w.userId || String(w.id || "").replace(/^w-/, ""),
+      name: w.name,
+      phone: w.phone || "",
+      email: w.email || "",
+      role: "worker",
+      password: w.password || "",
+      passwordHash: w.passwordHash || "",
+      extraData: {
+        trade: w.primaryTrade || w.trade || "Electrician",
+        rate: w.dailyRate || w.rate || 850,
+        exp: w.experienceYears || 3,
+        area: w.area || "Model Town",
+        city: w.city || "Ludhiana",
+        address: w.address || w.area || "Model Town, Ludhiana",
+        aadhaar: w.aadhaarNumber || "",
+        upi: w.upiId || "",
+        email: w.email || "",
+        photoUrl: w.photoUrl || w.avatar || "",
+        aadhaarFrontPhoto: w.aadhaarFrontPhoto || "",
+        aadhaarBackPhoto: w.aadhaarBackPhoto || "",
+        toolsStatus: w.toolsStatus || "",
+        transportMode: w.transportMode || "",
+        preferredLanguage: w.preferredLanguage || "hi",
+        emergencyContactName: w.emergencyContactName || "",
+        emergencyContactPhone: w.emergencyContactPhone || "",
+        isVerified: Boolean(w.isVerified)
+      }
+    }));
+  }
+
   if (role === "worker" || role === "customer") {
-    return decrypted.filter((acc) => acc && acc.role === role);
+    const roleFiltered = decrypted.filter((acc) => acc && acc.role === role);
+    if (roleFiltered.length > 0) return roleFiltered;
   }
   return decrypted;
 }
 
-function sanitizePublicDoc(collectionName, doc, allowPrivateKyc = false) {
+function isCustomerOwnerOfJob(job, customerKey) {
+  if (!job || !customerKey) return false;
+  const ck = String(customerKey).trim().toLowerCase();
+  if (!ck || ck.length < 3) return false;
+  const candidates = [
+    job.customerId,
+    job.uid,
+    job.customerEmail,
+    job.customerPhone && String(job.customerPhone).replace(/[^0-9]/g, "").slice(-10)
+  ]
+    .filter(Boolean)
+    .map((v) => String(v).trim().toLowerCase());
+  const ckPhone = ck.replace(/[^0-9]/g, "").slice(-10);
+  return candidates.includes(ck) || (ckPhone.length === 10 && candidates.includes(ckPhone));
+}
+
+function sanitizePublicDoc(collectionName, doc, allowPrivateKyc = false, allowJobOtps = false) {
   if (!doc || typeof doc !== "object") return doc;
   const copy = { ...doc };
   delete copy.phoneHash;
@@ -125,6 +231,10 @@ function sanitizePublicDoc(collectionName, doc, allowPrivateKyc = false) {
     delete copy.aadhaarBackPhoto;
     delete copy.emergencyContactPhone;
     delete copy.emergencyContactName;
+  }
+  if (collectionName === "jobs" && !allowPrivateKyc && !allowJobOtps) {
+    delete copy.otpCode;
+    delete copy.endOtpCode;
   }
   return copy;
 }
@@ -333,6 +443,116 @@ module.exports = async function handler(req, res, io = null) {
       });
     }
 
+    // 3d. Atomic Job Claim (Prevents Double-Accept Race Condition & Generates Random Server Start/End OTPs)
+    if (action === "claimJob" && req.method === "POST") {
+      const targetJobId = String(docId || body.jobId || "").trim();
+      const worker = body.worker || {};
+      const workerId = String(worker.id || body.workerId || "").trim();
+      if (!targetJobId || !workerId) {
+        return sendJson(400, { success: false, error: "jobId and workerId are required to claim a job." });
+      }
+      await connectMongo();
+      const existingJob = await getDocById("jobs", targetJobId);
+      if (existingJob) {
+        if (
+          existingJob.assignedWorkerId &&
+          existingJob.assignedWorkerId !== workerId &&
+          existingJob.status &&
+          existingJob.status !== "broadcast"
+        ) {
+          return sendJson(409, {
+            success: false,
+            alreadyClaimed: true,
+            error: "This job was just accepted by another nearby verified worker."
+          });
+        }
+      }
+      const startOtp =
+        existingJob && /^\d{4}$/.test(String(existingJob.otpCode || ""))
+          ? String(existingJob.otpCode)
+          : String(crypto.randomInt(1000, 10000));
+      let endOtp =
+        existingJob && /^\d{4}$/.test(String(existingJob.endOtpCode || "")) && existingJob.endOtpCode !== startOtp
+          ? String(existingJob.endOtpCode)
+          : String(crypto.randomInt(1000, 10000));
+      if (endOtp === startOtp) endOtp = String(((Number(startOtp) + 3571) % 9000) + 1000);
+
+      const claimPatch = {
+        ...(existingJob || body.jobSnapshot || {}),
+        id: targetJobId,
+        status: "accepted",
+        otpCode: startOtp,
+        endOtpCode: endOtp,
+        assignedWorkerId: workerId,
+        assignedWorkerName: String(worker.name || body.workerName || "Verified Worker").trim(),
+        assignedWorkerPhone: String(worker.phone || body.workerPhone || "").trim(),
+        assignedWorkerTrade: String(worker.primaryTrade || (existingJob && existingJob.trade) || "Service").trim(),
+        assignedWorkerUpi: String(worker.upiId || body.workerUpi || "").trim(),
+        acceptedAt: new Date().toISOString()
+      };
+      const savedJob = await upsertDoc("jobs", targetJobId, claimPatch, authResult);
+      return sendJson(200, {
+        success: true,
+        claimed: true,
+        job: sanitizePublicDoc("jobs", savedJob, false, false)
+      });
+    }
+
+    // 3e. Server-Side Start / End Job OTP & QR Verification (Never exposes OTPs to Worker browser)
+    if (action === "verifyJobOtp" && req.method === "POST") {
+      const targetJobId = String(docId || body.jobId || "").trim();
+      const mode = String(body.mode || "start").toLowerCase() === "end" ? "end" : "start";
+      const rawInput = String(body.code || body.otp || "").trim();
+      if (!targetJobId || !rawInput) {
+        return sendJson(400, { success: false, verified: false, error: "Job ID and 4-digit OTP / QR scan are required." });
+      }
+      await connectMongo();
+      const job = await getDocById("jobs", targetJobId);
+      if (!job) {
+        return sendJson(404, { success: false, verified: false, error: "Work order not found." });
+      }
+      let extracted = rawInput;
+      if (/^KAAMZO[_-](START|END):/i.test(rawInput)) {
+        const parts = rawInput.split(":");
+        const scannedJobId = String(parts[1] || "").trim();
+        if (scannedJobId && scannedJobId !== targetJobId) {
+          return sendJson(400, { success: false, verified: false, error: "Scanned QR belongs to a different work order." });
+        }
+        extracted = String(parts[2] || "").trim();
+      }
+      const expectedOtp = String(mode === "end" ? job.endOtpCode || "" : job.otpCode || "").trim();
+      if (!expectedOtp || !/^\d{4}$/.test(extracted) || extracted !== expectedOtp) {
+        return sendJson(400, {
+          success: false,
+          verified: false,
+          error: mode === "end"
+            ? "Invalid End OTP. Ask the customer for their 4-digit End Code or scan their End QR."
+            : "Invalid Start OTP. Ask the customer for their 4-digit Start OTP or scan their Start QR."
+        });
+      }
+      const nextStatus = mode === "end" ? "completed_pending_payment" : "in_progress";
+      const extraPatch =
+        mode === "end"
+          ? {
+              status: nextStatus,
+              endQrVerified: true,
+              completedAt: new Date().toISOString(),
+              ...(body.upiId ? { assignedWorkerUpi: String(body.upiId).trim(), workerUpi: String(body.upiId).trim() } : {})
+            }
+          : {
+              status: nextStatus,
+              startQrVerified: true,
+              startedAt: new Date().toISOString()
+            };
+      const updated = await upsertDoc("jobs", targetJobId, { ...job, ...extraPatch }, authResult);
+      return sendJson(200, {
+        success: true,
+        verified: true,
+        mode,
+        job: sanitizePublicDoc("jobs", updated, false, false)
+      });
+    }
+
     // Block direct read/write of OTP vault (`securityVerifications`) from `/api/db`
     if (collection === "securityVerifications") {
       return sendJson(403, {
@@ -350,15 +570,35 @@ module.exports = async function handler(req, res, io = null) {
 
     // 4. List Documents in Collection
     if (action === "list" && req.method === "GET") {
-      const limit = Number(parsedUrl.searchParams.get("limit") || 100);
+      if (collection === "accounts" && !isPrivilegedAdmin) {
+        return sendJson(403, {
+          success: false,
+          error: "Listing all accounts requires administrator authorization."
+        });
+      }
+      const limit = Math.min(200, Math.max(1, Number(parsedUrl.searchParams.get("limit") || 100)));
       const threadKey = parsedUrl.searchParams.get("threadKey");
+      if (collection === "messages" && !threadKey && !isPrivilegedAdmin) {
+        return sendJson(400, {
+          success: false,
+          error: "threadKey is required when listing messages."
+        });
+      }
+      const customerKey = parsedUrl.searchParams.get("customerKey") || "";
       const filter = collection === "messages" && threadKey ? { threadKey: String(threadKey) } : {};
       const docs = await listDocs(collection, limit, filter);
       return sendJson(200, {
         success: true,
         collection,
         count: docs.length,
-        docs: docs.map((d) => sanitizePublicDoc(collection, d, isPrivilegedAdmin))
+        docs: docs.map((d) =>
+          sanitizePublicDoc(
+            collection,
+            d,
+            isPrivilegedAdmin,
+            collection === "jobs" && isCustomerOwnerOfJob(d, customerKey || authResult.email || authResult.uid)
+          )
+        )
       });
     }
 
@@ -367,28 +607,99 @@ module.exports = async function handler(req, res, io = null) {
       if (!docId) {
         return sendJson(400, { success: false, error: "Document id is required" });
       }
+      const customerKey = parsedUrl.searchParams.get("customerKey") || body.customerKey || "";
       const doc = await getDocById(collection, docId);
+      const allowJobOtps =
+        collection === "jobs" && isCustomerOwnerOfJob(doc, customerKey || authResult.email || authResult.uid);
       return sendJson(200, {
         success: true,
         collection,
         exists: !!doc,
-        doc: sanitizePublicDoc(collection, doc, isPrivilegedAdmin)
+        doc: sanitizePublicDoc(collection, doc, isPrivilegedAdmin, allowJobOtps)
       });
     }
 
-    // 6. Upsert Document
+    // 6. Upsert Document (Hardened against financial/KYC/ownership tampering)
     if (action === "upsert") {
-      const payload = body.data || body.doc || body;
+      const rawPayload = body.data || body.doc || body;
+      const payload = rawPayload && typeof rawPayload === "object" ? { ...rawPayload } : {};
       const targetId = String(docId || payload.id || `doc_${Date.now()}`).trim();
-      const savedDoc = await upsertDoc(collection, targetId, payload, authResult);
+      const existingDoc = await getDocById(collection, targetId).catch(() => null);
 
-      const safeDoc = sanitizePublicDoc(collection, savedDoc);
+      if (!isPrivilegedAdmin) {
+        if (collection === "workers") {
+          if (existingDoc) {
+            payload.walletBalance = Number(existingDoc.walletBalance) || 0;
+            payload.pendingEscrowBalance = Number(existingDoc.pendingEscrowBalance) || 0;
+            payload.totalEarnings = Number(existingDoc.totalEarnings) || 0;
+            payload.todayEarnings = Number(existingDoc.todayEarnings) || 0;
+            payload.totalWithdrawn = Number(existingDoc.totalWithdrawn) || 0;
+            payload.isVerified = Boolean(existingDoc.isVerified);
+            payload.isBlocked = Boolean(existingDoc.isBlocked);
+            payload.isBanned = Boolean(existingDoc.isBanned);
+            if (existingDoc.blockReason) payload.blockReason = existingDoc.blockReason;
+          } else {
+            payload.walletBalance = 0;
+            payload.pendingEscrowBalance = 0;
+            payload.totalEarnings = 0;
+            payload.todayEarnings = 0;
+            payload.totalWithdrawn = 0;
+            payload.isBlocked = false;
+            payload.isBanned = false;
+          }
+        } else if (collection === "jobs") {
+          if (existingDoc) {
+            // Prevent second worker from overwriting an already-claimed job
+            if (
+              existingDoc.assignedWorkerId &&
+              payload.assignedWorkerId &&
+              existingDoc.assignedWorkerId !== payload.assignedWorkerId &&
+              existingDoc.status &&
+              existingDoc.status !== "broadcast"
+            ) {
+              return sendJson(409, {
+                success: false,
+                alreadyClaimed: true,
+                error: "This job is already assigned to another worker."
+              });
+            }
+            // Prevent client from forging payment settlement via /api/db
+            payload.isPaid = Boolean(existingDoc.isPaid);
+            payload.paidVia = existingDoc.paidVia;
+            payload.transactionRef = existingDoc.transactionRef;
+            payload.upiUtr = existingDoc.upiUtr;
+            payload.razorpayPaymentId = existingDoc.razorpayPaymentId;
+            if (existingDoc.isPaid && payload.status !== "paid_and_closed") {
+              payload.status = existingDoc.status;
+            }
+            if (existingDoc.otpCode) payload.otpCode = existingDoc.otpCode;
+            if (existingDoc.endOtpCode) payload.endOtpCode = existingDoc.endOtpCode;
+          } else {
+            payload.isPaid = false;
+            delete payload.transactionRef;
+            delete payload.upiUtr;
+            delete payload.razorpayPaymentId;
+            if (!/^\d{4}$/.test(String(payload.otpCode || ""))) {
+              payload.otpCode = String(crypto.randomInt(1000, 10000));
+            }
+            if (!/^\d{4}$/.test(String(payload.endOtpCode || "")) || payload.endOtpCode === payload.otpCode) {
+              payload.endOtpCode = String(crypto.randomInt(1000, 10000));
+            }
+          }
+        }
+      }
+
+      const savedDoc = await upsertDoc(collection, targetId, payload, authResult);
+      const allowJobOtps =
+        collection === "jobs" &&
+        isCustomerOwnerOfJob(savedDoc, body.customerKey || payload.customerEmail || payload.customerId || authResult.email || authResult.uid);
+      const safeDoc = sanitizePublicDoc(collection, savedDoc, isPrivilegedAdmin, allowJobOtps);
       if (io) {
         io.emit("db:change", {
           action: "upsert",
           collection,
           id: targetId,
-          doc: safeDoc,
+          doc: sanitizePublicDoc(collection, savedDoc, false, false),
           timestamp: Date.now()
         });
       }

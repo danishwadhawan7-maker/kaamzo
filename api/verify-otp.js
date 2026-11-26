@@ -118,12 +118,22 @@ module.exports = async function handler(req, res) {
       return sendJson(400, { success: false, error: "Please enter a valid 6-digit numeric OTP." });
     }
 
+    let tokenPayload = null;
+    if (token) {
+      try {
+        tokenPayload = decryptOtpToken(token);
+      } catch (_) {
+        tokenPayload = null;
+      }
+    }
+    const effectiveRecipient = String(rawRecipient || (tokenPayload && tokenPayload.recipient) || "").trim();
+
     const clientIp =
       (req.headers && req.headers["x-forwarded-for"] && String(req.headers["x-forwarded-for"]).split(",")[0].trim()) ||
       (req.socket && req.socket.remoteAddress) ||
       "127.0.0.1";
 
-    const rl = checkRateLimit(`verify_otp_${clientIp}_${rawRecipient.toLowerCase()}`, 8, 60 * 1000);
+    const rl = checkRateLimit(`verify_otp_${clientIp}_${effectiveRecipient.toLowerCase()}`, 8, 60 * 1000);
     if (!rl.allowed) {
       res.setHeader("Retry-After", String(rl.retryAfterSec));
       return sendJson(429, {
@@ -133,9 +143,9 @@ module.exports = async function handler(req, res) {
     }
 
     // 1. Verify via MongoDB `securityVerifications` (stateful single-use & attempt-limited)
-    if (rawRecipient) {
-      const isEmail = rawRecipient.includes("@");
-      const canonical = isEmail ? rawRecipient.toLowerCase() : normalizeIndianPhone(rawRecipient);
+    if (effectiveRecipient) {
+      const isEmail = effectiveRecipient.includes("@");
+      const canonical = isEmail ? effectiveRecipient.toLowerCase() : normalizeIndianPhone(effectiveRecipient);
       const recId = isEmail ? hashEmailForLookup(canonical) : (hashPhoneForLookup(canonical) || hmacBlindIndex(canonical));
       const doc = await getDocById("securityVerifications", recId).catch(() => null);
       if (doc) {
@@ -165,22 +175,28 @@ module.exports = async function handler(req, res) {
             error: "Invalid OTP code. Please check the 6-digit code and try again."
           });
         }
+      } else {
+        // Record was already consumed or expired/locked out -> reject stateless token replay!
+        return sendJson(400, {
+          success: false,
+          expired: true,
+          error: "OTP already used or expired. Please request a new verification code."
+        });
       }
     }
 
-    // 2. Verify via sealed AES-256-GCM encryptedOtpToken fallback
-    if (token) {
-      const payload = decryptOtpToken(token);
-      if (!payload || Date.now() > payload.exp) {
+    // 2. Fallback only if MongoDB was unreachable at send time and no recipient could be indexed
+    if (tokenPayload) {
+      if (Date.now() > tokenPayload.exp) {
         return sendJson(400, { success: false, expired: true, error: "OTP token expired or invalid." });
       }
-      const expectedBuf = Buffer.from(payload.codeHash, "hex");
-      const actualBuf = crypto.createHash("sha256").update(`${submittedOtp}:${payload.salt}`).digest();
+      const expectedBuf = Buffer.from(tokenPayload.codeHash, "hex");
+      const actualBuf = crypto.createHash("sha256").update(`${submittedOtp}:${tokenPayload.salt}`).digest();
       if (expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf)) {
         return sendJson(200, {
           success: true,
           verified: true,
-          recipient: payload.recipient,
+          recipient: tokenPayload.recipient,
           encryption: "AES-256-GCM + Salted SHA-256"
         });
       }
