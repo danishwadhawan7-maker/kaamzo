@@ -42,7 +42,6 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.9",
     "@capacitor/cli": "^6.0.0",
-    "@playwright/test": "^1.65.1",
-    "webcrack": "^2.16.0"
+    "@playwright/test": "^1.65.1"
   }
 }
