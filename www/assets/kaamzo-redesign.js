@@ -5285,6 +5285,7 @@
         app.loginCustomer?.(updated);
       }
 
+      let failedSave = false;
       try {
         const accountId = activeUser.userId || activeUser.username || cleanUser;
         const reqs = [
@@ -5323,11 +5324,20 @@
             })
           );
         }
-        await Promise.allSettled(reqs);
-      } catch (_) {}
+        const results = await Promise.allSettled(reqs);
+        for (const r of results) {
+          if (r.status !== "fulfilled" || !r.value || !r.value.ok) failedSave = true;
+        }
+      } catch (_) {
+        failedSave = true;
+      }
 
       setSaving(false);
-      app.showNotification?.("✓ Profile, username & ID card updated!");
+      app.showNotification?.(
+        failedSave
+          ? "⚠ Saved on this device, but the server could not save your profile. Check your connection and tap Save again."
+          : "✓ Profile, username & ID card updated!"
+      );
     };
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
