@@ -14936,6 +14936,8 @@
     const LegacyAdmin = ctx && ctx.LegacyAdmin;
     const [policySearch, setPolicySearch] = useState("");
     const [blockTick, setBlockTick] = useState(0);
+    const [removedWorkerIds, setRemovedWorkerIds] = useState(() => new Set());
+    const [removingId, setRemovingId] = useState("");
     const [ledgerFilter, setLedgerFilter] = useState("paid_or_escrow");
     const [ledgerSearch, setLedgerSearch] = useState("");
 
@@ -15099,9 +15101,63 @@
       } catch (_) {}
     };
 
+    const removeWorkerPermanently = async (w) => {
+      if (!w || !w.id || removingId) return;
+      const confirmed = window.confirm(
+        `Permanently remove worker "${w.name || w.id}" from Kaamzo?\n\nThis will delete their worker profile, KYC record, and worker login account.`
+      );
+      if (!confirmed) return;
+      setRemovingId(w.id);
+      try {
+        const resp = await fetch("/api/db", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "deleteWorker",
+            workerId: w.id,
+            userId: w.userId || w.username || "",
+            phone: w.phone || "",
+            email: w.email || "",
+          }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || data.success === false) {
+          app.showNotification?.(data.error || "Could not remove worker from database. Please ensure you are logged in as Admin.");
+          setRemovingId("");
+          return;
+        }
+        // Remove locally as well so UI updates immediately across all tabs
+        setRemovedWorkerIds((prev) => {
+          const next = new Set(prev);
+          next.add(w.id);
+          return next;
+        });
+        if (Array.isArray(app.workers)) {
+          const idx = app.workers.findIndex((item) => item && item.id === w.id);
+          if (idx >= 0) app.workers.splice(idx, 1);
+        }
+        try {
+          const raw = localStorage.getItem("kaamzo_workers_zero_v8");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              localStorage.setItem("kaamzo_workers_zero_v8", JSON.stringify(parsed.filter((item) => item && item.id !== w.id)));
+            }
+          }
+        } catch (_) {}
+        setBlockTick((n) => n + 1);
+        app.showNotification?.(`🗑 Permanently removed worker "${w.name || w.id}".`);
+      } catch (_) {
+        app.showNotification?.("Network error removing worker. Please try again.");
+      }
+      setRemovingId("");
+    };
+
     const filteredPolicyWorkers = useMemo(() => {
       const q = policySearch.trim().toLowerCase();
       return workers.filter((w) => {
+        if (!w || removedWorkerIds.has(w.id)) return false;
         if (!q) return true;
         return (
           String(w.name || "").toLowerCase().includes(q) ||
@@ -15110,7 +15166,7 @@
           String(w.id || "").toLowerCase().includes(q)
         );
       });
-    }, [workers, policySearch, blockTick]);
+    }, [workers, policySearch, blockTick, removedWorkerIds]);
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
@@ -15731,7 +15787,7 @@
               "div",
               { style: { display: "flex", flexDirection: "column", gap: "4px" } },
               h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "0.8px", color: "#9B1C1C" } }, "COMPANY POLICY ENFORCEMENT · BAN / BLOCK WORKERS"),
-              h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, "Block or reinstate workers for company policy compliance")
+              h("h2", { style: { margin: 0, fontSize: "22px", fontWeight: 800 } }, "Block, reinstate, or remove workers")
             ),
             h("input", {
               type: "text",
@@ -15815,24 +15871,47 @@
                       )
                   ),
                   h(
-                    "button",
-                    {
-                      type: "button",
-                      onClick: () => toggleBlockWorker(w),
-                      style: {
-                        height: "36px",
-                        padding: "0 14px",
-                        borderRadius: "999px",
-                        border: 0,
-                        background: blocked ? "#2E9E57" : "#E5484D",
-                        color: "#FFFFFF",
-                        fontWeight: 800,
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        flexShrink: 0,
+                    "div",
+                    { style: { display: "flex", gap: "6px", flexShrink: 0, alignItems: "center" } },
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        onClick: () => toggleBlockWorker(w),
+                        style: {
+                          height: "36px",
+                          padding: "0 12px",
+                          borderRadius: "999px",
+                          border: 0,
+                          background: blocked ? "#2E9E57" : "#F5A524",
+                          color: blocked ? "#FFFFFF" : "#1C1913",
+                          fontWeight: 800,
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        },
                       },
-                    },
-                    blocked ? "Unblock" : "Block Worker"
+                      blocked ? "Unblock" : "Block"
+                    ),
+                    h(
+                      "button",
+                      {
+                        type: "button",
+                        disabled: removingId === w.id,
+                        onClick: () => removeWorkerPermanently(w),
+                        style: {
+                          height: "36px",
+                          padding: "0 12px",
+                          borderRadius: "999px",
+                          border: 0,
+                          background: "#B42318",
+                          color: "#FFFFFF",
+                          fontWeight: 800,
+                          fontSize: "12px",
+                          cursor: removingId === w.id ? "wait" : "pointer",
+                        },
+                      },
+                      removingId === w.id ? "Removing…" : "🗑 Remove"
+                    )
                   )
                 ),
                 (w.aadhaarFrontPhoto || w.aadhaarBackPhoto) &&

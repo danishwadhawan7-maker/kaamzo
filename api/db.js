@@ -713,6 +713,60 @@ module.exports = async function handler(req, res, io = null) {
       });
     }
 
+    // 7. Admin Permanently Remove Worker (deletes from workers, verifications, and worker accounts)
+    if (action === "deleteWorker" && req.method === "POST") {
+      if (!isPrivilegedAdmin) {
+        return sendJson(401, {
+          success: false,
+          error: "Unauthorized: Removing a worker requires an authenticated Admin session."
+        });
+      }
+      const targetWorkerId = String(body.workerId || docId || "").trim();
+      if (!targetWorkerId) {
+        return sendJson(400, { success: false, error: "workerId is required." });
+      }
+      await connectMongo();
+      const existingWorker = await getDocById("workers", targetWorkerId);
+      await MODELS.workers.deleteOne({ id: targetWorkerId });
+      await MODELS.verifications.deleteMany({
+        $or: [{ workerId: targetWorkerId }, { id: `ver_${targetWorkerId}` }]
+      });
+
+      const accOr = [{ id: targetWorkerId }, { username: targetWorkerId }];
+      const userId = String(body.userId || (existingWorker && (existingWorker.userId || existingWorker.username)) || "").trim().toLowerCase();
+      if (userId) accOr.push({ id: userId }, { username: userId });
+      const phone = String(body.phone || (existingWorker && existingWorker.phone) || "").trim();
+      if (phone) {
+        const phHash = hashPhoneForLookup(phone);
+        if (phHash) accOr.push({ phoneHash: phHash });
+        const digits10 = phone.replace(/[^0-9]/g, "").slice(-10);
+        if (digits10.length === 10) {
+          accOr.push({ id: digits10 }, { username: digits10 });
+          const ph10Hash = hashPhoneForLookup(digits10);
+          if (ph10Hash) accOr.push({ phoneHash: ph10Hash });
+        }
+      }
+      const email = String(body.email || (existingWorker && existingWorker.email) || "").trim().toLowerCase();
+      if (email) {
+        const emHash = hashEmailForLookup(email);
+        if (emHash) accOr.push({ emailHash: emHash });
+      }
+      await MODELS.accounts.deleteMany({ role: "worker", $or: accOr });
+
+      if (io) {
+        io.emit("db:change", {
+          action: "deleteWorker",
+          collection: "workers",
+          id: targetWorkerId,
+          timestamp: Date.now()
+        });
+      }
+      return sendJson(200, {
+        success: true,
+        deletedWorkerId: targetWorkerId
+      });
+    }
+
     return sendJson(400, { success: false, error: `Unsupported action '${action}'` });
   } catch (err) {
     console.error("[Kaamzo MongoDB API Error]:", err.message);
