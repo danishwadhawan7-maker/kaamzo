@@ -8193,24 +8193,24 @@
               h(
                 "h1",
                 { style: { margin: 0, fontSize: "38px", lineHeight: 1.05, letterSpacing: "-1px", fontWeight: 800 } },
-                "Welcome to Kaamzo, ",
+                isWorker ? "Application submitted, " : "Welcome to Kaamzo, ",
                 h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, (name.trim().split(" ")[0] || "friend") + "!")
               ),
               h(
                 "p",
-                { style: { margin: 0, fontSize: "15px", lineHeight: 1.5, color: "#4A443A", maxWidth: "380px" } },
+                { style: { margin: 0, fontSize: "15px", lineHeight: 1.5, color: "#4A443A", maxWidth: "400px" } },
                 isWorker
-                  ? `Your ${activeTradeObj.name} profile is live in ${area}. Check your nearby 10 km job board now.`
+                  ? `Your ${activeTradeObj.name} profile & Aadhaar KYC are under Admin review. You will be unlocked automatically as soon as verification completes.`
                   : `Your Employer account is active in ${area}. Find Aadhaar-verified workers within 10 km.`
               ),
               h(
                 "button",
                 {
                   type: "button",
-                  onClick: () => navigate(isWorker ? "/jobs" : "/customer", { role: isWorker ? "worker" : "customer" }),
+                  onClick: () => navigate(isWorker ? "/worker" : "/customer", { role: isWorker ? "worker" : "customer" }),
                   style: { height: "56px", padding: "0 26px", border: 0, borderRadius: "999px", background: "#1C1913", color: "#FBF8F2", fontWeight: 800, display: "flex", alignItems: "center", fontSize: "16px" },
                 },
-                isWorker ? "See jobs near you →" : "Open Customer Portal →"
+                isWorker ? "View Verification Status →" : "Open Customer Portal →"
               ),
               h(
                 "button",
@@ -14634,17 +14634,263 @@
     );
   }
 
+  function WorkerVerificationWaitingView({ worker }) {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+    const [checking, setChecking] = useState(false);
+    const [lastChecked, setLastChecked] = useState("");
+    const [rejectedReason, setRejectedReason] = useState("");
+
+    const workerId = worker?.id || "";
+
+    const checkApprovalNow = async (silent) => {
+      if (!workerId) return;
+      if (!silent) setChecking(true);
+      try {
+        const res = await fetch(`/api/db?action=get&collection=workers&id=${encodeURIComponent(workerId)}`);
+        if (res.ok) {
+          const json = await res.json().catch(() => ({}));
+          const doc = json && json.exists && json.doc ? json.doc : null;
+          if (doc && (doc.isVerified === true || doc.verificationStatus === "approved")) {
+            const updated = Object.assign({}, worker, doc, { isVerified: true, verificationStatus: "approved" });
+            app.loginWorker?.(updated);
+            app.showNotification?.("✓ Your KYC is approved! Your 10 km job board is now unlocked.");
+            setChecking(false);
+            return;
+          }
+          if (doc && doc.verificationStatus === "rejected") {
+            setRejectedReason(doc.rejectionReason || "Your KYC documents could not be verified. Please contact support.");
+          }
+        }
+        setLastChecked(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+      } catch (_) {}
+      if (!silent) setChecking(false);
+    };
+
+    useEffect(() => {
+      if (!workerId) return;
+      checkApprovalNow(true);
+      const iv = setInterval(() => checkApprovalNow(true), 6000);
+      return () => clearInterval(iv);
+    }, [workerId]);
+
+    const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
+    const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
+    const subCol = isDark ? "#B0A899" : "#4A443A";
+    const maskedAadhaar = worker?.aadhaarLast4
+      ? `XXXX-XXXX-${worker.aadhaarLast4}`
+      : worker?.aadhaarNumber
+      ? `XXXX-XXXX-${String(worker.aadhaarNumber).slice(-4)}`
+      : "Submitted";
+
+    return h(
+      "main",
+      { style: { maxWidth: "760px", margin: "0 auto", padding: "36px 20px 80px", display: "flex", flexDirection: "column", gap: "20px" } },
+      h(
+        "section",
+        {
+          style: {
+            borderRadius: "28px",
+            background: cardBg,
+            border: "1px solid " + borderCol,
+            padding: "28px",
+            boxShadow: "0 20px 44px rgba(80,50,10,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+          },
+        },
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" } },
+          h(
+            "span",
+            {
+              style: {
+                padding: "6px 14px",
+                borderRadius: "999px",
+                background: rejectedReason ? "#FFE1E1" : "#FFF0BF",
+                color: rejectedReason ? "#8A1C1C" : "#6B4600",
+                fontSize: "12px",
+                fontWeight: 800,
+                letterSpacing: "0.6px",
+              },
+            },
+            rejectedReason ? "⛔ VERIFICATION NEEDS ATTENTION" : "⏳ ADMIN KYC VERIFICATION IN PROGRESS"
+          ),
+          lastChecked &&
+            h("span", { style: { fontSize: "12px", fontWeight: 700, color: subCol } }, `Auto-checking · Last checked ${lastChecked}`)
+        ),
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+          h(
+            "h1",
+            { style: { margin: 0, fontSize: "clamp(28px, 4vw, 38px)", lineHeight: 1.08, letterSpacing: "-1px", fontWeight: 800 } },
+            rejectedReason ? "Verification " : "Waiting for Admin ",
+            h(
+              "span",
+              { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } },
+              rejectedReason ? "update." : "approval."
+            )
+          ),
+          h(
+            "p",
+            { style: { margin: 0, fontSize: "15px", lineHeight: 1.55, color: subCol } },
+            rejectedReason ||
+              `Thank you, ${worker?.name || "Partner"}! Our verification team is matching your live selfie with your Aadhaar Front & Back photos. This page refreshes automatically every few seconds — your 10 km job board will unlock as soon as Admin approves your profile.`
+          )
+        ),
+
+        // 3-Step Verification Progress Checklist
+        h(
+          "div",
+          { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "10px" } },
+          [
+            { step: "1. Profile & KYC Submitted", sub: "Aadhaar + Live Selfie received", bg: "#E3F4E8", fg: "#1D6B36", icon: "✓" },
+            { step: "2. Admin ID & Selfie Match", sub: "Usually takes 5–30 minutes", bg: "#FFF7E3", fg: "#7A4E00", icon: "⏳" },
+            { step: "3. 10 km Job Board Unlocks", sub: "Accept jobs & get UPI payouts", bg: isDark ? "#27231C" : "#F4EEE3", fg: subCol, icon: "🔒" },
+          ].map((item) =>
+            h(
+              "div",
+              {
+                key: item.step,
+                style: {
+                  padding: "14px",
+                  borderRadius: "18px",
+                  background: item.bg,
+                  color: item.fg,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                },
+              },
+              h("b", { style: { fontSize: "13.5px" } }, `${item.icon} ${item.step}`),
+              h("span", { style: { fontSize: "12px", opacity: 0.9 } }, item.sub)
+            )
+          )
+        ),
+
+        // Submitted Profile Summary
+        h(
+          "div",
+          {
+            style: {
+              padding: "16px",
+              borderRadius: "20px",
+              background: isDark ? "#181510" : "#FBF8F2",
+              border: "1px solid " + borderCol,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "12px",
+            },
+          },
+          [
+            { k: "WORKER NAME", v: worker?.name || "—" },
+            { k: "PRIMARY TRADE", v: worker?.primaryTrade || worker?.trade || "—" },
+            { k: "AREA / CITY", v: `${worker?.area || "Ludhiana"}, ${worker?.city || "Ludhiana"}` },
+            { k: "AADHAAR KYC", v: maskedAadhaar },
+          ].map((row) =>
+            h(
+              "div",
+              { key: row.k, style: { display: "flex", flexDirection: "column", gap: "2px" } },
+              h("span", { style: { fontSize: "10.5px", fontWeight: 800, letterSpacing: "0.6px", color: subCol } }, row.k),
+              h("b", { style: { fontSize: "14px" } }, row.v)
+            )
+          )
+        ),
+
+        // Action buttons
+        h(
+          "div",
+          { style: { display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" } },
+          h(
+            "button",
+            {
+              type: "button",
+              disabled: checking,
+              onClick: () => checkApprovalNow(false),
+              style: {
+                height: "48px",
+                padding: "0 22px",
+                borderRadius: "999px",
+                border: 0,
+                background: "#1C1913",
+                color: "#F5A524",
+                fontWeight: 800,
+                fontSize: "14px",
+                cursor: checking ? "wait" : "pointer",
+              },
+            },
+            checking ? "Checking status…" : "🔄 Check Approval Status"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => navigate("/worker/support", { role: "worker" }),
+              style: {
+                height: "48px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: "1px solid " + borderCol,
+                background: "transparent",
+                color: isDark ? "#EDE6DA" : "#1C1913",
+                fontWeight: 800,
+                fontSize: "13.5px",
+                cursor: "pointer",
+              },
+            },
+            "Need Help?"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => {
+                app.logoutWorker?.();
+                app.logoutCustomer?.();
+                app.setSsoGoogleUser?.(null);
+                navigate("/", { role: "select_role" });
+              },
+              style: {
+                height: "48px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: 0,
+                background: "transparent",
+                color: "#B42318",
+                fontWeight: 800,
+                fontSize: "13.5px",
+                cursor: "pointer",
+              },
+            },
+            "Sign out"
+          )
+        )
+      )
+    );
+  }
+
   KZ.views.JobsPage = function JobsPage({ path }) {
-    return h(WorkerShell, { path }, h(JobsFeedView, null));
+    const app = useApp();
+    const w = app.currentWorker;
+    const isPendingWorker = Boolean(w && !w.isVerified && w.verificationStatus !== "approved");
+    return h(WorkerShell, { path }, isPendingWorker ? h(WorkerVerificationWaitingView, { worker: w }) : h(JobsFeedView, null));
   };
 
   KZ.views.WorkerPortal = function WorkerPortal({ path }) {
+    const app = useApp();
+    const w = app.currentWorker;
+    const isPendingWorker = Boolean(w && !w.isVerified && w.verificationStatus !== "approved");
+
     let body = null;
-    if (path === "/worker/account-and-pay") body = h(WorkerAccountPayView, null);
+    if (path === "/worker/support") body = h(WorkerSupportView, null);
+    else if (isPendingWorker) body = h(WorkerVerificationWaitingView, { worker: w });
+    else if (path === "/worker/account-and-pay") body = h(WorkerAccountPayView, null);
     else if (path === "/worker/khata-and-gate-pass") body = h(WorkerKhataView, null);
     else if (path === "/worker/bonus-ladder-calculator") body = h(WorkerBonusLadderView, null);
     else if (path === "/worker/live-job" || path === "/worker/work") body = h(WorkerLiveJobView, null);
-    else if (path === "/worker/support") body = h(WorkerSupportView, null);
     else body = h(WorkerWorkHomeView, null);
 
     return h(WorkerShell, { path }, body);
