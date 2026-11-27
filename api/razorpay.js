@@ -17,9 +17,9 @@ const {
 } = require("razorpay/dist/utils/razorpay-utils");
 const { connectMongo, getDocById, upsertDoc, MODELS } = require("../lib/models");
 
-const DEFAULT_KEY_ID = process.env.RAZORPAY_KEY_ID || "rzp_test_U25bPjykCCHuUg";
-const DEFAULT_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "BB6kS7ldkGy7868tIuplC6Fd";
-const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || "kaamzo_rzp_webhook_secret_test";
+const DEFAULT_KEY_ID = process.env.RAZORPAY_KEY_ID || "";
+const DEFAULT_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "";
+const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
 function getRazorpayCredentials() {
   const keyId = (process.env.RAZORPAY_KEY_ID || DEFAULT_KEY_ID).trim();
