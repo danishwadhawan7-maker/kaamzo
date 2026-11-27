@@ -10223,16 +10223,6 @@
         h(
           "div",
           { style: { display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" } },
-          cust &&
-            h(
-              "button",
-              {
-                type: "button",
-                onClick: () => KZ.openProfileEditor?.(),
-                style: { height: "52px", padding: "0 20px", borderRadius: "999px", border: "1.5px solid #F5A524", background: isDark ? "#27231C" : "#FFF7E3", color: isDark ? "#F5A524" : "#7A4E00", fontWeight: 800, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" },
-              },
-              "✏️ Edit Username, Photo & ID Card"
-            ),
           h(
             "button",
             {
@@ -14080,15 +14070,6 @@
         h(
           "div",
           { style: { display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" } },
-          h(
-            "button",
-            {
-              type: "button",
-              onClick: () => KZ.openProfileEditor?.(),
-              style: { height: "44px", padding: "0 18px", borderRadius: "999px", border: "1.5px solid #F5A524", background: isDark ? "#27231C" : "#FFF7E3", color: isDark ? "#F5A524" : "#7A4E00", fontWeight: 800, fontSize: "13.5px", cursor: "pointer" },
-            },
-            "✏️ Edit Username, Photo & ID Card"
-          ),
           h("span", { style: { height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px", display: "flex", alignItems: "center" } }, "✓ 100% settled via FamPay / UPI")
         )
       ),
