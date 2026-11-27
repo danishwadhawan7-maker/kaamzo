@@ -13216,71 +13216,93 @@
     const app = useApp();
     const isDark = app.isDarkMode;
     const worker = app.currentWorker;
-    const jobs = app.jobs || [];
-    const escrowPending = jobs
-      .filter((j) => worker && j.assignedWorkerId === worker.id && ["accepted", "approved", "in_progress", "completed_pending_payment"].includes(j.status))
-      .reduce((acc, j) => acc + (j.workerPayout || Math.round((j.dailyWage || 850) * (j.durationDays || 1) * 0.8)), 0);
+    const workerName = worker?.name || "Worker";
+    const isVerified = Boolean(worker?.isVerified || worker?.verificationStatus === "approved");
 
     const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
     const borderCol = isDark ? "#2E2A22" : "#EFE7DA";
 
     return h(
       "main",
-      { style: { maxWidth: "1320px", margin: "0 auto", padding: "28px 24px 60px", display: "flex", flexDirection: "column", gap: "24px" } },
+      { style: { maxWidth: "820px", margin: "0 auto", padding: "28px 24px 60px", display: "flex", flexDirection: "column", gap: "24px" } },
       h(
         "div",
         { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-        h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1px", color: "#7A4E00" } }, "WORKER EARNINGS & GATE-PASS ID"),
-        h("h1", { style: { margin: 0, fontSize: "clamp(34px,4vw,52px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } }, "Digital khata & ", h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "gate-pass.")),
-        h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A", maxWidth: "720px", lineHeight: 1.5 } }, "Every rupee you earn, plus an Aadhaar-linked digital ID pass accepted at gated colonies and industrial sites.")
+        h("span", { style: { fontSize: "13px", fontWeight: 800, letterSpacing: "1px", color: "#7A4E00" } }, "KAAMZO VERIFIED GATE-PASS ID"),
+        h("h1", { style: { margin: 0, fontSize: "clamp(34px,4vw,50px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } }, "QR Khata & ", h("span", { style: { fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontWeight: 400 } }, "verification.")),
+        h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A", maxWidth: "680px", lineHeight: 1.5 } }, "Official Kaamzo worker verification pass accepted at homes, gated colonies, and industrial sites.")
       ),
       h(
         "section",
-        { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "14px" } },
-        h("div", { style: { borderRadius: "28px", background: "#1C1913", color: "#FBF8F2", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } }, h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#F3C969" } }, "WITHDRAWABLE"), h("span", { style: { fontFamily: "'Instrument Serif',serif", fontSize: "52px", lineHeight: 1 } }, formatInr(worker?.walletBalance || 0)), h("span", { style: { fontSize: "13px", color: "#CFC6B8" } }, "Ready for instant UPI payout")),
-        h("div", { style: { borderRadius: "28px", background: "#FFF0BF", color: "#1C1913", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } }, h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#6B4600" } }, "ESCROW PENDING"), h("span", { style: { fontFamily: "'Instrument Serif',serif", fontSize: "52px", lineHeight: 1 } }, formatInr(escrowPending)), h("span", { style: { fontSize: "13px", color: "#4A443A" } }, "Releases on start/end verification")),
-        h("div", { style: { borderRadius: "28px", background: "#E3F4E8", color: "#1C1913", padding: "22px", display: "flex", flexDirection: "column", gap: "6px" } }, h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#1D6B36" } }, "TOTAL WITHDRAWN"), h("span", { style: { fontFamily: "'Instrument Serif',serif", fontSize: "52px", lineHeight: 1 } }, formatInr(worker?.totalWithdrawn || 0)), h("span", { style: { fontSize: "13px", color: "#2D4A36" } }, "80% net payout (20% fee)"))
-      ),
-      h(
-        "div",
-        { style: { display: "flex", flexWrap: "wrap", gap: "24px", alignItems: "flex-start" } },
-        // Ledger & Withdraw
+        {
+          style: {
+            borderRadius: "28px",
+            background: isVerified ? "#E3F4E8" : cardBg,
+            border: "2px solid " + (isVerified ? "#2E9E57" : borderCol),
+            padding: "24px",
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+            flexWrap: "wrap",
+          },
+        },
         h(
-          "section",
-          { style: { flex: "1 1 460px", borderRadius: "30px", background: cardBg, border: "1px solid " + borderCol, padding: "24px", display: "flex", flexDirection: "column", gap: "14px" } },
-          h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("b", { style: { fontSize: "20px" } }, "Payout Ledger"), h("button", { type: "button", onClick: () => withdrawWorkerToFampay(app, worker?.upiId || "6284194807@fam"), style: { height: "40px", padding: "0 18px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "13px", cursor: "pointer" } }, "Withdraw Wallet →")),
-          (worker?.withdrawalHistory || []).length === 0
-            ? h("span", { style: { color: isDark ? "#A49B8C" : "#6F685D" } }, "Completed UPI withdrawals and settlement reference IDs will appear here.")
-            : worker.withdrawalHistory.map((tx) =>
-                h(
-                  "div",
-                  { key: tx.id, style: { display: "flex", justifyContent: "space-between", padding: "12px 14px", borderRadius: "16px", background: isDark ? "#27231C" : "#FBF8F2" } },
-                  h("div", null, h("b", null, tx.refId || tx.id), h("div", { style: { fontSize: "12px", color: isDark ? "#A49B8C" : "#6F685D" } }, `${tx.upiId} · ${tx.timestamp}`)),
-                  h("b", { style: { color: "#1D6B36" } }, "+" + formatInr(tx.amount))
-                )
-              )
-        ),
-
-        // Gate Pass QR Card
-        h(
-          "aside",
-          { style: { flex: "1 1 360px", borderRadius: "32px", background: "#1C1913", color: "#FBF8F2", padding: "26px", display: "flex", flexDirection: "column", gap: "14px" } },
-          h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontWeight: 800, fontSize: "18px" } }, "kaamzo", h("span", { style: { color: "#F5A524" } }, "."), " GATE PASS"), h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: "#2E9E57", color: "#FFFFFF", fontSize: "11px", fontWeight: 800 } }, worker?.isVerified ? "UIDAI VERIFIED" : "KYC PENDING")),
-          h("div", { style: { fontSize: "24px", fontWeight: 800 } }, worker?.name || "Sign in to view Gate Pass"),
-          h("div", { style: { fontSize: "14px", color: "#F3C969", fontWeight: 700 } }, `Trade: ${worker?.primaryTrade || "—"} (Locked) · ID: ${worker?.id || "—"}`),
-          h(
-            "button",
-            {
-              type: "button",
-              onClick: () => {
-                if (typeof window.kaamzoDownloadGatePassImage === "function") {
-                  window.kaamzoDownloadGatePassImage(worker || { name: "Worker", id: "demo", primaryTrade: "Plumber" });
-                }
-              },
-              style: { height: "46px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "14px" },
+          "span",
+          {
+            style: {
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: isVerified ? "#2E9E57" : "#F5A524",
+              color: isVerified ? "#FFFFFF" : "#1C1913",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "22px",
+              fontWeight: 800,
+              flexShrink: 0,
             },
-            "Download Official Gate Pass PNG"
+          },
+          isVerified ? "✓" : "⏳"
+        ),
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+          h(
+            "b",
+            { style: { fontSize: "20px", color: isVerified ? "#1D6B36" : isDark ? "#EDE6DA" : "#1C1913" } },
+            isVerified
+              ? `The worker ${workerName} is verified from Kaamzo.`
+              : `${workerName} — Kaamzo KYC verification pending.`
+          ),
+          h(
+            "span",
+            { style: { fontSize: "13.5px", color: isVerified ? "#2D4A36" : isDark ? "#B0A899" : "#6F685D" } },
+            isVerified
+              ? "Aadhaar KYC & live selfie matched and approved by Kaamzo."
+              : "Awaiting Admin KYC approval to activate full Kaamzo verification."
           )
+        )
+      ),
+      // Gate Pass QR Card
+      h(
+        "aside",
+        { style: { borderRadius: "32px", background: "#1C1913", color: "#FBF8F2", padding: "26px", display: "flex", flexDirection: "column", gap: "14px" } },
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontWeight: 800, fontSize: "18px" } }, "kaamzo", h("span", { style: { color: "#F5A524" } }, "."), " GATE PASS"), h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: isVerified ? "#2E9E57" : "#F5A524", color: isVerified ? "#FFFFFF" : "#1C1913", fontSize: "11px", fontWeight: 800 } }, isVerified ? "VERIFIED FROM KAAMZO" : "KYC PENDING")),
+        h("div", { style: { fontSize: "26px", fontWeight: 800 } }, worker?.name || "Sign in to view Gate Pass"),
+        h("div", { style: { fontSize: "14px", color: "#F3C969", fontWeight: 700 } }, `Trade: ${worker?.primaryTrade || "—"} (Locked) · ID: ${worker?.id || "—"}`),
+        h(
+          "button",
+          {
+            type: "button",
+            onClick: () => {
+              if (typeof window.kaamzoDownloadGatePassImage === "function") {
+                window.kaamzoDownloadGatePassImage(worker || { name: "Worker", id: "demo", primaryTrade: "Plumber" });
+              }
+            },
+            style: { height: "46px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "14px", cursor: "pointer" },
+          },
+          "Download Official Gate Pass PNG"
         )
       )
     );
