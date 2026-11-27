@@ -1466,24 +1466,30 @@
                   borderColor: activeUser ? "#1C1913" : pillBtn.borderColor,
                 }),
               },
-              h(
-                "span",
-                {
-                  style: {
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    background: activeUser ? "#F5A524" : "#FFF0BF",
-                    color: "#1C1913",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 800,
-                    fontSize: "12px",
-                  },
-                },
-                (activeUser?.name || "G").slice(0, 1).toUpperCase()
-              ),
+              activeUser?.photoUrl || activeUser?.avatar
+                ? h("img", {
+                    src: activeUser.photoUrl || activeUser.avatar,
+                    alt: activeUser.name || "Avatar",
+                    style: { width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" },
+                  })
+                : h(
+                    "span",
+                    {
+                      style: {
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "50%",
+                        background: activeUser ? "#F5A524" : "#FFF0BF",
+                        color: "#1C1913",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 800,
+                        fontSize: "12px",
+                      },
+                    },
+                    (activeUser?.name || "G").slice(0, 1).toUpperCase()
+                  ),
               h("span", null, activeUser ? activeUser.name.split(" ")[0] : "Sign in")
             ),
             openMenu === "profile" &&
@@ -1506,24 +1512,30 @@
                 h(
                   "div",
                   { style: { display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px" } },
-                  h(
-                    "span",
-                    {
-                      style: {
-                        width: "44px",
-                        height: "44px",
-                        borderRadius: "50%",
-                        background: "#1C1913",
-                        color: "#F5A524",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 800,
-                        fontSize: "16px",
-                      },
-                    },
-                    (activeUser?.name || "K").slice(0, 1).toUpperCase()
-                  ),
+                  activeUser?.photoUrl || activeUser?.avatar
+                    ? h("img", {
+                        src: activeUser.photoUrl || activeUser.avatar,
+                        alt: activeUser.name || "Avatar",
+                        style: { width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", border: "2px solid #F5A524" },
+                      })
+                    : h(
+                        "span",
+                        {
+                          style: {
+                            width: "44px",
+                            height: "44px",
+                            borderRadius: "50%",
+                            background: "#1C1913",
+                            color: "#F5A524",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 800,
+                            fontSize: "16px",
+                          },
+                        },
+                        (activeUser?.name || "K").slice(0, 1).toUpperCase()
+                      ),
                   h(
                     "span",
                     { style: { display: "flex", flexDirection: "column" } },
@@ -1531,10 +1543,33 @@
                     h(
                       "span",
                       { style: { fontSize: "12px", color: isDark ? "#B0A899" : "#6F685D" } },
-                      `${roleLabel} · ${app.currentCity?.name || "Ludhiana"}`
+                      `${activeUser?.username || activeUser?.userId ? "@" + (activeUser.username || activeUser.userId) + " · " : ""}${roleLabel}`
                     )
                   )
                 ),
+                activeUser &&
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => {
+                        setOpenMenu(null);
+                        KZ.openProfileEditor?.();
+                      },
+                      style: {
+                        padding: "12px",
+                        borderRadius: "14px",
+                        border: "1px solid #F5A524",
+                        background: isDark ? "#27231C" : "#FFF7E3",
+                        textAlign: "left",
+                        fontWeight: 800,
+                        fontSize: "13.5px",
+                        color: isDark ? "#F5A524" : "#7A4E00",
+                        cursor: "pointer",
+                      },
+                    },
+                    "✏️ Edit Username, Photo & ID Card"
+                  ),
                 activeUser &&
                   h(
                     "button",
@@ -4665,6 +4700,804 @@
     );
   }
 
+  // =========================================================================
+  // DYNAMIC PORTRAIT PVC ID CARD (85.6 x 54 mm Front & Back) + PROFILE EDITOR
+  // =========================================================================
+  function renderPvcIdCardPair({ user, role }) {
+    const isWorker = role === "worker" || user?.role === "worker" || Boolean(user?.primaryTrade);
+    const fullName = String(user?.name || "Ramesh Kumar").trim() || "Ramesh Kumar";
+    const username = String(user?.username || user?.userId || fullName.toLowerCase().replace(/\s+/g, "_")).trim();
+    const skillLabel = isWorker ? String(user?.primaryTrade || user?.trade || "Painter") : "Verified Employer";
+    const photoSrc = String(user?.photoUrl || user?.avatar || "").trim();
+    const emergencyNo = String(user?.emergencyContactPhone || user?.phone || "+91 XXXXX XXXXX").trim();
+    const qrUrl = `https://www.kaamzo.site/worker/khata-and-gate-pass?u=${encodeURIComponent(username)}`;
+
+    return h(
+      "div",
+      {
+        style: {
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "24px",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          padding: "20px",
+          borderRadius: "24px",
+          background: "#EAE3D5",
+        },
+      },
+      // FRONT SIDE (Portrait CR80)
+      h(
+        "div",
+        { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" } },
+        h(
+          "div",
+          {
+            style: {
+              width: "270px",
+              height: "428px",
+              borderRadius: "18px",
+              overflow: "hidden",
+              background: "#FBF8F2",
+              boxShadow: "0 18px 38px rgba(28,22,16,0.22)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              color: "#231C15",
+            },
+          },
+          // Espresso Header with cream "kaamzo." + orange dot
+          h(
+            "div",
+            {
+              style: {
+                background: "#231C15",
+                padding: "12px 16px 14px",
+                borderBottom: "4px solid #E8930C",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
+              },
+            },
+            h("div", { style: { width: "40px", height: "7px", borderRadius: "999px", background: "#17120D" } }),
+            h(
+              "div",
+              { style: { fontSize: "24px", fontWeight: 800, color: "#FBF8F2", letterSpacing: "-0.7px", lineHeight: 1 } },
+              "kaamzo",
+              h("span", { style: { color: "#E8930C" } }, ".")
+            ),
+            h(
+              "div",
+              { style: { fontSize: "7.5px", fontWeight: 800, color: "#D9CBB8", letterSpacing: "1.5px" } },
+              isWorker ? "VERIFIED WORKER ID" : "VERIFIED CUSTOMER ID"
+            )
+          ),
+          // Portrait Photo + Name + Blue Verified Tick + Trade
+          h(
+            "div",
+            {
+              style: {
+                flex: 1,
+                padding: "14px 16px 10px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-between",
+              },
+            },
+            h(
+              "div",
+              {
+                style: {
+                  width: "142px",
+                  height: "170px",
+                  borderRadius: "16px",
+                  background: "linear-gradient(180deg, #F5EFE4 0%, #E8DEC9 100%)",
+                  border: "3px solid #231C15",
+                  overflow: "hidden",
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 8px 18px rgba(35,28,21,0.14)",
+                },
+              },
+              h("div", { style: { position: "absolute", top: 0, left: 0, right: 0, height: "4px", background: "#F5A524", zIndex: 2 } }),
+              photoSrc
+                ? h("img", {
+                    src: photoSrc,
+                    alt: fullName,
+                    style: { width: "100%", height: "100%", objectFit: "cover" },
+                  })
+                : h(
+                    "svg",
+                    { width: 136, height: 162, viewBox: "0 0 216 254", fill: "none" },
+                    h("circle", { cx: 108, cy: 110, r: 88, fill: "#EFE6D5" }),
+                    h("rect", { x: 56, y: 88, width: 12, height: 26, rx: 6, fill: "#C68652" }),
+                    h("rect", { x: 148, y: 88, width: 12, height: 26, rx: 6, fill: "#C68652" }),
+                    h("path", { d: "M88 142 H128 V178 H88 Z", fill: "#C68652" }),
+                    h("rect", { x: 64, y: 42, width: 88, height: 110, rx: 42, fill: "#D59560" }),
+                    h("path", { d: "M64 82 C64 42, 82 32, 108 32 C134 32, 152 42, 152 82 C148 62, 134 54, 108 54 C82 54, 68 62, 64 82 Z", fill: "#231C15" }),
+                    h("circle", { cx: 89, cy: 92, r: 4.5, fill: "#231C15" }),
+                    h("circle", { cx: 127, cy: 92, r: 4.5, fill: "#231C15" }),
+                    h("path", { d: "M90 123 Q108 117 126 123", stroke: "#231C15", strokeWidth: 5, strokeLinecap: "round" }),
+                    h("path", { d: "M24 254 C24 190, 58 172, 108 172 C158 172, 192 190, 192 254 Z", fill: "#231C15" }),
+                    h("path", { d: "M84 172 L108 206 L132 172 L122 168 L108 190 L94 168 Z", fill: "#F5A524" })
+                  )
+            ),
+            h(
+              "div",
+              { style: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "5px" } },
+              h(
+                "div",
+                { style: { display: "inline-flex", alignItems: "center", gap: "6px" } },
+                h("b", { style: { fontSize: "19px", fontWeight: 800, color: "#231C15", lineHeight: 1.1 } }, fullName),
+                h(
+                  "svg",
+                  { width: 19, height: 19, viewBox: "0 0 24 24", fill: "none" },
+                  h("path", {
+                    d: "M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z",
+                    fill: "#1D9BF0",
+                  }),
+                  h("path", { d: "M9.6 16.2L5.8 12.4l1.4-1.4 2.4 2.4 6.2-6.2 1.4 1.4-7.6 7.6z", fill: "#FFFFFF" })
+                )
+              ),
+              h("span", { style: { fontSize: "11px", fontWeight: 700, color: "#7A6A58" } }, "@" + username),
+              h(
+                "span",
+                {
+                  style: {
+                    padding: "4px 16px",
+                    borderRadius: "999px",
+                    background: "#FFF0D4",
+                    border: "1.5px solid #E8930C",
+                    color: "#7A4400",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                  },
+                },
+                skillLabel
+              )
+            ),
+            h("div", { style: { width: "100%", height: "1px", background: "#E6DEC8" } })
+          ),
+          // Emergency Footer
+          h(
+            "div",
+            {
+              style: {
+                background: "#231C15",
+                padding: "10px 12px",
+                borderTop: "2.5px solid #E8930C",
+                textAlign: "center",
+                fontSize: "10.5px",
+                fontWeight: 800,
+                color: "#FBF8F2",
+              },
+            },
+            h("span", { style: { color: "#F5A524" } }, "Emergency No: "),
+            emergencyNo
+          )
+        ),
+        h("span", { style: { fontSize: "10px", fontWeight: 800, letterSpacing: "1.4px", color: "#5C4B3B" } }, "FRONT SIDE (85.6 × 54 MM)")
+      ),
+
+      // BACK SIDE (Portrait CR80 with QR Khata)
+      h(
+        "div",
+        { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" } },
+        h(
+          "div",
+          {
+            style: {
+              width: "270px",
+              height: "428px",
+              borderRadius: "18px",
+              overflow: "hidden",
+              background: "#231C15",
+              color: "#FBF8F2",
+              boxShadow: "0 18px 38px rgba(28,22,16,0.22)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            },
+          },
+          h(
+            "div",
+            null,
+            h(
+              "div",
+              { style: { padding: "12px 16px 10px", display: "flex", justifyContent: "center" } },
+              h("div", { style: { width: "40px", height: "7px", borderRadius: "999px", background: "#17120D" } })
+            ),
+            h("div", { style: { width: "100%", height: "4px", background: "linear-gradient(90deg, #E8930C 0%, #F5A524 50%, #E8930C 100%)" } })
+          ),
+          h(
+            "div",
+            { style: { padding: "0 20px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "12px" } },
+            h(
+              "div",
+              { style: { fontSize: "30px", fontWeight: 800, color: "#FBF8F2", letterSpacing: "-1px", lineHeight: 1 } },
+              "kaamzo",
+              h("span", { style: { color: "#E8930C" } }, ".")
+            ),
+            h(
+              "div",
+              {
+                style: {
+                  background: "#FBF8F2",
+                  border: "2.5px solid #E8930C",
+                  borderRadius: "16px",
+                  padding: "10px 12px 8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                },
+              },
+              renderRealScannableQr(qrUrl, 108, "#231C15"),
+              h("span", { style: { fontSize: "8px", fontWeight: 800, color: "#231C15", letterSpacing: "1px" } }, "SCAN FOR QR KHATA")
+            ),
+            h("div", { style: { width: "36px", height: "2px", borderRadius: "999px", background: "#E8930C" } }),
+            h(
+              "p",
+              { style: { margin: 0, fontSize: "10.5px", fontWeight: 600, color: "#F3ECE0", lineHeight: 1.45 } },
+              "If this card looks suspicious, don't allow entry and call Kaamzo support."
+            )
+          ),
+          h(
+            "div",
+            { style: { padding: "0 0 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" } },
+            h("div", { style: { width: "72%", height: "1px", background: "rgba(245,165,36,0.28)" } }),
+            h("span", { style: { fontSize: "12px", fontWeight: 800, color: "#F5A524", letterSpacing: "0.8px" } }, "kaamzo.site")
+          )
+        ),
+        h("span", { style: { fontSize: "10px", fontWeight: 800, letterSpacing: "1.4px", color: "#5C4B3B" } }, "BACK SIDE (85.6 × 54 MM)")
+      )
+    );
+  }
+
+  async function downloadDynamicPvcIdCard(user, role, app) {
+    try {
+      const isWorker = role === "worker" || user?.role === "worker" || Boolean(user?.primaryTrade);
+      const fullName = String(user?.name || "Ramesh Kumar").trim() || "Ramesh Kumar";
+      const username = String(user?.username || user?.userId || fullName.toLowerCase().replace(/\s+/g, "_")).trim();
+      const skillLabel = isWorker ? String(user?.primaryTrade || user?.trade || "Painter") : "Verified Employer";
+      const photoSrc = String(user?.photoUrl || user?.avatar || "").trim();
+      const emergencyNo = String(user?.emergencyContactPhone || user?.phone || "+91 XXXXX XXXXX").trim();
+      const qrUrl = `https://www.kaamzo.site/worker/khata-and-gate-pass?u=${encodeURIComponent(username)}`;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1120;
+      canvas.height = 820;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const roundRect = (x, y, w, hRect, r) => {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + hRect, r);
+        ctx.arcTo(x + w, y + hRect, x, y + hRect, r);
+        ctx.arcTo(x, y + hRect, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      };
+
+      // Neutral warm background
+      ctx.fillStyle = "#EAE3D5";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Card dimensions (420 x 666 each)
+      const cW = 420;
+      const cH = 666;
+      const fX = 110;
+      const bX = 590;
+      const cY = 64;
+
+      // ---------------- FRONT CARD ----------------
+      ctx.save();
+      roundRect(fX, cY, cW, cH, 26);
+      ctx.fillStyle = "#FBF8F2";
+      ctx.fill();
+      ctx.clip();
+
+      // Header band
+      ctx.fillStyle = "#231C15";
+      ctx.fillRect(fX, cY, cW, 118);
+      ctx.fillStyle = "#E8930C";
+      ctx.fillRect(fX, cY + 114, cW, 5);
+
+      // Lanyard slot
+      roundRect(fX + cW / 2 - 29, cY + 18, 58, 11, 6);
+      ctx.fillStyle = "#17120D";
+      ctx.fill();
+
+      // "kaamzo." wordmark in cream + orange dot
+      ctx.font = "800 36px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FBF8F2";
+      ctx.fillText("kaamzo", fX + cW / 2 - 6, cY + 72);
+      ctx.fillStyle = "#E8930C";
+      ctx.fillText(".", fX + cW / 2 + 68, cY + 72);
+
+      ctx.font = "800 10px sans-serif";
+      ctx.fillStyle = "#D9CBB8";
+      ctx.fillText(isWorker ? "VERIFIED WORKER ID" : "VERIFIED CUSTOMER ID", fX + cW / 2, cY + 96);
+
+      // Photo frame
+      const pW = 220;
+      const pH = 260;
+      const pX = fX + (cW - pW) / 2;
+      const pY = cY + 148;
+      ctx.save();
+      roundRect(pX, pY, pW, pH, 22);
+      ctx.fillStyle = "#EFE6D5";
+      ctx.fill();
+      ctx.clip();
+
+      if (photoSrc) {
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            const scale = Math.max(pW / (img.width || 1), pH / (img.height || 1));
+            const dW = (img.width || pW) * scale;
+            const dH = (img.height || pH) * scale;
+            ctx.drawImage(img, pX + (pW - dW) / 2, pY + (pH - dH) / 2, dW, dH);
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = photoSrc;
+        });
+      } else {
+        // Warm placeholder portrait
+        ctx.fillStyle = "#D59560";
+        ctx.beginPath();
+        ctx.arc(pX + pW / 2, pY + 105, 46, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#231C15";
+        ctx.beginPath();
+        ctx.arc(pX + pW / 2, pY + 255, 86, Math.PI, 0);
+        ctx.fill();
+      }
+      ctx.fillStyle = "#F5A524";
+      ctx.fillRect(pX, pY, pW, 6);
+      ctx.restore();
+
+      roundRect(pX, pY, pW, pH, 22);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#231C15";
+      ctx.stroke();
+
+      // Name + Blue Verified Tick
+      ctx.font = "800 30px sans-serif";
+      ctx.fillStyle = "#231C15";
+      ctx.textAlign = "center";
+      const nameW = ctx.measureText(fullName).width;
+      ctx.fillText(fullName, fX + cW / 2 - 14, cY + 462);
+
+      // Blue verified circle + check
+      const tickX = fX + cW / 2 + nameW / 2 + 6;
+      const tickY = cY + 452;
+      ctx.fillStyle = "#1D9BF0";
+      ctx.beginPath();
+      ctx.arc(tickX, tickY, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.moveTo(tickX - 5, tickY);
+      ctx.lineTo(tickX - 1.5, tickY + 4);
+      ctx.lineTo(tickX + 5.5, tickY - 4);
+      ctx.stroke();
+
+      // @username
+      ctx.font = "700 14px sans-serif";
+      ctx.fillStyle = "#7A6A58";
+      ctx.fillText("@" + username, fX + cW / 2, cY + 486);
+
+      // Skill pill
+      const pillW = Math.max(130, ctx.measureText(skillLabel).width + 52);
+      roundRect(fX + (cW - pillW) / 2, cY + 502, pillW, 38, 19);
+      ctx.fillStyle = "#FFF0D4";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#E8930C";
+      ctx.stroke();
+      ctx.font = "800 17px sans-serif";
+      ctx.fillStyle = "#7A4400";
+      ctx.fillText(skillLabel, fX + cW / 2, cY + 527);
+
+      // Bottom Emergency Bar
+      ctx.fillStyle = "#231C15";
+      ctx.fillRect(fX, cY + cH - 54, cW, 54);
+      ctx.fillStyle = "#E8930C";
+      ctx.fillRect(fX, cY + cH - 54, cW, 3);
+      ctx.font = "800 15px sans-serif";
+      ctx.fillStyle = "#F5A524";
+      ctx.fillText(`Emergency No: ${emergencyNo}`, fX + cW / 2, cY + cH - 22);
+      ctx.restore();
+
+      // ---------------- BACK CARD ----------------
+      ctx.save();
+      roundRect(bX, cY, cW, cH, 26);
+      ctx.fillStyle = "#231C15";
+      ctx.fill();
+      ctx.clip();
+
+      roundRect(bX + cW / 2 - 29, cY + 18, 58, 11, 6);
+      ctx.fillStyle = "#17120D";
+      ctx.fill();
+
+      ctx.fillStyle = "#F5A524";
+      ctx.fillRect(bX, cY + 44, cW, 6);
+
+      // "kaamzo." wordmark in cream + orange dot
+      ctx.font = "800 44px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FBF8F2";
+      ctx.fillText("kaamzo", bX + cW / 2 - 8, cY + 148);
+      ctx.fillStyle = "#E8930C";
+      ctx.fillText(".", bX + cW / 2 + 84, cY + 148);
+
+      // QR Khata Box
+      const qBoxW = 200;
+      const qBoxH = 216;
+      const qBoxX = bX + (cW - qBoxW) / 2;
+      const qBoxY = cY + 182;
+      roundRect(qBoxX, qBoxY, qBoxW, qBoxH, 20);
+      ctx.fillStyle = "#FBF8F2";
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#E8930C";
+      ctx.stroke();
+
+      if (typeof window.qrcode === "function") {
+        const qr = window.qrcode(0, "M");
+        qr.addData(qrUrl);
+        qr.make();
+        const count = qr.getModuleCount();
+        const qrSize = 156;
+        const cell = qrSize / count;
+        const startX = qBoxX + (qBoxW - qrSize) / 2;
+        const startY = qBoxY + 16;
+        ctx.fillStyle = "#231C15";
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect(startX + c * cell, startY + r * cell, Math.ceil(cell), Math.ceil(cell));
+            }
+          }
+        }
+      }
+      ctx.font = "800 11px sans-serif";
+      ctx.fillStyle = "#231C15";
+      ctx.fillText("SCAN FOR QR KHATA", bX + cW / 2, qBoxY + qBoxH - 14);
+
+      ctx.font = "600 14.5px sans-serif";
+      ctx.fillStyle = "#F3ECE0";
+      ctx.fillText("If this card looks suspicious, don't allow", bX + cW / 2, cY + 462);
+      ctx.fillText("entry and call Kaamzo support.", bX + cW / 2, cY + 484);
+
+      ctx.fillStyle = "rgba(245,165,36,0.3)";
+      ctx.fillRect(bX + 60, cY + cH - 64, cW - 120, 1);
+      ctx.font = "800 18px sans-serif";
+      ctx.fillStyle = "#F5A524";
+      ctx.fillText("kaamzo.site", bX + cW / 2, cY + cH - 28);
+      ctx.restore();
+
+      // Side labels
+      ctx.font = "800 12px sans-serif";
+      ctx.fillStyle = "#5C4B3B";
+      ctx.textAlign = "center";
+      ctx.fillText("FRONT SIDE (85.6 × 54 MM)", fX + cW / 2, cY + cH + 34);
+      ctx.fillText("BACK SIDE (85.6 × 54 MM)", bX + cW / 2, cY + cH + 34);
+
+      const dataUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `Kaamzo-ID-Card-${username}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      app?.showNotification?.(`✓ Downloaded updated Kaamzo PVC ID Card for ${fullName}!`);
+    } catch (_) {
+      app?.showNotification?.("Could not generate ID card PNG. Please try again.");
+    }
+  }
+
+  function EditProfileAndIdCardModal({ onClose }) {
+    const app = useApp();
+    const isDark = app.isDarkMode;
+    const isWorkerRole = app.currentRole === "worker" ? Boolean(app.currentWorker) : !app.currentCustomer && Boolean(app.currentWorker);
+    const activeUser = isWorkerRole ? app.currentWorker : app.currentCustomer || app.currentWorker;
+    const role = isWorkerRole ? "worker" : "customer";
+
+    const [nameVal, setNameVal] = useState(() => activeUser?.name || "");
+    const [usernameVal, setUsernameVal] = useState(
+      () => activeUser?.username || activeUser?.userId || (activeUser?.name || "").toLowerCase().replace(/\s+/g, "_")
+    );
+    const [photoVal, setPhotoVal] = useState(() => activeUser?.photoUrl || activeUser?.avatar || "");
+    const [emergencyVal, setEmergencyVal] = useState(() => activeUser?.emergencyContactPhone || activeUser?.phone || "");
+    const [saving, setSaving] = useState(false);
+    const photoInputRef = useRef(null);
+
+    if (!activeUser) return null;
+
+    const handlePhotoChange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 320;
+            const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+            const c = document.createElement("canvas");
+            c.width = Math.max(1, Math.round(img.width * scale));
+            c.height = Math.max(1, Math.round(img.height * scale));
+            c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+            setPhotoVal(c.toDataURL("image/jpeg", 0.75));
+          } catch (_) {
+            setPhotoVal(String(reader.result || ""));
+          }
+        };
+        img.onerror = () => setPhotoVal(String(reader.result || ""));
+        img.src = String(reader.result || "");
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const previewUser = Object.assign({}, activeUser, {
+      name: nameVal.trim() || activeUser.name || "Ramesh Kumar",
+      username: usernameVal.trim().toLowerCase().replace(/\s+/g, "_") || "user",
+      userId: usernameVal.trim().toLowerCase().replace(/\s+/g, "_") || "user",
+      photoUrl: photoVal,
+      avatar: photoVal,
+      emergencyContactPhone: emergencyVal.trim() || activeUser.phone || "+91 XXXXX XXXXX",
+    });
+
+    const handleSaveProfile = async (e) => {
+      e?.preventDefault?.();
+      if (!nameVal.trim()) {
+        app.showNotification?.("Please enter your name.");
+        return;
+      }
+      setSaving(true);
+      const cleanUser = usernameVal.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "_") || "kaamzo_user";
+      const updated = Object.assign({}, activeUser, {
+        name: nameVal.trim(),
+        username: cleanUser,
+        userId: cleanUser,
+        photoUrl: photoVal,
+        avatar: photoVal,
+        emergencyContactPhone: emergencyVal.trim() || activeUser.emergencyContactPhone || activeUser.phone,
+        updatedAt: new Date().toISOString(),
+      });
+
+      if (role === "worker") {
+        app.updateWorkerProfile?.(updated);
+        if (photoVal) app.updateWorkerAvatar?.(photoVal);
+        app.loginWorker?.(updated);
+      } else {
+        app.loginCustomer?.(updated);
+      }
+
+      try {
+        const accountId = activeUser.userId || activeUser.username || cleanUser;
+        const reqs = [
+          fetch("/api/db", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "upsert",
+              collection: "accounts",
+              id: accountId,
+              data: {
+                id: accountId,
+                userId: cleanUser,
+                username: cleanUser,
+                role,
+                name: updated.name,
+                phone: updated.phone,
+                email: updated.email,
+                photoUrl: photoVal,
+                extraData: updated,
+              },
+            }),
+          }),
+        ];
+        if (role === "worker" && updated.id) {
+          reqs.push(
+            fetch("/api/db", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "upsert",
+                collection: "workers",
+                id: updated.id,
+                data: updated,
+              }),
+            })
+          );
+        }
+        await Promise.allSettled(reqs);
+      } catch (_) {}
+
+      setSaving(false);
+      app.showNotification?.("✓ Profile, username & ID card updated!");
+    };
+
+    const cardBg = isDark ? "#1F1C17" : "#FFFFFF";
+    const borderCol = isDark ? "#3A342C" : "#E5DCCB";
+
+    return h(
+      "div",
+      {
+        role: "dialog",
+        "aria-modal": "true",
+        style: {
+          position: "fixed",
+          inset: 0,
+          background: "rgba(28,25,19,0.68)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "16px",
+          zIndex: 140,
+          overflowY: "auto",
+        },
+        onClick: (e) => {
+          if (e.target === e.currentTarget) onClose();
+        },
+      },
+      h(
+        "div",
+        {
+          style: {
+            width: "100%",
+            maxWidth: "820px",
+            maxHeight: "92vh",
+            overflowY: "auto",
+            borderRadius: "28px",
+            background: cardBg,
+            color: isDark ? "#EDE6DA" : "#1C1913",
+            border: "1px solid " + borderCol,
+            boxShadow: "0 26px 60px rgba(28,22,16,0.32)",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+          },
+        },
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" } },
+          h(
+            "div",
+            null,
+            h("span", { style: { fontSize: "11px", fontWeight: 800, letterSpacing: "1px", color: "#E8930C" } }, "EDIT PROFILE & GENERATE PVC ID CARD"),
+            h("h3", { style: { margin: "4px 0 0", fontSize: "24px", fontWeight: 800 } }, "Update Username, Photo & ID Card")
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: onClose,
+              style: { border: 0, background: "transparent", color: isDark ? "#EDE6DA" : "#1C1913", fontSize: "20px", fontWeight: 800, cursor: "pointer" },
+            },
+            "✕"
+          )
+        ),
+
+        // Form Fields
+        h(
+          "form",
+          { onSubmit: handleSaveProfile, style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px", alignItems: "end" } },
+          h(
+            "label",
+            { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+            "Full Name (shown on ID Card)",
+            h("input", {
+              type: "text",
+              value: nameVal,
+              onChange: (e) => setNameVal(e.target.value),
+              placeholder: "e.g. Ramesh Kumar",
+              style: { height: "44px", borderRadius: "12px", border: "1.5px solid " + borderCol, padding: "0 12px", fontSize: "14px", fontWeight: 700, background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
+            })
+          ),
+          h(
+            "label",
+            { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+            "Username / User ID",
+            h("input", {
+              type: "text",
+              value: usernameVal,
+              onChange: (e) => setUsernameVal(e.target.value),
+              placeholder: "e.g. ramesh_kumar",
+              style: { height: "44px", borderRadius: "12px", border: "1.5px solid " + borderCol, padding: "0 12px", fontSize: "14px", fontWeight: 700, background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
+            })
+          ),
+          h(
+            "label",
+            { style: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", fontWeight: 800 } },
+            "Emergency Contact Number",
+            h("input", {
+              type: "text",
+              value: emergencyVal,
+              onChange: (e) => setEmergencyVal(e.target.value),
+              placeholder: "+91 98140 12345",
+              style: { height: "44px", borderRadius: "12px", border: "1.5px solid " + borderCol, padding: "0 12px", fontSize: "14px", fontWeight: 700, background: isDark ? "#14120E" : "#FBF8F2", color: isDark ? "#EDE6DA" : "#1C1913" },
+            })
+          ),
+          h(
+            "div",
+            { style: { display: "flex", gap: "8px", alignItems: "center" } },
+            h("input", { ref: photoInputRef, type: "file", accept: "image/*", style: { display: "none" }, onChange: handlePhotoChange }),
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => photoInputRef.current?.click(),
+                style: { flex: 1, height: "44px", padding: "0 14px", borderRadius: "12px", border: "1.5px solid #F5A524", background: isDark ? "#27231C" : "#FFF7E3", color: isDark ? "#F5A524" : "#7A4E00", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+              },
+              "📷 Change Profile Photo"
+            ),
+            h(
+              "button",
+              {
+                type: "submit",
+                disabled: saving,
+                style: { height: "44px", padding: "0 18px", borderRadius: "12px", border: 0, background: "#2E9E57", color: "#FFFFFF", fontWeight: 800, fontSize: "13px", cursor: "pointer" },
+              },
+              saving ? "Saving…" : "💾 Save Profile"
+            )
+          )
+        ),
+
+        // Live Portrait PVC ID Card Preview (Front & Back side-by-side)
+        renderPvcIdCardPair({ user: previewUser, role }),
+
+        // Download Updated ID Card CTA
+        h(
+          "div",
+          { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" } },
+          h("span", { style: { fontSize: "12.5px", color: isDark ? "#B0A899" : "#6F685D", fontWeight: 600 } }, "Live preview updates automatically as you change your username or photo."),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: async () => {
+                await handleSaveProfile();
+                await downloadDynamicPvcIdCard(previewUser, role, app);
+              },
+              style: {
+                height: "48px",
+                padding: "0 24px",
+                borderRadius: "999px",
+                border: 0,
+                background: "#1C1913",
+                color: "#F5A524",
+                fontWeight: 800,
+                fontSize: "14px",
+                cursor: "pointer",
+                boxShadow: "0 10px 24px rgba(28,25,19,0.24)",
+              },
+            },
+            "⬇️ Save & Download Updated PVC ID Card (PNG)"
+          )
+        )
+      )
+    );
+  }
+
+  KZ.renderPvcIdCardPair = renderPvcIdCardPair;
+  KZ.downloadDynamicPvcIdCard = downloadDynamicPvcIdCard;
+  window.kaamzoDownloadGatePassImage = (w) => downloadDynamicPvcIdCard(w, "worker");
+
   KZ.MainApp = function MainApp() {
     const app = useApp();
     const { path } = useRoute();
@@ -4672,6 +5505,7 @@
     const [loginPrompt, setLoginPrompt] = useState(null);
     const [completeJobModal, setCompleteJobModal] = useState(null);
     const [fampayJob, setFampayJob] = useState(null);
+    const [profileEditorOpen, setProfileEditorOpen] = useState(false);
     const [customerRingJob, setCustomerRingJob] = useState(null);
     const [storageTick, setStorageTick] = useState(0);
     const prevStatusesRef = useRef({});
@@ -4716,11 +5550,13 @@
       KZ.openLoginPrompt = (cfg) => setLoginPrompt(cfg || { title: "Login to post a job" });
       KZ.openCompleteJobModal = (job) => setCompleteJobModal(job || null);
       KZ.openFampayPaymentModal = (job) => setFampayJob(job || null);
+      KZ.openProfileEditor = () => setProfileEditorOpen(true);
       return () => {
         KZ.openOtpModal = null;
         KZ.openLoginPrompt = null;
         KZ.openCompleteJobModal = null;
         KZ.openFampayPaymentModal = null;
+        KZ.openProfileEditor = null;
       };
     }, []);
 
@@ -4872,6 +5708,7 @@
       loginPrompt && h(LoginRequiredModal, { config: loginPrompt, onClose: () => setLoginPrompt(null) }),
       completeJobModal && h(CompleteJobUpiModal, { job: completeJobModal, onClose: () => setCompleteJobModal(null) }),
       fampayJob && h(FamPayUpiPaymentModal, { job: fampayJob, onClose: () => setFampayJob(null) }),
+      profileEditorOpen && h(EditProfileAndIdCardModal, { onClose: () => setProfileEditorOpen(false) }),
       customerRingJob &&
         h(JobAcceptedRingingModal, {
           job: customerRingJob,
@@ -9374,14 +10211,28 @@
           )
         ),
         h(
-          "button",
-          {
-            type: "button",
-            onClick: () => navigate("/customer/post-a-job", { role: "customer" }),
-            style: { height: "52px", padding: "0 24px", border: 0, borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" },
-          },
-          h(SvgIcon, { path: ICON_PATHS.plus, size: 16, strokeWidth: 2.6 }),
-          "Post new job"
+          "div",
+          { style: { display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" } },
+          cust &&
+            h(
+              "button",
+              {
+                type: "button",
+                onClick: () => KZ.openProfileEditor?.(),
+                style: { height: "52px", padding: "0 20px", borderRadius: "999px", border: "1.5px solid #F5A524", background: isDark ? "#27231C" : "#FFF7E3", color: isDark ? "#F5A524" : "#7A4E00", fontWeight: 800, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" },
+              },
+              "✏️ Edit Username, Photo & ID Card"
+            ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => navigate("/customer/post-a-job", { role: "customer" }),
+              style: { height: "52px", padding: "0 24px", border: 0, borderRadius: "999px", background: "#F5A524", color: "#1C1913", fontWeight: 800, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" },
+            },
+            h(SvgIcon, { path: ICON_PATHS.plus, size: 16, strokeWidth: 2.6 }),
+            "Post new job"
+          )
         )
       ),
 
@@ -13216,7 +14067,20 @@
           h("h1", { style: { margin: 0, fontSize: "clamp(34px, 4vw, 54px)", lineHeight: 1, letterSpacing: "-1.6px", fontWeight: 800 } }, "Account & ", h("span", { style: { fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400 } }, "payouts")),
           h("p", { style: { margin: 0, fontSize: "16px", color: isDark ? "#CFC6B8" : "#4A443A" } }, "Verified job history, FamPay UPI earnings (6284194807@fam), client ratings and your locked primary trade.")
         ),
-        h("span", { style: { height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px", display: "flex", alignItems: "center" } }, "✓ 100% settled via FamPay / UPI")
+        h(
+          "div",
+          { style: { display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" } },
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => KZ.openProfileEditor?.(),
+              style: { height: "44px", padding: "0 18px", borderRadius: "999px", border: "1.5px solid #F5A524", background: isDark ? "#27231C" : "#FFF7E3", color: isDark ? "#F5A524" : "#7A4E00", fontWeight: 800, fontSize: "13.5px", cursor: "pointer" },
+            },
+            "✏️ Edit Username, Photo & ID Card"
+          ),
+          h("span", { style: { height: "44px", padding: "0 18px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontWeight: 800, fontSize: "14px", display: "flex", alignItems: "center" } }, "✓ 100% settled via FamPay / UPI")
+        )
       ),
       h(
         "section",
@@ -13335,25 +14199,39 @@
           )
         )
       ),
-      // Gate Pass QR Card
+      // Live Portrait Front & Back PVC ID Card with updated profile + Edit & Download Controls
+      KZ.renderPvcIdCardPair ? KZ.renderPvcIdCardPair({ user: worker || { name: "Ramesh Kumar", primaryTrade: "Painter" }, role: "worker" }) : null,
       h(
         "aside",
         { style: { borderRadius: "32px", background: "#1C1913", color: "#FBF8F2", padding: "26px", display: "flex", flexDirection: "column", gap: "14px" } },
-        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, h("span", { style: { fontWeight: 800, fontSize: "18px" } }, "kaamzo", h("span", { style: { color: "#F5A524" } }, "."), " GATE PASS"), h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: isVerified ? "#2E9E57" : "#F5A524", color: isVerified ? "#FFFFFF" : "#1C1913", fontSize: "11px", fontWeight: 800 } }, isVerified ? "VERIFIED FROM KAAMZO" : "KYC PENDING")),
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" } }, h("span", { style: { fontWeight: 800, fontSize: "18px" } }, "kaamzo", h("span", { style: { color: "#F5A524" } }, "."), " GATE PASS"), h("span", { style: { padding: "4px 10px", borderRadius: "999px", background: isVerified ? "#2E9E57" : "#F5A524", color: isVerified ? "#FFFFFF" : "#1C1913", fontSize: "11px", fontWeight: 800 } }, isVerified ? "VERIFIED FROM KAAMZO" : "KYC PENDING")),
         h("div", { style: { fontSize: "26px", fontWeight: 800 } }, worker?.name || "Sign in to view Gate Pass"),
-        h("div", { style: { fontSize: "14px", color: "#F3C969", fontWeight: 700 } }, `Trade: ${worker?.primaryTrade || "—"} (Locked) · ID: ${worker?.id || "—"}`),
+        h("div", { style: { fontSize: "14px", color: "#F3C969", fontWeight: 700 } }, `Username: @${worker?.username || worker?.userId || "worker"} · Trade: ${worker?.primaryTrade || "—"} (Locked)`),
         h(
-          "button",
-          {
-            type: "button",
-            onClick: () => {
-              if (typeof window.kaamzoDownloadGatePassImage === "function") {
-                window.kaamzoDownloadGatePassImage(worker || { name: "Worker", id: "demo", primaryTrade: "Plumber" });
-              }
+          "div",
+          { style: { display: "flex", gap: "10px", flexWrap: "wrap" } },
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => KZ.openProfileEditor?.(),
+              style: { flex: "1 1 200px", height: "46px", borderRadius: "999px", border: "1.5px solid #F5A524", background: "transparent", color: "#F5A524", fontWeight: 800, fontSize: "14px", cursor: "pointer" },
             },
-            style: { height: "46px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "14px", cursor: "pointer" },
-          },
-          "Download Official Gate Pass PNG"
+            "✏️ Change Username & Profile Photo"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => {
+                if (typeof KZ.downloadDynamicPvcIdCard === "function") {
+                  KZ.downloadDynamicPvcIdCard(worker || { name: "Ramesh Kumar", primaryTrade: "Painter" }, "worker", app);
+                }
+              },
+              style: { flex: "1 1 240px", height: "46px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "14px", cursor: "pointer" },
+            },
+            "⬇️ Download Updated PVC ID Card (PNG)"
+          )
         )
       )
     );
