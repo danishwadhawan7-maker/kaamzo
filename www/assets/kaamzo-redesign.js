@@ -4,6 +4,71 @@
 (function () {
   "use strict";
 
+  // Safe localStorage quota guard: prevents QuotaExceededError on kaamzo_workers_zero_v8 / kaamzo_* caches
+  // when workers upload base64 KYC/selfie images (full images remain in React state & MongoDB /api/db).
+  try {
+    if (typeof window !== "undefined" && window.Storage && !window.__kzStorageGuarded) {
+      window.__kzStorageGuarded = true;
+      const origSetItem = window.Storage.prototype.setItem;
+      const stripHeavyImages = (raw) => {
+        try {
+          const parsed = JSON.parse(raw);
+          const cleanObj = (node) => {
+            if (!node || typeof node !== "object") return node;
+            if (Array.isArray(node)) return node.map(cleanObj);
+            const out = {};
+            for (const k of Object.keys(node)) {
+              const v = node[k];
+              if (typeof v === "string" && v.startsWith("data:image/") && v.length > 16000) {
+                out[k] = "";
+              } else if (v && typeof v === "object") {
+                out[k] = cleanObj(v);
+              } else {
+                out[k] = v;
+              }
+            }
+            return out;
+          };
+          return JSON.stringify(cleanObj(parsed));
+        } catch (_) {
+          return raw;
+        }
+      };
+      window.Storage.prototype.setItem = function safeSetItem(key, value) {
+        const strKey = String(key || "");
+        const strVal = String(value ?? "");
+        const isKaamzoCache = strKey.startsWith("kaamzo_");
+        if (isKaamzoCache && strVal.length > 800000) {
+          const slim = stripHeavyImages(strVal);
+          try {
+            return origSetItem.call(this, strKey, slim);
+          } catch (_) {
+            try {
+              this.removeItem(strKey);
+            } catch (_e) {}
+            return;
+          }
+        }
+        try {
+          return origSetItem.call(this, strKey, strVal);
+        } catch (err) {
+          if (isKaamzoCache) {
+            try {
+              const slim = stripHeavyImages(strVal);
+              return origSetItem.call(this, strKey, slim);
+            } catch (_) {
+              try {
+                this.removeItem(strKey);
+              } catch (_e) {}
+              return;
+            }
+          }
+          throw err;
+        }
+      };
+    }
+  } catch (_) {}
+
   const KZ = (window.__KZ_REDESIGN__ = window.__KZ_REDESIGN__ || {
     views: {},
     utils: {},
@@ -6333,7 +6398,24 @@
       const file = e.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = () => setPhotoUrl(String(reader.result || ""));
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 320;
+            const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+            const c = document.createElement("canvas");
+            c.width = Math.max(1, Math.round(img.width * scale));
+            c.height = Math.max(1, Math.round(img.height * scale));
+            c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+            setPhotoUrl(c.toDataURL("image/jpeg", 0.72));
+          } catch (_) {
+            setPhotoUrl(String(reader.result || ""));
+          }
+        };
+        img.onerror = () => setPhotoUrl(String(reader.result || ""));
+        img.src = String(reader.result || "");
+      };
       reader.readAsDataURL(file);
     };
 
@@ -6345,13 +6427,13 @@
         const img = new Image();
         img.onload = () => {
           try {
-            const maxW = 720;
+            const maxW = 480;
             const scale = img.width > maxW ? maxW / img.width : 1;
             const c = document.createElement("canvas");
             c.width = Math.round(img.width * scale);
             c.height = Math.round(img.height * scale);
             c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
-            const compressed = c.toDataURL("image/jpeg", 0.78);
+            const compressed = c.toDataURL("image/jpeg", 0.68);
             if (side === "front") setAadhaarFrontPhoto(compressed);
             else setAadhaarBackPhoto(compressed);
           } catch (_) {
