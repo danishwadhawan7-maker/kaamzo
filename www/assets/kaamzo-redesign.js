@@ -6186,7 +6186,7 @@
         case "phone":
           return cleanPhone.length === 10;
         case "email":
-          return !email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+          return /^[^\s@]+@gmail\.com$/i.test(email.trim()) && Boolean(emailVerified);
         case "trade":
           return Boolean(trade);
         case "tools":
@@ -6804,7 +6804,7 @@
     const stepMeta = {
       name: { q: "What’s your full", qAccent: "name?", sub: "As it appears on your Aadhaar or bank account." },
       phone: { q: "Your mobile", qAccent: "number?", sub: "Used for OTP updates, arrival alerts, and direct UPI payout." },
-      email: { q: "Gmail", qAccent: "address?", sub: "Optional — verifies your account with a 6-digit Gmail OTP." },
+      email: { q: "Verify your", qAccent: "Gmail.", sub: "Mandatory — verify your @gmail.com with a 6-digit Gmail OTP or Google SSO to continue." },
       trade: { q: "Pick your primary", qAccent: "trade.", sub: "Once set, jobs and your QR Gate Pass lock to this trade." },
       tools: { q: "Do you bring your", qAccent: "own tools?", sub: "Customers expect verified workers to bring at least basic tools (toolkit, wrench, drill, ladder) for their trade." },
       logistics: { q: "Vehicle & voice", qAccent: "language.", sub: "Helps calculate real ETA across 10 km and speak job alerts in your language." },
@@ -7517,13 +7517,13 @@
               currentStepKey === "email" &&
                 h(
                   "div",
-                  { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+                  { style: { display: "flex", flexDirection: "column", gap: "12px" } },
                   h(
                     "div",
-                    { style: { display: "flex", alignItems: "center", gap: "8px", height: "60px", padding: "0 10px 0 16px", borderRadius: "18px", border: "2px solid " + (emailVerified ? "#2E9E57" : "#E9DFCC"), background: "#FFFFFF" } },
+                    { style: { display: "flex", alignItems: "center", gap: "8px", height: "60px", padding: "0 10px 0 16px", borderRadius: "18px", border: "2px solid " + (emailVerified ? "#2E9E57" : "#E8930C"), background: "#FFFFFF" } },
                     h("input", {
                       type: "email",
-                      placeholder: "you@gmail.com",
+                      placeholder: "yourname@gmail.com",
                       value: email,
                       onChange: (e) => {
                         setEmail(e.target.value);
@@ -7531,8 +7531,7 @@
                       },
                       style: { flex: 1, minWidth: 0, height: "100%", border: 0, outline: "none", fontSize: "17px", fontWeight: 600, background: "transparent" },
                     }),
-                    email &&
-                      email.includes("@") &&
+                    /^[^\s@]+@gmail\.com$/i.test(email.trim()) &&
                       !emailVerified &&
                       h(
                         "button",
@@ -7540,17 +7539,69 @@
                           type: "button",
                           onClick: () =>
                             openOtpModal?.({
-                              email: email.trim(),
+                              email: email.trim().toLowerCase(),
                               role,
                               onVerified: () => setEmailVerified(true),
                             }),
-                          style: { height: "40px", padding: "0 14px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "12px" },
+                          style: { height: "42px", padding: "0 16px", borderRadius: "999px", border: 0, background: "#F5A524", color: "#1C1913", fontWeight: 800, fontSize: "12.5px", cursor: "pointer", whiteSpace: "nowrap" },
                         },
                         "Send 6-digit OTP"
                       ),
                     emailVerified &&
-                      h("span", { style: { padding: "6px 10px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "12px", fontWeight: 800 } }, "✓ Verified")
-                  )
+                      h("span", { style: { padding: "6px 12px", borderRadius: "999px", background: "#E3F4E8", color: "#1D6B36", fontSize: "12px", fontWeight: 800, whiteSpace: "nowrap" } }, "✓ Gmail Verified")
+                  ),
+                  !emailVerified &&
+                    h(
+                      "div",
+                      { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+                      h(
+                        "span",
+                        {
+                          style: {
+                            fontSize: "12.5px",
+                            fontWeight: 700,
+                            color: email.trim() && !/^[^\s@]+@gmail\.com$/i.test(email.trim()) ? "#B42318" : "#7A4E00",
+                            background: "#FFF7E3",
+                            border: "1px solid #F5A524",
+                            padding: "10px 12px",
+                            borderRadius: "14px",
+                            lineHeight: 1.4,
+                          },
+                        },
+                        email.trim() && !/^[^\s@]+@gmail\.com$/i.test(email.trim())
+                          ? "⚠️ Please enter a valid @gmail.com address, then verify via 6-digit Gmail OTP or Google SSO."
+                          : "🔒 Mandatory: Click 'Send 6-digit OTP' (code goes to your @gmail.com inbox) or verify via Google SSO below to unlock Continue."
+                      ),
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: handleGoogleSSO,
+                          style: {
+                            height: "48px",
+                            borderRadius: "999px",
+                            border: "1.5px solid #E5DCCB",
+                            background: "#FFFFFF",
+                            fontWeight: 800,
+                            fontSize: "14px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "10px",
+                            cursor: "pointer",
+                          },
+                        },
+                        h(
+                          "svg",
+                          { width: 18, height: 18, viewBox: "0 0 48 48", "aria-hidden": "true" },
+                          h("path", { fill: "#EA4335", d: "M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z" }),
+                          h("path", { fill: "#4285F4", d: "M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z" }),
+                          h("path", { fill: "#FBBC05", d: "M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z" }),
+                          h("path", { fill: "#34A853", d: "M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-10l-7.8 6C6.6 42.6 14.6 48 24 48z" })
+                        ),
+                        "Or verify instantly with Google SSO"
+                      )
+                    )
                 ),
 
               currentStepKey === "trade" &&
